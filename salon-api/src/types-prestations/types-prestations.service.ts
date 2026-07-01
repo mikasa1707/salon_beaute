@@ -1,26 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTypesPrestationDto } from './dto/create-types-prestation.dto';
 import { UpdateTypesPrestationDto } from './dto/update-types-prestation.dto';
+import { TypePrestation } from './entities/types-prestation.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TypesPrestationsService {
-  create(createTypesPrestationDto: CreateTypesPrestationDto) {
-    return 'This action adds a new typesPrestation';
+  constructor(
+    @InjectRepository(TypePrestation)
+    private readonly repo: Repository<TypePrestation>,
+  ) {}
+
+  async create(createDto: CreateTypesPrestationDto) {
+    const _data = this.repo.create(createDto);
+    return await this.repo.save(_data);
   }
 
-  findAll() {
-    return `This action returns all typesPrestations`;
+  async findAll() {
+    return await this.repo.find({
+      relations: { prestations: true },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} typesPrestation`;
+  async findOne(id: number) {
+    const _data = await this.repo.findOne({
+      where: { id },
+      relations: { prestations: true },
+    });
+
+    if (!_data) {
+      throw new NotFoundException(`Marque ${id} introuvable`);
+    }
+    return _data;
   }
 
-  update(id: number, updateTypesPrestationDto: UpdateTypesPrestationDto) {
-    return `This action updates a #${id} typesPrestation`;
+  async update(id: number, updateDto: UpdateTypesPrestationDto) {
+    const _data = await this.repo.preload({
+      id,
+      ...updateDto,
+    });
+
+    if (!_data) {
+      throw new NotFoundException(`Marque ${id} introuvable`);
+    }
+
+    return await this.repo.save(_data);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} typesPrestation`;
+  async remove(id: number) {
+    const _data = await this.findOne(id);
+    return await this.repo.remove(_data);
   }
 }

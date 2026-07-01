@@ -1,8 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { SeedService } from './seed/seed.service';
 
 @Injectable()
-export class AppService {
+export class AppService implements OnApplicationBootstrap {
+  constructor(private readonly seedService: SeedService) {}
+
+  async onApplicationBootstrap() {
+    await this.seedService.run();
+    console.log('🚀 Seed exécuté au démarrage');
+  }
+
   getHello(): string {
-    return 'Hello World!';
+    return 'Salon API running';
   }
 }

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { MarquesService } from './marques.service';
 import { CreateMarqueDto } from './dto/create-marque.dto';
 import { UpdateMarqueDto } from './dto/update-marque.dto';

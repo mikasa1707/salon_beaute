@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+
 import { ClientsModule } from './clients/clients.module';
 import { ProduitsModule } from './produits/produits.module';
 import { MarquesModule } from './marques/marques.module';
@@ -11,9 +15,40 @@ import { PrestationsModule } from './prestations/prestations.module';
 import { TypesPrestationsModule } from './types-prestations/types-prestations.module';
 import { StocksModule } from './stocks/stocks.module';
 import { InventairesModule } from './inventaires/inventaires.module';
+import { SeedModule } from './seed/seed.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [ClientsModule, ProduitsModule, MarquesModule, TypesProduitsModule, PersonnelsModule, ReservationsModule, PrestationsModule, TypesPrestationsModule, StocksModule, InventairesModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      autoLoadEntities: true,
+      synchronize: true,
+    }),
+
+    ClientsModule,
+    ProduitsModule,
+    MarquesModule,
+    TypesProduitsModule,
+    PersonnelsModule,
+    ReservationsModule,
+    PrestationsModule,
+    TypesPrestationsModule,
+    StocksModule,
+    InventairesModule,
+    SeedModule,
+    AuthModule,
+  ],
+
   controllers: [AppController],
   providers: [AppService],
 })

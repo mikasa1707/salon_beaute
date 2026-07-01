@@ -1,26 +1,54 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { Client } from './entities/client.entity';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 
 @Injectable()
 export class ClientsService {
-  create(createClientDto: CreateClientDto) {
-    return 'This action adds a new client';
+  constructor(
+    @InjectRepository(Client)
+    private readonly clientRepo: Repository<Client>,
+  ) {}
+
+  async create(createClientDto: CreateClientDto) {
+    const client = this.clientRepo.create(createClientDto);
+    return await this.clientRepo.save(client);
   }
 
-  findAll() {
-    return `This action returns all clients`;
+  async findAll() {
+    return await this.clientRepo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} client`;
+  async findOne(id: number) {
+    const client = await this.clientRepo.findOne({
+      where: { id },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Client ${id} introuvable`);
+    }
+
+    return client;
   }
 
-  update(id: number, updateClientDto: UpdateClientDto) {
-    return `This action updates a #${id} client`;
+  async update(id: number, updateClientDto: UpdateClientDto) {
+    const client = await this.clientRepo.preload({
+      id,
+      ...updateClientDto,
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Client ${id} introuvable`);
+    }
+
+    return await this.clientRepo.save(client);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} client`;
+  async remove(id: number) {
+    const client = await this.findOne(id);
+    return await this.clientRepo.remove(client);
   }
 }

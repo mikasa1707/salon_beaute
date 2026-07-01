@@ -1,26 +1,52 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInventaireDto } from './dto/create-inventaire.dto';
 import { UpdateInventaireDto } from './dto/update-inventaire.dto';
+import { Inventaire } from './entities/inventaire.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class InventairesService {
-  create(createInventaireDto: CreateInventaireDto) {
-    return 'This action adds a new inventaire';
+  constructor(
+    @InjectRepository(Inventaire)
+    private readonly repo: Repository<Inventaire>,
+  ) {}
+
+  async create(createDto: CreateInventaireDto) {
+    const _data = this.repo.create(createDto);
+    return await this.repo.save(_data);
   }
 
-  findAll() {
-    return `This action returns all inventaires`;
+  async findAll() {
+    return await this.repo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} inventaire`;
+  async findOne(id: number) {
+    const _data = await this.repo.findOne({
+      where: { id },
+    });
+
+    if (!_data) {
+      throw new NotFoundException(`Marque ${id} introuvable`);
+    }
+    return _data;
   }
 
-  update(id: number, updateInventaireDto: UpdateInventaireDto) {
-    return `This action updates a #${id} inventaire`;
+  async update(id: number, updateDto: UpdateInventaireDto) {
+    const _data = await this.repo.preload({
+      id,
+      ...updateDto,
+    });
+
+    if (!_data) {
+      throw new NotFoundException(`Marque ${id} introuvable`);
+    }
+
+    return await this.repo.save(_data);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} inventaire`;
+  async remove(id: number) {
+    const _data = await this.findOne(id);
+    return await this.repo.remove(_data);
   }
 }

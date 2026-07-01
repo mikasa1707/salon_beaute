@@ -1,26 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProduitDto } from './dto/create-produit.dto';
 import { UpdateProduitDto } from './dto/update-produit.dto';
+import { Produit } from './entities/produit.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProduitsService {
-  create(createProduitDto: CreateProduitDto) {
-    return 'This action adds a new produit';
+  constructor(
+    @InjectRepository(Produit)
+    private readonly repo: Repository<Produit>,
+  ) {}
+
+  async create(createDto: CreateProduitDto) {
+    const _data = this.repo.create(createDto);
+    return await this.repo.save(_data);
   }
 
-  findAll() {
-    return `This action returns all produits`;
+  async findAll() {
+    return await this.repo.find({
+      relations: { typeProduit: true, stock: true },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} produit`;
+  async findOne(id: number) {
+    const _data = await this.repo.findOne({
+      where: { id },
+      relations: { typeProduit: true, stock: true },
+    });
+
+    if (!_data) {
+      throw new NotFoundException(`Marque ${id} introuvable`);
+    }
+    return _data;
   }
 
-  update(id: number, updateProduitDto: UpdateProduitDto) {
-    return `This action updates a #${id} produit`;
+  async update(id: number, updateDto: UpdateProduitDto) {
+    const _data = await this.repo.preload({
+      id,
+      ...updateDto,
+    });
+
+    if (!_data) {
+      throw new NotFoundException(`Marque ${id} introuvable`);
+    }
+
+    return await this.repo.save(_data);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} produit`;
+  async remove(id: number) {
+    const _data = await this.findOne(id);
+    return await this.repo.remove(_data);
   }
 }

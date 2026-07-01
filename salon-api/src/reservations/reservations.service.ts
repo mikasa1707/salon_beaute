@@ -1,26 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
+import { Reservation } from './entities/reservation.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ReservationsService {
-  create(createReservationDto: CreateReservationDto) {
-    return 'This action adds a new reservation';
+  constructor(
+    @InjectRepository(Reservation)
+    private readonly repo: Repository<Reservation>,
+  ) {}
+
+  async create(createDto: CreateReservationDto) {
+    const _data = this.repo.create(createDto);
+    return await this.repo.save(_data);
   }
 
-  findAll() {
-    return `This action returns all reservations`;
+  async findAll() {
+    return await this.repo.find({
+      relations: { prestation: true, client: true },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} reservation`;
+  async findOne(id: number) {
+    const _data = await this.repo.findOne({
+      where: { id },
+      relations: { prestation: true, client: true },
+    });
+
+    if (!_data) {
+      throw new NotFoundException(`Marque ${id} introuvable`);
+    }
+    return _data;
   }
 
-  update(id: number, updateReservationDto: UpdateReservationDto) {
-    return `This action updates a #${id} reservation`;
+  async update(id: number, updateDto: UpdateReservationDto) {
+    const _data = await this.repo.preload({
+      id,
+      ...updateDto,
+    });
+
+    if (!_data) {
+      throw new NotFoundException(`Marque ${id} introuvable`);
+    }
+
+    return await this.repo.save(_data);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} reservation`;
+  async remove(id: number) {
+    const _data = await this.findOne(id);
+    return await this.repo.remove(_data);
   }
 }

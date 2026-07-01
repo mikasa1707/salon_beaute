@@ -1,26 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePersonnelDto } from './dto/create-personnel.dto';
 import { UpdatePersonnelDto } from './dto/update-personnel.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Personnel } from './entities/personnel.entity';
 
 @Injectable()
 export class PersonnelsService {
-  create(createPersonnelDto: CreatePersonnelDto) {
-    return 'This action adds a new personnel';
+  constructor(
+    @InjectRepository(Personnel)
+    private readonly repo: Repository<Personnel>,
+  ) {}
+
+  async create(createDto: CreatePersonnelDto) {
+    const _data = this.repo.create(createDto);
+    return await this.repo.save(_data);
   }
 
-  findAll() {
-    return `This action returns all personnels`;
+  async findAll() {
+    return await this.repo.find({
+      relations: { reservations: true },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} personnel`;
+  async findOne(id: number) {
+    const _data = await this.repo.findOne({
+      where: { id },
+      relations: { reservations: true },
+    });
+
+    if (!_data) {
+      throw new NotFoundException(`Personnel ${id} introuvable`);
+    }
+    return _data;
   }
 
-  update(id: number, updatePersonnelDto: UpdatePersonnelDto) {
-    return `This action updates a #${id} personnel`;
+  async update(id: number, updateDto: UpdatePersonnelDto) {
+    const _data = await this.repo.preload({
+      id,
+      ...updateDto,
+    });
+
+    if (!_data) {
+      throw new NotFoundException(`Personnel ${id} introuvable`);
+    }
+
+    return await this.repo.save(_data);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} personnel`;
+  async remove(id: number) {
+    const _data = await this.findOne(id);
+    return await this.repo.remove(_data);
   }
 }
