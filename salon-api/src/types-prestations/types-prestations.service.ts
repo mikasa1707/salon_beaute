@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateTypesPrestationDto } from './dto/create-types-prestation.dto';
+import { CreateTypePrestationDto } from './dto/create-types-prestation.dto';
 import { UpdateTypesPrestationDto } from './dto/update-types-prestation.dto';
 import { TypePrestation } from './entities/types-prestation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,7 +12,7 @@ export class TypesPrestationsService {
     private readonly repo: Repository<TypePrestation>,
   ) {}
 
-  async create(createDto: CreateTypesPrestationDto) {
+  async create(createDto: CreateTypePrestationDto) {
     const _data = this.repo.create(createDto);
     return await this.repo.save(_data);
   }

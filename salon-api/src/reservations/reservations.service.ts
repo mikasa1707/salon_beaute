@@ -19,14 +19,24 @@ export class ReservationsService {
 
   async findAll() {
     return await this.repo.find({
-      relations: { prestation: true, client: true },
+      relations: {
+        client: true,
+        prestations: {
+          prestation: true,
+        },
+      },
     });
   }
 
   async findOne(id: number) {
     const _data = await this.repo.findOne({
       where: { id },
-      relations: { prestation: true, client: true },
+      relations: {
+        client: true,
+        prestations: {
+          prestation: true,
+        },
+      },
     });
 
     if (!_data) {

@@ -31,6 +31,6 @@ export class Prestation {
   @JoinColumn({ name: 'type_prestation_id' })
   typePrestation!: TypePrestation;
 
-  @OneToMany(() => Reservation, (reservation) => reservation.prestation)
+  @OneToMany(() => Reservation, (reservation) => reservation.prestations)
   reservations!: Reservation[];
 }

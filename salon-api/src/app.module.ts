@@ -17,6 +17,9 @@ import { StocksModule } from './stocks/stocks.module';
 import { InventairesModule } from './inventaires/inventaires.module';
 import { SeedModule } from './seed/seed.module';
 import { AuthModule } from './auth/auth.module';
+import { VentesModule } from './ventes/ventes.module';
+import { VenteProduitsModule } from './vente-produits/vente-produits.module';
+import { PaiementsModule } from './paiements/paiements.module';
 
 @Module({
   imports: [
@@ -47,6 +50,9 @@ import { AuthModule } from './auth/auth.module';
     InventairesModule,
     SeedModule,
     AuthModule,
+    VentesModule,
+    VenteProduitsModule,
+    PaiementsModule,
   ],
 
   controllers: [AppController],
