@@ -5,13 +5,22 @@ import { Reservation } from './entities/reservation.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReservationPrestation } from './entities/reservation-prestation.entity';
 import { Prestation } from 'src/prestations/entities/prestation.entity';
+import { Facturation } from 'src/facturations/entities/facturation.entity';
+import { FacturationItem } from 'src/facturations/entities/facturation-item.entity';
+import { FacturationsService } from 'src/facturations/facturations.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Reservation, ReservationPrestation, Prestation]),
+    TypeOrmModule.forFeature([
+      Reservation,
+      ReservationPrestation,
+      Prestation,
+      Facturation,
+      FacturationItem,
+    ]),
   ],
   controllers: [ReservationsController],
-  providers: [ReservationsService],
+  providers: [ReservationsService, FacturationsService],
   exports: [ReservationsService],
 })
 export class ReservationsModule {}

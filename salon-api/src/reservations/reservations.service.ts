@@ -335,7 +335,7 @@ export class ReservationsService {
     }
 
     if (newStatus === ReservationStatut.TERMINEE) {
-      await this.facturationService.createFromReservation(reservation);
+      await this.facturationService.createFromReservation(reservation.id);
     }
 
     reservation.statut = newStatus;

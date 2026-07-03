@@ -7,6 +7,7 @@ import { Reservation } from 'src/reservations/entities/reservation.entity';
 import { VenteProduit } from 'src/vente-produits/entities/vente-produit.entity';
 import { Paiement } from 'src/paiements/entities/paiement.entity';
 import { Facturation } from 'src/facturations/entities/facturation.entity';
+import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { Facturation } from 'src/facturations/entities/facturation.entity';
       VenteProduit,
       Paiement,
       Facturation,
+      ProduitUnite,
     ]),
   ],
   controllers: [VentesController],
