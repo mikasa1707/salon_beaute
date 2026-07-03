@@ -5,11 +5,13 @@ import {
   ManyToOne,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 
 import { Marque } from '../../marques/entities/marque.entity';
 import { TypeProduit } from '../../types-produits/entities/types-produit.entity';
 import { Stock } from '../../stocks/entities/stock.entity';
+import { ProduitUnite } from './produit_unites.entity';
 
 @Entity('produits')
 export class Produit {
@@ -41,4 +43,13 @@ export class Produit {
 
   @OneToOne(() => Stock, (stock) => stock.produit)
   stock!: Stock;
+
+  @Column({
+    type: 'int',
+    default: 0,
+  })
+  stock_minimum!: number;
+
+  @OneToMany(() => ProduitUnite, (u) => u.produit)
+  unites!: ProduitUnite[];
 }

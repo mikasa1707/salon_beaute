@@ -20,6 +20,12 @@ import { AuthModule } from './auth/auth.module';
 import { VentesModule } from './ventes/ventes.module';
 import { VenteProduitsModule } from './vente-produits/vente-produits.module';
 import { PaiementsModule } from './paiements/paiements.module';
+import { FacturationsModule } from './facturations/facturations.module';
+import { PlanningService } from './planning/planning.service';
+import { PlanningController } from './planning/planning.controller';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { CheckoutModule } from './checkout/checkout.module';
+import { CashRegisterModule } from './cash-register/cash-register.module';
 
 @Module({
   imports: [
@@ -53,9 +59,13 @@ import { PaiementsModule } from './paiements/paiements.module';
     VentesModule,
     VenteProduitsModule,
     PaiementsModule,
+    FacturationsModule,
+    DashboardModule,
+    CheckoutModule,
+    CashRegisterModule,
   ],
 
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, PlanningController],
+  providers: [AppService, PlanningService],
 })
 export class AppModule {}

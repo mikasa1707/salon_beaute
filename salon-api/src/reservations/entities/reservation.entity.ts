@@ -67,6 +67,19 @@ export class Reservation {
   statut!: ReservationStatut;
 
   @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
+  total_prix!: number;
+
+  @Column({
+    default: 0,
+  })
+  total_duree!: number;
+
+  @Column({
     type: 'text',
     nullable: true,
   })

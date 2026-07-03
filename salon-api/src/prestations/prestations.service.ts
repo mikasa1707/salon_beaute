@@ -30,7 +30,7 @@ export class PrestationsService {
     });
 
     if (!_data) {
-      throw new NotFoundException(`Marque ${id} introuvable`);
+      throw new NotFoundException(`Prestation ${id} introuvable`);
     }
     return _data;
   }
@@ -42,7 +42,7 @@ export class PrestationsService {
     });
 
     if (!_data) {
-      throw new NotFoundException(`Marque ${id} introuvable`);
+      throw new NotFoundException(`Prestation ${id} introuvable`);
     }
 
     return await this.repo.save(_data);

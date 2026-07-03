@@ -20,4 +20,7 @@ export class Client {
 
   @OneToMany(() => Reservation, (reservation) => reservation.client)
   reservations!: Reservation[];
+
+  @Column({ nullable: true })
+  salonId!: number;
 }

@@ -1,10 +1,14 @@
+import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsDateString,
   IsEnum,
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
+import { CreateReservationPrestationDto } from './create-reservation-prestation.dto';
 
 export enum ReservationStatut {
   EN_ATTENTE = 'EN_ATTENTE',
@@ -44,4 +48,9 @@ export class CreateReservationDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateReservationPrestationDto)
+  prestations!: CreateReservationPrestationDto[];
 }

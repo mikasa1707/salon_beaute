@@ -6,11 +6,14 @@ import {
   OneToOne,
   JoinColumn,
   CreateDateColumn,
+  ManyToOne,
 } from 'typeorm';
 
 import { Reservation } from '../../reservations/entities/reservation.entity';
 import { VenteProduit } from '../../vente-produits/entities/vente-produit.entity';
 import { Paiement } from '../../paiements/entities/paiement.entity';
+import { Facturation } from 'src/facturations/entities/facturation.entity';
+import { CashRegister } from 'src/cash-register/entities/cash_registers.entity';
 
 @Entity('ventes')
 export class Vente {
@@ -64,6 +67,21 @@ export class Vente {
     cascade: true,
   })
   paiements!: Paiement[];
+
+  @OneToOne(() => Facturation)
+  @JoinColumn({
+    name: 'facturation_id',
+  })
+  facturation!: Facturation;
+
+  @Column({ default: false })
+  isCancelled!: boolean;
+
+  @Column({ nullable: true })
+  cancelledAt?: Date;
+
+  @ManyToOne(() => CashRegister)
+  cashRegister!: CashRegister;
 
   @CreateDateColumn()
   created_at!: Date;
