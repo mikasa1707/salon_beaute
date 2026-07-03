@@ -92,6 +92,7 @@ export class CheckoutService {
       // 4. STOCK + CALCUL
       let totalProduits = 0;
       const itemsToCreate: any[] = [];
+      const units: ProduitUnite[] = [];
 
       for (const item of facture.items) {
         const produitUnite = await manager.findOne(ProduitUnite, {
@@ -108,6 +109,8 @@ export class CheckoutService {
             `Stock insuffisant pour ${produitUnite.nom}`,
           );
         }
+
+        units.push(produitUnite);
 
         const lineTotal = Number(item.prix_unitaire) * Number(item.quantite);
 

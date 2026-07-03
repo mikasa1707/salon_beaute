@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 
 import { Facturation } from './entities/facturation.entity';
 import { FacturationItem } from './entities/facturation-item.entity';
@@ -88,6 +88,18 @@ export class FacturationsService {
       await manager.save(FacturationItem, items);
 
       return savedFacturation;
+    });
+  }
+
+  async lockFacture(manager: EntityManager, id: number) {
+    return manager.findOne(Facturation, {
+      where: { id },
+      lock: { mode: 'pessimistic_write' },
+      relations: {
+        items: { produitUnite: true },
+        client: true,
+        reservation: true,
+      },
     });
   }
 }

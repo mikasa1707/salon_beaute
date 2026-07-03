@@ -8,6 +8,7 @@ import {
   CreateDateColumn,
   OneToOne,
   Unique,
+  Index,
 } from 'typeorm';
 
 import { Client } from '../../clients/entities/client.entity';
@@ -16,29 +17,38 @@ import { FacturationItem } from './facturation-item.entity';
 
 export enum FacturationStatus {
   UNPAID = 'UNPAID',
+  PROCESSING = 'PROCESSING', // 🔥 AJOUT PHASE 2
   PARTIAL = 'PARTIAL',
   PAID = 'PAID',
   CANCELLED = 'CANCELLED',
+  FAILED = 'FAILED', // 🔥 AJOUT PHASE 2
 }
 
 @Entity('facturations')
 @Unique('UQ_FACTURATION_RESERVATION', ['reservation'])
+@Index('UQ_FACTURATION_PAYMENT_REF', ['paymentReference'], { unique: true })
 export class Facturation {
   @PrimaryGeneratedColumn()
   id!: number;
+
+  // ======================
+  // RELATIONS
+  // ======================
 
   @ManyToOne(() => Client, { nullable: false })
   @JoinColumn({ name: 'client_id' })
   client!: Client;
 
   /**
-   * Une réservation possède une seule facture.
+   * Une réservation = une facture (strict ERP rule)
    */
   @OneToOne(() => Reservation, { nullable: false })
-  @JoinColumn({
-    name: 'reservation_id',
-  })
+  @JoinColumn({ name: 'reservation_id' })
   reservation!: Reservation;
+
+  // ======================
+  // FINANCE
+  // ======================
 
   @Column({
     type: 'decimal',
@@ -55,16 +65,51 @@ export class Facturation {
   })
   status!: FacturationStatus;
 
+  // ======================
+  // ITEMS
+  // ======================
+
   @OneToMany(() => FacturationItem, (item) => item.facturation, {
     cascade: true,
   })
   items!: FacturationItem[];
 
-  @Column({ nullable: true, unique: true })
+  // ======================
+  // IDEMPOTENCE (PHASE 2)
+  // ======================
+
+  /**
+   * Clé unique pour éviter double paiement / retry API
+   */
+  @Column({ nullable: true })
   paymentReference!: string;
 
+  // ======================
+  // LOCK MÉTIER (ERP SAFE)
+  // ======================
+
+  /**
+   * Empêche double checkout même si bug concurrent
+   */
   @Column({ default: false })
   isLocked!: boolean;
+
+  /**
+   * Protection supplémentaire (audit simple sans table log)
+   */
+  @Column({ nullable: true })
+  processedAt?: Date;
+
+  // ======================
+  // AUDIT LIGHT (OPTION PRO)
+  // ======================
+
+  @Column({ nullable: true })
+  failedReason?: string;
+
+  // ======================
+  // META
+  // ======================
 
   @CreateDateColumn()
   created_at!: Date;
