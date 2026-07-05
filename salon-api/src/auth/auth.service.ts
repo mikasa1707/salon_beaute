@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
 import { Personnel } from '../personnels/entities/personnel.entity';
+import { AuditLogService } from 'src/audit-log/audit-log.service';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +13,7 @@ export class AuthService {
     @InjectRepository(Personnel)
     private personnelRepo: Repository<Personnel>,
     private jwtService: JwtService,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
   async login(email: string, password: string) {
@@ -29,10 +31,23 @@ export class AuthService {
       throw new UnauthorizedException('Mot de passe incorrect');
     }
 
+    await this.auditLogService.log({
+      action: 'LOGIN',
+      entity: 'PERSONNEL',
+      entityId: user.id,
+      userId: user.id,
+      username: user.nom + ' ' + user.prenom,
+      payload: {
+        total: 0,
+      },
+    });
+
     const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
+      nom: user.nom,
+      prenom: user.prenom,
     };
 
     return {

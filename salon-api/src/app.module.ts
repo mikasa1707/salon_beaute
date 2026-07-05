@@ -25,6 +25,10 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { CashRegisterModule } from './cash-register/cash-register.module';
 import { PlanningModule } from './planning/planning.module';
+import { AuditLogModule } from './audit-log/audit-log.module';
+
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core/constants';
 
 @Module({
   imports: [
@@ -42,6 +46,13 @@ import { PlanningModule } from './planning/planning.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 5,
+      },
+    ]),
 
     ClientsModule,
     ProduitsModule,
@@ -63,9 +74,16 @@ import { PlanningModule } from './planning/planning.module';
     CheckoutModule,
     CashRegisterModule,
     PlanningModule,
+    AuditLogModule,
   ],
 
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

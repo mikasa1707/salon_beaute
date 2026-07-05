@@ -5,6 +5,7 @@ import {
   Post,
   UseGuards,
   Body,
+  Req,
 } from '@nestjs/common';
 
 import { CheckoutService } from './checkout.service';
@@ -12,6 +13,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { PersonnelRole } from '../personnels/entities/personnel.entity';
+import type { RequestWithUser } from 'src/auth/interfaces/request-with-user.interface';
 
 @Controller('checkout')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -26,8 +28,13 @@ export class CheckoutController {
   checkout(
     @Param('factureId', ParseIntPipe)
     factureId: number,
+    @Req() req: RequestWithUser,
   ) {
-    return this.checkoutService.checkoutFacture(factureId);
+    return this.checkoutService.checkoutFacture(
+      factureId,
+      req.user.userId,
+      req.user.email,
+    );
   }
 
   // =========================

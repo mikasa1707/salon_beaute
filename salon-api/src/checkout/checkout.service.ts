@@ -13,15 +13,19 @@ import { Vente } from '../ventes/entities/vente.entity';
 import { VenteProduit } from '../vente-produits/entities/vente-produit.entity';
 import { ProduitUnite } from '../produits/entities/produit_unites.entity';
 import { CashRegister } from '../cash-register/entities/cash_registers.entity';
+import { AuditLogService } from '../audit-log/audit-log.service';
 
 @Injectable()
 export class CheckoutService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly auditLogService: AuditLogService,
+  ) {}
 
   // =========================
   // CHECKOUT FACTURE → VENTE
   // =========================
-  async checkoutFacture(factureId: number) {
+  async checkoutFacture(factureId: number, userId: number, username: string) {
     const qr = this.dataSource.createQueryRunner();
 
     await qr.connect();
@@ -79,7 +83,6 @@ export class CheckoutService {
 
       const cashRegister = await manager.findOne(CashRegister, {
         where: {
-          salonId: facture.client.salonId,
           status: 'OPEN',
         },
         lock: { mode: 'pessimistic_write' },
@@ -162,6 +165,17 @@ export class CheckoutService {
 
       // 9. COMMIT
       await qr.commitTransaction();
+
+      await this.auditLogService.log({
+        action: 'CHECKOUT',
+        entity: 'FACTURE',
+        entityId: facture.id,
+        userId,
+        username,
+        payload: {
+          total: facture.total,
+        },
+      });
 
       return savedVente;
     } catch (error) {
