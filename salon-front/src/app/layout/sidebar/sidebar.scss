@@ -1,0 +1,101 @@
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  transition: 0.3s ease;
+  z-index: 1040;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+/* NAV FLEX */
+.sidebar ul {
+  flex-grow: 1;
+}
+
+/* LINK STYLE */
+.sidebar .nav-link {
+  border-radius: 10px;
+  padding: 10px;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+.sidebar .nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* COLLAPSE MODE */
+.sidebar.collapsed .sidebar .nav-link {
+  justify-content: center;
+}
+
+.sidebar.collapsed .sidebar .nav-link span {
+  display: none;
+}
+
+/* ============ MOBILE DRAWER ============ */
+@media (max-width: 992px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar.collapsed {
+    width: 260px; /* ignore collapse on mobile */
+  }
+}
+
+/* OVERLAY */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1030;
+}
+
+.sidebar.collapsed .submenu {
+  display: block;
+  position: relative;
+  margin-left: 0;
+}
+
+.sidebar.collapsed .nav-link span {
+  display: none;
+}
+
+.sidebar-item {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.submenu {
+  border-left: 2px solid rgba(255,255,255,0.1);
+  padding-left: 10px;
+}
+
+.submenu-item {
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.submenu-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.rotate {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}

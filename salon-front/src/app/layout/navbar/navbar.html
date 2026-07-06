@@ -1,0 +1,108 @@
+<nav
+  class="navbar navbar-light bg-light border-bottom px-3 d-flex align-items-center justify-content-between w-100"
+>
+  <!-- LEFT -->
+  <div class="d-flex align-items-center gap-2">
+    <!-- SIDEBAR TOGGLE -->
+    <button class="btn btn-outline-primary border-0 btn-sm" (click)="onToggleSidebar()">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+  </div>
+
+  <!-- CENTER -->
+  <div class="flex-grow-1 d-none d-md-flex justify-content-center">
+    <div class="input-group input-group-sm w-50">
+      <span class="input-group-text bg-transparent border-end-0">
+        <i class="fa fa-search"></i>
+      </span>
+
+      <input
+        type="text"
+        class="form-control border-start-0"
+        placeholder="Rechercher clients, réservations..."
+      />
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="d-flex align-items-center gap-3">
+    <!-- STOCK ALERT -->
+    <div class="dropdown">
+      <button class="btn btn-sm btn-light position-relative" data-bs-toggle="dropdown">
+        <i class="fa-solid fa-boxes-stacked"></i>
+
+        @if (stockAlertsCount > 0) {
+          <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+            {{ stockAlertsCount }}
+          </span>
+        }
+      </button>
+
+      <ul class="dropdown-menu dropdown-menu-end p-2">
+        <li class="fw-bold mb-2">Alertes stock</li>
+
+        @for (item of stockAlerts; track item.produit.id) {
+          <li class="small">⚠️ {{ item.produit.nom }} ({{ item.total_stock }})</li>
+        } @empty {
+          <li class="small text-muted">Aucun stock en alerte</li>
+        }
+      </ul>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="dropdown">
+      <button class="btn btn-sm btn-light position-relative" data-bs-toggle="dropdown">
+        <i class="fa-regular fa-bell"></i>
+
+        @if (notificationsCount > 0) {
+          <span class="badge bg-primary position-absolute top-0 start-100 translate-middle">
+            {{ notificationsCount }}
+          </span>
+        }
+      </button>
+
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li class="fw-bold px-2 py-1">Notifications</li>
+
+        @for (n of notifications; track n.id) {
+          <li class="dropdown-item small">
+            {{ n.message }}
+          </li>
+        } @empty {
+          <li class="dropdown-item text-muted small">Aucune notification</li>
+        }
+      </ul>
+    </div>
+
+    <!-- USER -->
+    <div class="dropdown">
+      <button class="btn btn-sm btn-light d-flex align-items-center gap-2" data-bs-toggle="dropdown">
+        <i class="fa-solid fa-circle-user"></i>
+
+        <span class="d-none d-md-inline">
+          {{ user?.prenom }}
+        </span>
+      </button>
+
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li class="dropdown-item">👤 {{ user?.email }}</li>
+
+        <li class="dropdown-item">
+          Role:
+          <span class="badge bg-primary ms-1">
+            {{ user?.role }}
+          </span>
+        </li>
+
+        <li><hr class="dropdown-divider" /></li>
+
+        <li class="dropdown-item">Profil</li>
+        <li class="dropdown-item">Paramètres</li>
+
+        <li><hr class="dropdown-divider" /></li>
+
+        <li class="dropdown-item text-danger" (click)="onLogout()">Logout</li>
+      </ul>
+    </div>
+  </div>
+</nav>

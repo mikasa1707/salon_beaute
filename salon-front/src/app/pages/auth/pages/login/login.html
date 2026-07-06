@@ -1,0 +1,102 @@
+<div class="container-fluid vh-100">
+  <div class="row h-100">
+    <!-- LEFT -->
+    <div
+      class="col-lg-7 d-none d-lg-flex bg-primary text-white align-items-center justify-content-center"
+    >
+      <div class="text-center px-5">
+        <i class="fa-solid fa-scissors fa-5x mb-4"></i>
+
+        <h1 class="fw-bold mb-3">ERP Salon</h1>
+
+        <p class="lead opacity-75">Gérez votre salon de beauté simplement.</p>
+
+        <div class="mt-5">
+          <div class="mb-3">
+            <i class="fa-solid fa-calendar-check me-2"></i>
+            Gestion des réservations
+          </div>
+
+          <div class="mb-3">
+            <i class="fa-solid fa-cash-register me-2"></i>
+            Caisse
+          </div>
+
+          <div class="mb-3">
+            <i class="fa-solid fa-boxes-stacked me-2"></i>
+            Stock
+          </div>
+
+          <div>
+            <i class="fa-solid fa-chart-line me-2"></i>
+            Dashboard temps réel
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col-lg-5 d-flex align-items-center justify-content-center">
+      <div class="card shadow border-0 p-4 login-card">
+        <div class="text-center mb-4">
+          <i class="fa-solid fa-circle-user fa-3x text-primary mb-3"></i>
+
+          <h3 class="fw-bold">Connexion</h3>
+
+          <p class="text-muted">Connectez-vous à votre espace</p>
+        </div>
+
+        <form (ngSubmit)="login()" [formGroup]="form">
+          <div class="mb-3">
+            <label class="form-label"> Email </label>
+
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fa-solid fa-envelope"></i>
+              </span>
+
+              <input
+                formControlName="email"
+                class="form-control"
+                type="email"
+                name="email"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label"> Mot de passe </label>
+
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+
+              <input
+                formControlName="password"
+                class="form-control"
+                type="password"
+                name="password"
+                required
+              />
+            </div>
+          </div>
+
+          <button class="btn btn-primary w-100 py-2" (click)="login()">
+            <i class="fa-solid fa-right-to-bracket me-2"></i>
+            Se connecter
+          </button>
+        </form>
+
+        <div class="text-center mt-4 text-muted small">
+          ERP Salon V3
+
+          <br />
+
+          © 2026
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

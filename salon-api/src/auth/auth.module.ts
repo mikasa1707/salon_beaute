@@ -8,11 +8,13 @@ import { AuthController } from './auth.controller';
 import { Personnel } from '../personnels/entities/personnel.entity';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuditLogModule } from 'src/audit-log/audit-log.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Personnel]),
     PassportModule,
+    AuditLogModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
