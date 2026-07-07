@@ -18,9 +18,17 @@ export class Client {
   @Column({ nullable: true })
   email!: string;
 
+  @Column({
+    default: true
+  })
+  actif!: boolean;
+
   @OneToMany(() => Reservation, (reservation) => reservation.client)
   reservations!: Reservation[];
 
-  @Column({ nullable: true })
+  @Column({
+    nullable: true,
+    type: 'int'
+  })
   salonId!: number;
 }

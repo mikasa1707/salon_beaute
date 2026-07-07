@@ -39,7 +39,6 @@ body {
 }
 /* You can add global styles to this file, and also import other style files */
 
-
 .app-layout {
   display: flex;
 }
@@ -100,4 +99,22 @@ body {
     margin-left: 0;
     width: 100%;
   }
+}
+
+.search-wrapper {
+  min-width: 280px;
+}
+
+@media (max-width: 768px) {
+  .search-wrapper {
+    width: 100%;
+  }
+}
+
+.modal {
+  z-index: 1060;
+}
+
+.modal-backdrop {
+  z-index: 1050;
 }

@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { NavbarComponent } from '../navbar/navbar';
+import { ConfirmDialogComponent } from "../../shared/components/confirm-dialog/confirm-dialog";
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SidebarComponent, NavbarComponent],
+  imports: [CommonModule, RouterOutlet, SidebarComponent, NavbarComponent, ConfirmDialogComponent],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.scss',
 })

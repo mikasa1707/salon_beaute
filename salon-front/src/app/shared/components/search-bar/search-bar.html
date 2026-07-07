@@ -1,0 +1,13 @@
+<div class="input-group">
+  <span class="input-group-text bg-secondary">
+    <i class="fa-solid fa-search text-muted"></i>
+  </span>
+
+  <input class="form-control" placeholder="Rechercher un client..." (input)="onInput($event)" />
+
+  @if (search) {
+    <button class="btn btn-outline-secondary" type="button" (click)="clear()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  }
+</div>

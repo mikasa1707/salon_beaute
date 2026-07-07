@@ -1,25 +1,17 @@
 <div class="d-flex vh-100">
-
   <!-- SIDEBAR -->
-  <app-sidebar
-    [isCollapsed]="isCollapsed"
-    [isMobileOpen]="isMobileOpen">
-  </app-sidebar>
+  <app-sidebar [isCollapsed]="isCollapsed" [isMobileOpen]="isMobileOpen"> </app-sidebar>
 
   <!-- RIGHT AREA -->
   <div class="flex-grow-1 d-flex flex-column">
-
     <!-- NAVBAR -->
-    <app-navbar
-      (toggleSidebar)="toggleSidebar()"
-      (logout)="logout()">
-    </app-navbar>
+    <app-navbar (toggleSidebar)="toggleSidebar()" (logout)="logout()"> </app-navbar>
 
     <!-- CONTENT -->
     <main class="p-3 flex-grow-1 overflow-auto">
       <router-outlet></router-outlet>
     </main>
-
   </div>
-
 </div>
+
+<app-confirm-dialog></app-confirm-dialog>

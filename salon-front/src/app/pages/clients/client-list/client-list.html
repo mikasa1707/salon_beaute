@@ -1,1 +1,32 @@
-<p>client-list works!</p>
+<app-page-header title="Clients" subtitle="Gestion des clients du salon" icon="fa-solid fa-users">
+  <div class="d-flex gap-2 flex-wrap">
+    <!-- Recherche -->
+    <div class="search-wrapper">
+      <app-search-bar (searchChange)="search($event)"> </app-search-bar>
+    </div>
+
+    <!-- Ajouter -->
+    <button class="btn btn-primary d-flex align-items-center gap-2 px-3" type="button">
+      <i class="fa-solid fa-user-plus"></i>
+    </button>
+  </div>
+</app-page-header>
+
+<app-data-table
+  [columns]="columns"
+  [data]="clients"
+  [loading]="loading"
+  [page]="page"
+  [totalPages]="totalPages"
+  (pageChange)="changePage($event)"
+  (view)="view($event)"
+  (edit)="edit($event)"
+  (delete)="delete($event)"
+>
+</app-data-table>
+
+<button class="btn btn-primary" (click)="openCreate()">Nouveau client</button>
+
+<app-modal [title]="'Nouveau client'" [show]="showModal" (closed)="closeModal()">
+  <h3>TEST FORMULAIRE</h3>
+</app-modal>

@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 
 import { ClientsService } from './clients.service';
@@ -40,8 +41,15 @@ export class ClientsController {
     PersonnelRole.ESTHETICIEN,
     PersonnelRole.RESPONSABLE,
   )
-  findAll() {
-    return this.clientsService.findAll();
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    const pageNumber = page ? +page : 1;
+    const limitNumber = limit ? +limit : 10;
+    const searchString = search || '';
+    return this.clientsService.findAll(pageNumber, limitNumber, searchString);
   }
 
   @Get(':id')
