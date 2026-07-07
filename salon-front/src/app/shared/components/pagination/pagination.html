@@ -1,1 +1,45 @@
-<p>pagination works!</p>
+@if (totalPages > 0) {
+  <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-3">
+    <!-- INFO + LIMIT -->
+    <div class="d-flex align-items-center gap-3">
+      <span class="text-muted small">
+        Affichage {{ (page - 1) * limit + 1 }} - {{ Math.min(page * limit, total) }} sur {{ total }}
+      </span>
+
+      <select
+        #limitSelect
+        class="form-select form-select-sm w-auto"
+        [value]="limit"
+        (change)="changeLimit(limitSelect.value)"
+      >
+        <option value="10">10 / page</option>
+        <option value="25">25 / page</option>
+        <option value="50">50 / page</option>
+        <option value="100">100 / page</option>
+      </select>
+    </div>
+
+    <!-- PAGINATION -->
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        <!-- PREVIOUS -->
+        <li class="page-item" [class.disabled]="page === 1">
+          <button class="page-link" (click)="changePage(page - 1)">&laquo;</button>
+        </li>
+
+        @for (p of pages; track p) {
+          <li class="page-item" [class.active]="p === page">
+            <button class="page-link" (click)="changePage(p)">
+              {{ p }}
+            </button>
+          </li>
+        }
+
+        <!-- NEXT -->
+        <li class="page-item" [class.disabled]="page === totalPages">
+          <button class="page-link" (click)="changePage(page + 1)">&raquo;</button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+}

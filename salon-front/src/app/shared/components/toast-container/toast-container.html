@@ -1,0 +1,13 @@
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  @for (toast of toasts$ | async; track toast.id) {
+    <div class="toast show text-bg-{{ toast.type }} mb-2">
+      <div class="d-flex">
+        <div class="toast-body">
+          {{ toast.message }}
+        </div>
+
+        <button class="btn-close btn-close-white me-2 m-auto" (click)="remove(toast.id)"></button>
+      </div>
+    </div>
+  }
+</div>

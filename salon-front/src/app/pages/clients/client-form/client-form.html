@@ -1,1 +1,43 @@
-<p>client-form works!</p>
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="mb-3">
+    <label class="form-label"> Nom * </label>
+
+    <input class="form-control" formControlName="nom" />
+
+    @if (form.controls.nom.invalid && form.controls.nom.touched) {
+      <div class="text-danger">Nom obligatoire</div>
+    }
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label"> Prénom </label>
+
+    <input class="form-control" formControlName="prenom" />
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label"> Téléphone * </label>
+
+    <input class="form-control" formControlName="telephone" />
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label"> Email </label>
+
+    <input class="form-control" formControlName="email" />
+
+    @if (form.controls.email.invalid && form.controls.email.touched) {
+      <div class="text-danger">Email invalide</div>
+    }
+  </div>
+
+  <div class="text-end">
+    <button type="submit" class="btn btn-primary" [disabled]="loading">
+      @if (loading) {
+        <span> Enregistrement... </span>
+      } @else {
+        <span> Enregistrer </span>
+      }
+    </button>
+  </div>
+</form>

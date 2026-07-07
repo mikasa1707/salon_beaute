@@ -4,11 +4,12 @@ import { Router, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { NavbarComponent } from '../navbar/navbar';
 import { ConfirmDialogComponent } from "../../shared/components/confirm-dialog/confirm-dialog";
+import { ToastContainer } from "../../shared/components/toast-container/toast-container";
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SidebarComponent, NavbarComponent, ConfirmDialogComponent],
+  imports: [CommonModule, RouterOutlet, SidebarComponent, NavbarComponent, ConfirmDialogComponent, ToastContainer],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.scss',
 })

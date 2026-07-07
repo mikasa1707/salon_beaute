@@ -6,7 +6,11 @@
     </div>
 
     <!-- Ajouter -->
-    <button class="btn btn-primary d-flex align-items-center gap-2 px-3" type="button">
+    <button
+      class="btn btn-primary d-flex align-items-center gap-2 px-3"
+      type="button"
+      (click)="openCreate()"
+    >
       <i class="fa-solid fa-user-plus"></i>
     </button>
   </div>
@@ -19,14 +23,26 @@
   [page]="page"
   [totalPages]="totalPages"
   (pageChange)="changePage($event)"
-  (view)="view($event)"
-  (edit)="edit($event)"
+  /* (view)="view($event)" */
+  (edit)="openEdit($event)"
   (delete)="delete($event)"
 >
 </app-data-table>
 
-<button class="btn btn-primary" (click)="openCreate()">Nouveau client</button>
+<app-pagination
+  [page]="page"
+  [totalPages]="totalPages"
+  [total]="total"
+  [limit]="limit"
+  (pageChange)="changePage($event)"
+  (limitChange)="changeLimit($event)"
+>
+</app-pagination>
 
-<app-modal [title]="'Nouveau client'" [show]="showModal" (closed)="closeModal()">
-  <h3>TEST FORMULAIRE</h3>
+<app-modal
+  [title]="selectedClient ? 'Modifier client' : 'Nouveau client'"
+  [show]="showModal"
+  (closed)="closeModal()"
+>
+  <app-client-form [client]="selectedClient" (saved)="saveClient()"> </app-client-form>
 </app-modal>

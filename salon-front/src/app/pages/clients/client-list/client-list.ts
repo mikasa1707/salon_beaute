@@ -8,6 +8,9 @@ import { ClientService } from '../../../core/services/client-api';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog';
 import { ModalComponent } from "../../../shared/components/modal/modal";
+import { ClientForm } from "../client-form/client-form";
+import { ToastService } from '../../../core/services/toast';
+import { PaginationComponent } from "../../../shared/components/pagination/pagination";
 
 @Component({
   selector: 'app-client-list',
@@ -17,7 +20,9 @@ import { ModalComponent } from "../../../shared/components/modal/modal";
     SearchBarComponent,
     PageHeaderComponent,
     DataTableComponent,
-    ModalComponent
+    ModalComponent,
+    ClientForm,
+    PaginationComponent
 ],
   templateUrl: './client-list.html',
   styleUrl: './client-list.scss',
@@ -26,10 +31,13 @@ export class ClientList implements OnInit {
 
   clients: Client[] = [];
   page = 1;
-  totalPages = 1;
+  limit = 10;
+  total = 0;
+  totalPages = 0;
   searchValue = '';
   loading: boolean = false;
   showModal = false;
+  selectedClient?: Client;
 
   columns = [
     { field: 'nom', label: 'Nom' },
@@ -42,7 +50,7 @@ export class ClientList implements OnInit {
   private searchSubscription!: Subscription;
   private confirm = inject(ConfirmDialogService);
 
-  constructor(private readonly clientService: ClientService, private cdr: ChangeDetectorRef) { }
+  constructor(private readonly clientService: ClientService, private cdr: ChangeDetectorRef, private toast: ToastService) { }
 
   ngOnInit(): void {
     this.searchSubscription = this.searchSubject.pipe(
@@ -65,10 +73,11 @@ export class ClientList implements OnInit {
 
   loadClients(_search: any = '') {
     this.loading = true;
-    this.clientService.findAll(this.page, 10, _search).subscribe({
-      next: (res: { data: any[]; totalPages: number; }) => {
-        console.log(res.data)
+    this.clientService.findAll(this.page, this.limit, _search).subscribe({
+      next: (res: { data: any[]; totalPages: number; total: number;}) => {
+        console.log(res)
         this.clients = res.data;
+        this.total = res.total;
         this.totalPages = res.totalPages;
         this.loading = false;
         this.cdr.detectChanges();
@@ -86,21 +95,18 @@ export class ClientList implements OnInit {
     this.loadClients();
   }
 
+  changeLimit(newLimit: number) {
+    this.limit = newLimit;
+    this.page = 1; // 💡 Sécurité : On revient à la page 1 si la taille d'affichage change
+    this.loadClients();
+  }
+
   search(value: string) {
     const text = value.toLowerCase().trim();
     this.searchSubject.next(text);
   }
 
-  view(client: Client) {
-    // this.router.navigate(['/clients', client.id]);
-  }
-
-  edit(client: Client) {
-    // this.router.navigate(['/clients', client.id]);
-  }
-
   async delete(id: number) {
-    console.log(id)
     const ok = await this.confirm.confirm({
       title: 'Suppression client',
       message: 'Le client sera archivé mais son historique sera conservé.',
@@ -111,15 +117,27 @@ export class ClientList implements OnInit {
     if (!ok) return;
 
     this.clientService.remove(id).subscribe(() => {
+      this.toast.error('Client archiver');
       this.loadClients();
     });
   }
 
   openCreate() {
+    this.selectedClient = undefined;
+    this.showModal = true;
+  }
+
+  openEdit(client: Client) {
+    this.selectedClient = client;
     this.showModal = true;
   }
 
   closeModal() {
     this.showModal = false;
+  }
+
+  saveClient() {
+    this.showModal = false;
+    this.loadClients();
   }
 }
