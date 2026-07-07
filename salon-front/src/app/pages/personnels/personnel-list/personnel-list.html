@@ -1,1 +1,48 @@
-<p>personnel-list works!</p>
+<app-page-header title="Personnels" subtitle="Gestion des personnels du salon" icon="fa-solid fa-users">
+  <div class="d-flex gap-2 flex-wrap">
+    <!-- Recherche -->
+    <div class="search-wrapper">
+      <app-search-bar (searchChange)="search($event)"> </app-search-bar>
+    </div>
+
+    <!-- Ajouter -->
+    <button
+      class="btn btn-primary d-flex align-items-center gap-2 px-3"
+      type="button"
+      (click)="openCreate()"
+    >
+      <i class="fa-solid fa-user-plus"></i>
+    </button>
+  </div>
+</app-page-header>
+
+<app-data-table
+  [columns]="columns"
+  [data]="personnels"
+  [loading]="loading"
+  [page]="page"
+  [totalPages]="totalPages"
+  (pageChange)="changePage($event)"
+  /* (view)="view($event)" */
+  (edit)="openEdit($event)"
+  (delete)="delete($event)"
+>
+</app-data-table>
+
+<app-pagination
+  [page]="page"
+  [totalPages]="totalPages"
+  [total]="total"
+  [limit]="limit"
+  (pageChange)="changePage($event)"
+  (limitChange)="changeLimit($event)"
+>
+</app-pagination>
+
+<app-modal
+  [title]="selected ? 'Modifier personnel' : 'Nouveau personnel'"
+  [show]="showModal"
+  (closed)="closeModal()"
+>
+  <app-personnel-form [personnel]="selected" (saved)="saveClient()"> </app-personnel-form>
+</app-modal>

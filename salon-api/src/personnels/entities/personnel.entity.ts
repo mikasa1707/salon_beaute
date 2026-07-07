@@ -23,14 +23,14 @@ export class Personnel {
   @Column({ length: 20 })
   telephone!: string;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, nullable: true })
   specialite!: string;
 
   // 🔐 login
   @Column({ unique: true })
   email!: string;
 
-  @Column()
+  @Column({ default: '123456', })
   password!: string;
 
   @Column({

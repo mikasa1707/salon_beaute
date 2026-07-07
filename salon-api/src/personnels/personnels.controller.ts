@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { PersonnelsService } from './personnels.service';
 import { CreatePersonnelDto } from './dto/create-personnel.dto';
@@ -37,9 +38,16 @@ export class PersonnelsController {
     PersonnelRole.ADMIN,
     PersonnelRole.RESPONSABLE,
   )
-  findAll() {
-    return this.personnelsService.findAll();
-  }
+  findAll(
+      @Query('page') page?: string,
+      @Query('limit') limit?: string,
+      @Query('search') search?: string,
+    ) {
+      const pageNumber = page ? +page : 1;
+      const limitNumber = limit ? +limit : 10;
+      const searchString = search || '';
+      return this.personnelsService.findAll(pageNumber, limitNumber, searchString);
+    }
 
   @Get(':id')
   @Roles(
