@@ -9,6 +9,9 @@ export class TypePrestation {
   @Column({ unique: true })
   nom!: string;
 
+  @Column({ default: true })
+  actif!: boolean;
+
   @OneToMany(() => Prestation, (prestation) => prestation.typePrestation)
   prestations!: Prestation[];
 }

@@ -1,1 +1,56 @@
-<p>prestation-form works!</p>
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="mb-3">
+    <label class="form-label"> Prestation * </label>
+    <input class="form-control" formControlName="nom" />
+
+    @if (f['nom'].invalid && f['nom'].touched) {
+      <div class="text-danger">Prestation obligatoire</div>
+    }
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label"> Durée (min) * </label>
+    <input type="number" class="form-control" formControlName="duree" />
+
+    @if (f['duree'].invalid && f['duree'].touched) {
+      <div class="text-danger">Durée obligatoire (minimum 5)</div>
+    }
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label"> Prix * </label>
+    <input type="number" class="form-control" formControlName="prix" />
+
+    @if (f['prix'].invalid && f['prix'].touched) {
+      <div class="text-danger">Prix obligatoire (minimum 0)</div>
+    }
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label"> Type de prestation * </label>
+
+    <select class="form-select" formControlName="typePrestationId">
+      <option [ngValue]="null">Sélectionner un type</option>
+
+      @for (type of typesPrestations; track type.id) {
+        <option [ngValue]="type.id">
+          {{ type.nom }}
+        </option>
+      }
+    </select>
+
+    @if (f['typePrestationId'].invalid && f['typePrestationId'].touched) {
+      <div class="text-danger">Type de prestation obligatoire</div>
+    }
+  </div>
+
+  <div class="text-end">
+    <button type="submit" class="btn btn-primary" [disabled]="loading">
+      @if (loading) {
+        <span> Enregistrement... </span>
+      } @else {
+        <span> Enregistrer </span>
+      }
+    </button>
+  </div>
+</form>

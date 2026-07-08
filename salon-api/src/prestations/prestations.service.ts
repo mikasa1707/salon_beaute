@@ -3,7 +3,7 @@ import { CreatePrestationDto } from './dto/create-prestation.dto';
 import { UpdatePrestationDto } from './dto/update-prestation.dto';
 import { Prestation } from './entities/prestation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 @Injectable()
 export class PrestationsService {
@@ -17,10 +17,18 @@ export class PrestationsService {
     return await this.repo.save(_data);
   }
 
-  async findAll() {
-    return await this.repo.find({
-      relations: { typePrestation: true, reservations: true },
+  async findAll(page = 1, limit = 10, search = '') {
+    const [data, total] = await this.repo.findAndCount({
+      where: [{ nom: ILike(`%${search}%`), actif: true }],
+      relations: { typePrestation: true },
+
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        nom: 'ASC',
+      },
     });
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: number) {
@@ -49,7 +57,15 @@ export class PrestationsService {
   }
 
   async remove(id: number) {
-    const _data = await this.findOne(id);
-    return await this.repo.remove(_data);
+    const prestation = await this.findOne(id);
+
+    if (!prestation) {
+      throw new NotFoundException('Prestation introuvable');
+    }
+    await this.repo.update(id, { actif: false });
+
+    return {
+      message: 'Prestation supprimé',
+    };
   }
 }

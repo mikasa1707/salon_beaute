@@ -1,1 +1,40 @@
-<p>type-prestation-list works!</p>
+<app-page-header title="Type Prestations" subtitle="Gestion des type de prestations du salon" icon="fa-solid fa-scissors">
+  <div class="d-flex gap-2 flex-wrap">
+    <!-- Recherche -->
+    <div class="search-wrapper">
+      <app-search-bar (searchChange)="search($event)"> </app-search-bar>
+    </div>
+
+    <!-- Ajouter -->
+    <button class="btn btn-primary d-flex align-items-center gap-2 px-3" type="button" (click)="openCreate()">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </div>
+</app-page-header>
+
+<app-data-table
+  [columns]="columns"
+  [data]="type_prestations"
+  [loading]="loading"
+  [page]="page"
+  [totalPages]="totalPages"
+  (pageChange)="changePage($event)"
+  /* (view)="view($event)" */
+  (edit)="openEdit($event)"
+  (delete)="delete($event)"
+>
+</app-data-table>
+
+<app-pagination
+  [page]="page"
+  [totalPages]="totalPages"
+  [total]="total"
+  [limit]="limit"
+  (pageChange)="changePage($event)"
+  (limitChange)="changeLimit($event)"
+>
+</app-pagination>
+
+<app-modal [title]="selected ? 'Modifier prestation' : 'Nouveau prestation'" [show]="showModal" (closed)="closeModal()">
+  <app-type-typePrestation-form [typePrestation]="selected" (saved)="save()"> </app-type-typePrestation-form>
+</app-modal>

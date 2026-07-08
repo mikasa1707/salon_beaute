@@ -27,8 +27,14 @@ export class Prestation {
   })
   prix!: number;
 
+  @Column({ default: true })
+  actif!: boolean;
+
+  @Column({ nullable: true })
+  typePrestationId!: number;
+
   @ManyToOne(() => TypePrestation)
-  @JoinColumn({ name: 'type_prestation_id' })
+  @JoinColumn({ name: 'typePrestationId' })
   typePrestation!: TypePrestation;
 
   @OneToMany(() => Reservation, (reservation) => reservation.prestations)

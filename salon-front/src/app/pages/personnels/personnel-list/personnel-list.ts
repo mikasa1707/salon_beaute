@@ -11,6 +11,7 @@ import { ToastService } from '../../../core/services/toast';
 import { PaginationComponent } from "../../../shared/components/pagination/pagination";
 import { PersonnelForm } from '../personnel-form/personnel-form';
 import { PersonnelApi } from '../../../core/services/personnel-api';
+import { TableColumn } from '../../../core/models/table-column';
 
 @Component({
   selector: 'app-personnel-list',
@@ -39,13 +40,14 @@ export class PersonnelList implements OnInit {
   showModal = false;
   selected?: Personnel;
 
-  columns = [
+  columns: TableColumn[] = [
     { field: 'nom', label: 'Nom' },
     { field: 'prenom', label: 'Prénom' },
     { field: 'telephone', label: 'Téléphone' },
     { field: 'email', label: 'Email' },
     { field: 'role', label: 'Rôle' },
-    { field: 'actif', label: 'Statut' }
+    { field: 'actif', label: 'Statut' },
+    { field: 'couleurAgenda', label: 'Couleur', type: 'color' }
   ];
 
   private searchSubject = new Subject<string>();
@@ -85,7 +87,7 @@ export class PersonnelList implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Erreur lors du chargement des clients:', err);
+        console.error('Erreur lors du chargement des personnels:', err);
         this.loading = false;
         this.cdr.detectChanges();
       }
@@ -110,8 +112,8 @@ export class PersonnelList implements OnInit {
 
   async delete(id: number) {
     const ok = await this.confirm.confirm({
-      title: 'Suppression client',
-      message: 'Le client sera archivé mais son historique sera conservé.',
+      title: 'Suppression personnel',
+      message: 'Le personnel sera archivé mais son historique sera conservé.',
       confirmText: 'Archiver',
       confirmClass: 'btn-danger'
     });
@@ -119,7 +121,7 @@ export class PersonnelList implements OnInit {
     if (!ok) return;
 
     this.personnelService.remove(id).subscribe(() => {
-      this.toast.error('Client archiver');
+      this.toast.error('Personnel archiver');
       this.load();
     });
   }
@@ -130,6 +132,7 @@ export class PersonnelList implements OnInit {
   }
 
   openEdit(personnel: Personnel) {
+    console.log(personnel)
     this.selected = personnel;
     this.showModal = true;
   }
@@ -138,7 +141,7 @@ export class PersonnelList implements OnInit {
     this.showModal = false;
   }
 
-  saveClient() {
+  save() {
     this.showModal = false;
     this.load();
   }

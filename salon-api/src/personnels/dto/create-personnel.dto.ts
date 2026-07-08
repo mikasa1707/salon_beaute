@@ -25,4 +25,8 @@ export class CreatePersonnelDto {
 
   @IsOptional()
   actif?: boolean;
+
+  @IsOptional()
+  @IsString()
+  couleurAgenda?: string;
 }

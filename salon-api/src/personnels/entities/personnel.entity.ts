@@ -30,7 +30,7 @@ export class Personnel {
   @Column({ unique: true })
   email!: string;
 
-  @Column({ default: '123456', })
+  @Column({ default: '123456' })
   password!: string;
 
   @Column({
@@ -42,6 +42,14 @@ export class Personnel {
 
   @Column({ default: true })
   actif!: boolean;
+
+  @Column({
+    name: 'couleur_agenda',
+    type: 'varchar',
+    length: 7,
+    default: '#0d6efd',
+  })
+  couleurAgenda!: string;
 
   @OneToMany(() => Reservation, (reservation) => reservation.personnel)
   reservations!: Reservation[];

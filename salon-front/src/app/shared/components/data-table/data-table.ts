@@ -1,9 +1,4 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableColumn } from '../../../core/models/table-column';
 
@@ -12,7 +7,7 @@ import { TableColumn } from '../../../core/models/table-column';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './data-table.html',
-  styleUrl: './data-table.scss'
+  styleUrl: './data-table.scss',
 })
 export class DataTableComponent {
   @Input() columns: TableColumn[] = [];
@@ -40,10 +35,11 @@ export class DataTableComponent {
   }
 
   getPages() {
-    return Array.from(
-      { length: this.totalPages },
-      (_, i) => i + 1
-    );
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  getValue(row: any, field: string): any {
+    return field.split('.').reduce((obj, key) => obj?.[key], row);
   }
 
   get displayedData(): any[] {
@@ -65,7 +61,9 @@ export class DataTableComponent {
   }
 
   sort(column: string) {
-    if (!this.sortable) { return; }
+    if (!this.sortable) {
+      return;
+    }
     if (this.sortField === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {

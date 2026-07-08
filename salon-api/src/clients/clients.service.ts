@@ -11,14 +11,14 @@ export class ClientsService {
   constructor(
     @InjectRepository(Client)
     private readonly clientRepo: Repository<Client>,
-  ) { }
+  ) {}
 
   async create(createClientDto: CreateClientDto) {
     const client = this.clientRepo.create(createClientDto);
     return await this.clientRepo.save(client);
   }
 
-  async findAll(page = 1, limit = 10, search = '',) {
+  async findAll(page = 1, limit = 10, search = '') {
     const [data, total] = await this.clientRepo.findAndCount({
       where: [
         { nom: ILike(`%${search}%`), actif: true },
@@ -33,7 +33,7 @@ export class ClientsService {
         nom: 'ASC',
       },
     });
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit), };
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: number) {
@@ -70,7 +70,7 @@ export class ClientsService {
     await this.clientRepo.update(id, { actif: false });
 
     return {
-      message: 'Client supprimé'
+      message: 'Client supprimé',
     };
   }
 }

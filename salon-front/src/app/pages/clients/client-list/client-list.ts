@@ -136,7 +136,7 @@ export class ClientList implements OnInit {
     this.showModal = false;
   }
 
-  saveClient() {
+  save() {
     this.showModal = false;
     this.loadClients();
   }

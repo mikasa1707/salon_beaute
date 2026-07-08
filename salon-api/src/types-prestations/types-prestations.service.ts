@@ -3,13 +3,16 @@ import { CreateTypePrestationDto } from './dto/create-types-prestation.dto';
 import { UpdateTypesPrestationDto } from './dto/update-types-prestation.dto';
 import { TypePrestation } from './entities/types-prestation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
+import { Prestation } from '../prestations/entities/prestation.entity';
 
 @Injectable()
 export class TypesPrestationsService {
   constructor(
     @InjectRepository(TypePrestation)
     private readonly repo: Repository<TypePrestation>,
+    @InjectRepository(Prestation)
+    private readonly prestationRepo: Repository<Prestation>,
   ) {}
 
   async create(createDto: CreateTypePrestationDto) {
@@ -17,10 +20,17 @@ export class TypesPrestationsService {
     return await this.repo.save(_data);
   }
 
-  async findAll() {
-    return await this.repo.find({
-      relations: { prestations: true },
+  async findAll(page = 1, limit = 10, search = '') {
+    const [data, total] = await this.repo.findAndCount({
+      where: [{ nom: ILike(`%${search}%`), actif: true }],
+
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        nom: 'ASC',
+      },
     });
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: number) {
@@ -49,7 +59,20 @@ export class TypesPrestationsService {
   }
 
   async remove(id: number) {
-    const _data = await this.findOne(id);
-    return await this.repo.remove(_data);
+    const typePrestation = await this.findOne(id);
+
+    if (!typePrestation) {
+      throw new NotFoundException('Type Prestation introuvable');
+    }
+    await this.prestationRepo.update(
+      { typePrestationId: id },
+      { actif: false },
+    );
+    await this.repo.update(id, { actif: false });
+
+    return {
+      message:
+        'Type de prestation et ses prestations associées désactivés avec succès',
+    };
   }
 }

@@ -39,15 +39,19 @@ export class PersonnelsController {
     PersonnelRole.RESPONSABLE,
   )
   findAll(
-      @Query('page') page?: string,
-      @Query('limit') limit?: string,
-      @Query('search') search?: string,
-    ) {
-      const pageNumber = page ? +page : 1;
-      const limitNumber = limit ? +limit : 10;
-      const searchString = search || '';
-      return this.personnelsService.findAll(pageNumber, limitNumber, searchString);
-    }
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    const pageNumber = page ? +page : 1;
+    const limitNumber = limit ? +limit : 10;
+    const searchString = search || '';
+    return this.personnelsService.findAll(
+      pageNumber,
+      limitNumber,
+      searchString,
+    );
+  }
 
   @Get(':id')
   @Roles(

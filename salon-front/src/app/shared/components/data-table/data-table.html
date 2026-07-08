@@ -7,11 +7,7 @@
             <th (click)="sort(column.field)" style="cursor: pointer">
               {{ column.label }}
               @if (sortField === column.field) {
-                <i
-                  class="fa ms-2"
-                  [ngClass]="sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'"
-                >
-                </i>
+                <i class="fa ms-2" [ngClass]="sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'"> </i>
               }
             </th>
           }
@@ -41,12 +37,23 @@
                 <td>
                   @if (col.type === 'badge') {
                     <span class="badge bg-primary">
-                      {{ row[col.field] }}
+                      {{ getValue(row, col.field) }}
                     </span>
                   } @else if (col.type === 'currency') {
-                    {{ row[col.field] | currency: 'EUR' }}
+                    {{ getValue(row, col.field) | currency: 'Ar' }}
+                  } @else if (col.type === 'timemn') {
+                    {{ getValue(row, col.field) }} mn
+                  } @else if (col.type === 'timehr') {
+                    {{ getValue(row, col.field) }} h
+                  } @else if (col.type === 'color') {
+                    <div
+                      class="rounded-circle border"
+                      style="width: 20px; height: 20px"
+                      [style.background]="getValue(row, col.field)"
+                      [title]="getValue(row, col.field)"
+                    ></div>
                   } @else {
-                    {{ row[col.field] }}
+                    {{ getValue(row, col.field) }}
                   }
                 </td>
               }
@@ -61,11 +68,7 @@
                     <i class="fa-solid fa-pen"></i>
                   </button>
 
-                  <button
-                    class="btn btn-outline-danger"
-                    (click)="delete.emit(row.id)"
-                    title="Supprimer"
-                  >
+                  <button class="btn btn-outline-danger" (click)="delete.emit(row.id)" title="Supprimer">
                     <i class="fa-solid fa-trash"></i>
                   </button>
                 </div>

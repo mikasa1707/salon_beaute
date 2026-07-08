@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { TypesPrestationsService } from './types-prestations.service';
 import { CreateTypePrestationDto } from './dto/create-types-prestation.dto';
@@ -41,8 +42,19 @@ export class TypesPrestationsController {
     PersonnelRole.COIFFEUR,
     PersonnelRole.ESTHETICIEN,
   )
-  findAll() {
-    return this.typesPrestationsService.findAll();
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    const pageNumber = page ? +page : 1;
+    const limitNumber = limit ? +limit : 10;
+    const searchString = search || '';
+    return this.typesPrestationsService.findAll(
+      pageNumber,
+      limitNumber,
+      searchString,
+    );
   }
 
   @Get(':id')

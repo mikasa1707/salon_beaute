@@ -1,0 +1,20 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="mb-3">
+    <label class="form-label"> Type de prestation * </label>
+    <input class="form-control" formControlName="nom" />
+
+    @if (f['nom'].invalid && f['nom'].touched) {
+      <div class="text-danger">Type de prestation obligatoire</div>
+    }
+  </div>
+
+  <div class="text-end">
+    <button type="submit" class="btn btn-primary" [disabled]="loading">
+      @if (loading) {
+        <span> Enregistrement... </span>
+      } @else {
+        <span> Enregistrer </span>
+      }
+    </button>
+  </div>
+</form>
