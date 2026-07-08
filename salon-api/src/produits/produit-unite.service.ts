@@ -1,22 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateProduitDto } from './dto/create-produit.dto';
-import { UpdateProduitDto } from './dto/update-produit.dto';
-import { Produit } from './entities/produit.entity';
+import { CreateProduitUniteDto } from './dto/create-produit-unite.dto';
+import { UpdateProduitUniteDto } from './dto/update-produit-unite.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { ProduitUnite } from './entities/produit_unites.entity';
 
 @Injectable()
-export class ProduitsService {
+export class ProduitUniteService {
   constructor(
-    @InjectRepository(Produit)
-    private readonly repo: Repository<Produit>,
-
     @InjectRepository(ProduitUnite)
-    private readonly uniteRepo: Repository<ProduitUnite>,
+    private readonly repo: Repository<ProduitUnite>,
   ) { }
 
-  async create(createDto: CreateProduitDto) {
+  async create(createDto: CreateProduitUniteDto) {
     const _data = this.repo.create(createDto);
     return await this.repo.save(_data);
   }
@@ -30,9 +26,7 @@ export class ProduitsService {
         },
       ],
       relations: {
-        marque: true,
-        typeProduit: true,
-        unites: true,
+        produit: true,
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -45,7 +39,6 @@ export class ProduitsService {
       ...produit,
       stockTotal: this.getTotalStock(produit),
       isLowStock: this.isLowStock(produit),
-      nbUnites: produit.unites.length,
     }));
     return { data: produits, total, page, limit, totalPages: Math.ceil(total / limit), };
   }
@@ -54,9 +47,7 @@ export class ProduitsService {
     const _data = await this.repo.findOne({
       where: { id },
       relations: {
-        marque: true,
-        typeProduit: true,
-        unites: true
+        produit: true,
       }
     });
 
@@ -66,7 +57,7 @@ export class ProduitsService {
     return _data;
   }
 
-  async update(id: number, updateDto: UpdateProduitDto) {
+  async update(id: number, updateDto: UpdateProduitUniteDto) {
     const _data = await this.repo.preload({
       id,
       ...updateDto,
@@ -89,16 +80,16 @@ export class ProduitsService {
     };
   }
 
-  getTotalStock(produit: Produit): number {
-    return produit.unites?.reduce((sum, u) => sum + u.stock, 0) ?? 0;
+  getTotalStock(produit: ProduitUnite): number {
+    return produit.stock ?? 0;
   }
 
-  isLowStock(produit: Produit) {
+  isLowStock(produit: ProduitUnite) {
     return this.getTotalStock(produit) <= produit.stock_minimum;
   }
 
   async getUnitStockAlerts() {
-    const unites = await this.uniteRepo.find({
+    const unites = await this.repo.find({
       relations: { produit: { marque: true } },
       where: {
         actif: true

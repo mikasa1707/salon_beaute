@@ -1,35 +1,45 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from 'typeorm';
-import { Produit } from './produit.entity';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from "typeorm";
+import { Produit } from "./produit.entity";
 
 @Entity('produit_unites')
 export class ProduitUnite {
+
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Produit, (p) => p.unites, {
-    onDelete: 'CASCADE',
+  @ManyToOne(() => Produit, p => p.unites, {
+    onDelete: 'CASCADE'
   })
   produit!: Produit;
 
   @Column()
-  nom!: string; // 250ml, 1L, etc
+  nom!: string;
 
   @Column({
-    type: 'int',
-    default: 0,
+    length: 20,
+    default: ''
+  })
+  code!: string;
+
+  @Column({
+    default: 0
   })
   stock!: number;
 
   @Column({
-    type: 'decimal',
+    default: 0
+  })
+  stock_minimum!: number;
+
+  @Column('decimal', {
     precision: 10,
-    scale: 2,
+    scale: 2
   })
   prix!: number;
 
   @Column({
-    type: 'int',
-    default: 0,
+    default: true
   })
-  stock_minimum!: number;
+  actif!: boolean;
+
 }

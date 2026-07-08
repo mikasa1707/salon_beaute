@@ -3,7 +3,7 @@ import { CreateTypeProduitDto } from './dto/create-types-produit.dto';
 import { UpdateTypesProduitDto } from './dto/update-types-produit.dto';
 import { TypeProduit } from './entities/types-produit.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 @Injectable()
 export class TypesProduitsService {
@@ -17,11 +17,29 @@ export class TypesProduitsService {
     return await this.repo.save(_data);
   }
 
-  async findAll() {
-    return await this.repo.find({
-      relations: { produits: true },
-    });
-  }
+  async findAll(page = 1, limit = 10, search = '',) {
+      const [data, total] = await this.repo.findAndCount({
+        where: [
+          {
+            nom: ILike(`%${search}%`),
+            actif: true,
+          },
+        ],
+        relations: {
+          produits: true,
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        order: {
+          nom: 'ASC',
+        },
+      });
+  
+      const produits = data.map(produit => ({
+        ...produit,
+      }));
+      return { data: produits, total, page, limit, totalPages: Math.ceil(total / limit), };
+    }
 
   async findOne(id: number) {
     const _data = await this.repo.findOne({
@@ -49,7 +67,12 @@ export class TypesProduitsService {
   }
 
   async remove(id: number) {
-    const _data = await this.findOne(id);
-    return await this.repo.remove(_data);
+    await this.findOne(id);
+    await this.repo.update(id, {
+      actif: false
+    });
+    return {
+      message: 'Produit archivé'
+    };
   }
 }

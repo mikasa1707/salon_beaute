@@ -1,14 +1,14 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { environment } from "../../../environnements/environnement";
-import { Marque } from "../models/marques";
+import { ProduitUnite } from "../models/produit-unite";
 
 @Injectable({
     providedIn: 'root'
 })
-export class MarqueApi {
+export class ProduitUniteApi {
 
-    private api = environment.apiUrl + '/marques';
+    private api = environment.apiUrl + '/produits';
 
     constructor(private http: HttpClient) { }
 
@@ -19,15 +19,15 @@ export class MarqueApi {
     }
 
     findOne(id: number) {
-        return this.http.get<Marque>(`${this.api}/${id}`);
+        return this.http.get<ProduitUnite>(`${this.api}/${id}`);
     }
 
     create(dto: any) {
-        return this.http.post<Marque>(this.api, dto);
+        return this.http.post<ProduitUnite>(this.api, dto);
     }
 
     update(id: number, dto: any) {
-        return this.http.patch<Marque>(`${this.api}/${id}`, dto);
+        return this.http.patch<ProduitUnite>(`${this.api}/${id}`, dto);
     }
 
     remove(id: number) {

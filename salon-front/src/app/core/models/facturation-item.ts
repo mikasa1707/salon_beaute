@@ -1,5 +1,5 @@
 import { Prestation } from "./prestation";
-import { Produit } from "./produit-unite";
+import { ProduitUnite } from "./produit-unite";
 
 export interface FacturationItem {
 
@@ -7,7 +7,7 @@ export interface FacturationItem {
 
     prestation?: Prestation;
 
-    produit?: Produit;
+    produit?: ProduitUnite;
 
     quantite: number;
 

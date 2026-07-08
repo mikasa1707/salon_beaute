@@ -1,19 +1,9 @@
-export interface Produit {
-
+export interface ProduitUnite {
     id: number;
-
     nom: string;
-
     codeBarre?: string;
-
-    marque?: string;
-
-    prixAchat: number;
-
-    prixVente: number;
-
+    stock: number;
+    prix: number;
     stockMinimum: number;
-
     actif: boolean;
-
 }

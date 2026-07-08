@@ -41,9 +41,6 @@ export class Produit {
   @JoinColumn({ name: 'type_produit_id' })
   typeProduit!: TypeProduit;
 
-  @OneToOne(() => Stock, (stock) => stock.produit)
-  stock!: Stock;
-
   @Column({
     type: 'int',
     default: 0,
@@ -52,4 +49,9 @@ export class Produit {
 
   @OneToMany(() => ProduitUnite, (u) => u.produit)
   unites!: ProduitUnite[];
+
+  @Column({
+    default: true
+  })
+  actif!: boolean;
 }
