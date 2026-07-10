@@ -17,10 +17,15 @@ export class ProduitUniteService {
     return await this.repo.save(_data);
   }
 
-  async findAll(page = 1, limit = 10, search = '',) {
+  async findAll(
+    produitId: number,
+    page = 1,
+    limit = 10,
+    search = '',) {
     const [data, total] = await this.repo.findAndCount({
       where: [
         {
+          produit: { id: produitId },
           nom: ILike(`%${search}%`),
           actif: true,
         },

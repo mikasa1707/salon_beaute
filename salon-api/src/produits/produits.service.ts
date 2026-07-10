@@ -17,11 +17,20 @@ export class ProduitsService {
   ) { }
 
   async create(createDto: CreateProduitDto) {
-    const _data = this.repo.create(createDto);
-    return await this.repo.save(_data);
+    const {
+      marqueId,
+      typeProduitId,
+      ...data
+    } = createDto;
+    const produit = this.repo.create({
+      ...data,
+      marque: { id: Number(marqueId) },
+      typeProduit: { id: Number(typeProduitId) }
+    });
+    return await this.repo.save(produit);
   }
 
-  async findAll(page = 1, limit = 10, search = '',) {
+  async findAll(page = 1, limit = 10, search = '') {
     const [data, total] = await this.repo.findAndCount({
       where: [
         {
@@ -41,13 +50,24 @@ export class ProduitsService {
       },
     });
 
-    const produits = data.map(produit => ({
-      ...produit,
-      stockTotal: this.getTotalStock(produit),
-      isLowStock: this.isLowStock(produit),
-      nbUnites: produit.unites.length,
-    }));
-    return { data: produits, total, page, limit, totalPages: Math.ceil(total / limit), };
+    const produits = data.map(produit => {
+      const unitesActives = produit.unites?.filter(unite => unite.actif) ?? [];
+      return {
+        ...produit,
+        stockTotal: unitesActives.reduce(          (sum, unite) => sum + unite.stock,          0        ),
+        isLowStock: unitesActives.reduce((sum, unite) => sum + unite.stock, 0) <= produit.stock_minimum,
+        nbUnites: unitesActives.length,
+        hasLowStockUnit: unitesActives.some(unite => unite.stock <= unite.stock_minimum),
+      };
+    });
+
+    return {
+      data: produits,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number) {
@@ -67,16 +87,28 @@ export class ProduitsService {
   }
 
   async update(id: number, updateDto: UpdateProduitDto) {
-    const _data = await this.repo.preload({
+    const {
+      marqueId,
+      typeProduitId,
+      ...data
+    } = updateDto;
+    const produit = await this.repo.preload({
       id,
-      ...updateDto,
+      ...data,
+      marque: marqueId
+        ? { id: Number(marqueId) }
+        : undefined,
+
+      typeProduit: typeProduitId
+        ? { id: Number(typeProduitId) }
+        : undefined,
     });
-
-    if (!_data) {
-      throw new NotFoundException(`Produit ${id} introuvable`);
+    if (!produit) {
+      throw new NotFoundException(
+        `Produit ${id} introuvable`
+      );
     }
-
-    return await this.repo.save(_data);
+    return await this.repo.save(produit);
   }
 
   async remove(id: number) {

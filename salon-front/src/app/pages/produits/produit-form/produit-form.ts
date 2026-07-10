@@ -3,10 +3,16 @@ import { Produit } from '../../../core/models/produit';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProduitApi } from '../../../core/services/produit-api';
 import { ToastService } from '../../../core/services/toast';
+import { FormField } from '../../../core/models/form-field';
+import { FormBuilderComponent } from "../../../shared/components/form-builder/form-builder";
+import { Marque } from '../../../core/models/marques';
+import { TypeProduit } from '../../../core/models/type-produit';
+import { MarqueApi } from '../../../core/services/marque-api';
+import { TypeProduitApi } from '../../../core/services/type-produit-api';
 
 @Component({
   selector: 'app-produit-form',
-  imports: [],
+  imports: [FormBuilderComponent],
   templateUrl: './produit-form.html',
   styleUrl: './produit-form.scss',
 })
@@ -17,10 +23,16 @@ export class ProduitForm implements OnChanges, OnInit {
   form: FormGroup;
   loading = false;
   produits: Produit[] = [];
+  marques: Marque[] = [];
+  typesProduits: TypeProduit[] = [];
+
+  fields: FormField[] = [];
 
   constructor(
     private fb: FormBuilder,
     private produitService: ProduitApi,
+    private marqueService: MarqueApi,
+    private typeProduitService: TypeProduitApi,
     // private typePrestationService: TypeprestationApi,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
@@ -48,20 +60,59 @@ export class ProduitForm implements OnChanges, OnInit {
     return this.form.controls;
   }
 
-  // loadTypesPrestations() {
-  //   this.typePrestationService.findAll(1, 100, '').subscribe({
-  //     next: (res) => {
-  //       this.typesPrestations = res.data;
-  //       this.cdr.detectChanges();
-  //     },
-  //     error: () => {
-  //       this.toast.error('Impossible de charger les types de prestations');
-  //     }
-  //   });
-  // }
-
   ngOnInit() {
-    // this.loadTypesPrestations();
+    this.marqueService.findAll(1, 1000).subscribe(res => {
+      this.marques = res.data;
+      this.cdr.detectChanges();
+      this.initFields();
+    });
+
+    this.typeProduitService.findAll(1, 1000).subscribe(res => {
+      this.typesProduits = res.data;
+      this.initFields();
+    });
+  }
+
+  private initFields() {
+    this.fields = [
+      {
+        key: 'nom',
+        label: 'Nom',
+        type: 'text',
+        required: true,
+      },
+      {
+        key: 'marqueId',
+        label: 'Marque',
+        type: 'select',
+        required: true,
+        options: this.marques,
+        optionLabel: 'nom',
+        optionValue: 'id',
+      },
+      {
+        key: 'typeProduitId',
+        label: 'Type de produit',
+        type: 'select',
+        required: true,
+        options: this.typesProduits,
+        optionLabel: 'nom',
+        optionValue: 'id',
+      },
+      {
+        key: 'prix_achat',
+        label: 'Prix d\'achat (Ar)',
+        type: 'number',
+        required: true,
+      },
+      {
+        key: 'prix_vente',
+        label: 'Prix de vente (Ar)',
+        type: 'number',
+        required: true,
+      },
+    ];
+    this.cdr.detectChanges();
   }
 
   ngOnChanges(changes: SimpleChanges) {

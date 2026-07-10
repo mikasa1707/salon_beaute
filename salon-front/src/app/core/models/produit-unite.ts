@@ -1,9 +1,9 @@
 export interface ProduitUnite {
     id: number;
     nom: string;
-    codeBarre?: string;
+    code?: string;
     stock: number;
     prix: number;
-    stockMinimum: number;
+    stock_minimum: number;
     actif: boolean;
 }

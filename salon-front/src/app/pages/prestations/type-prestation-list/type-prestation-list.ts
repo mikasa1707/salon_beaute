@@ -32,6 +32,7 @@ export class TypePrestationList {
 
   columns: TableColumn[] = [
     { field: 'nom', label: 'Label' },
+    { field: 'nbPrestation', label: 'Prestation', type: 'badge' },
   ];
 
   private searchSubject = new Subject<string>();

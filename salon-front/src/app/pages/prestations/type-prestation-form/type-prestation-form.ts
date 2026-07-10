@@ -4,11 +4,13 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { TypePrestation } from '../../../core/models/prestation';
 import { TypeprestationApi } from '../../../core/services/typeprestation-api';
 import { ToastService } from '../../../core/services/toast';
+import { FormField } from '../../../core/models/form-field';
+import { FormBuilderComponent } from "../../../shared/components/form-builder/form-builder";
 
 @Component({
   selector: 'app-type-typePrestation-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormBuilderComponent],
   templateUrl: './type-prestation-form.html',
   styleUrl: './type-prestation-form.scss',
 })
@@ -19,6 +21,7 @@ export class TypePrestationForm {
   form: FormGroup;
   loading = false;
   typesPrestations: TypePrestation[] = [];
+  fields: FormField[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -36,7 +39,21 @@ export class TypePrestationForm {
     return this.form.controls;
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.initFields();
+  }
+
+  private initFields() {
+    this.fields = [
+      {
+        key: 'nom',
+        label: 'Type de prestation',
+        type: 'text',
+        required: true,
+      },
+    ];
+    this.cdr.detectChanges();
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.typePrestation) {

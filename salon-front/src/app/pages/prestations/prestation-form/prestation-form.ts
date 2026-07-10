@@ -5,11 +5,13 @@ import { PrestationApi } from '../../../core/services/prestation-api';
 import { ToastService } from '../../../core/services/toast';
 import { Prestation, TypePrestation } from '../../../core/models/prestation';
 import { TypeprestationApi } from '../../../core/services/typeprestation-api';
+import { FormField } from '../../../core/models/form-field';
+import { FormBuilderComponent } from "../../../shared/components/form-builder/form-builder";
 
 @Component({
   selector: 'app-prestation-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormBuilderComponent],
   templateUrl: './prestation-form.html',
   styleUrl: './prestation-form.scss',
 })
@@ -20,6 +22,7 @@ export class PrestationForm implements OnChanges, OnInit {
   form: FormGroup;
   loading = false;
   typesPrestations: TypePrestation[] = [];
+  fields: FormField[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -43,9 +46,10 @@ export class PrestationForm implements OnChanges, OnInit {
   }
 
   loadTypesPrestations() {
-    this.typePrestationService.findAll(1,100,'').subscribe({
+    this.typePrestationService.findAll(1, 100, '').subscribe({
       next: (res) => {
         this.typesPrestations = res.data;
+        this.initFields();
         this.cdr.detectChanges();
       },
       error: () => {
@@ -71,6 +75,37 @@ export class PrestationForm implements OnChanges, OnInit {
         actif: true,
       });
     }
+  }
+
+  private initFields() {
+    this.fields = [
+      {
+        key: 'nom',
+        label: 'Prestation',
+        type: 'text',
+        required: true,
+      },
+      {
+        key: 'duree',
+        label: 'Durée (min)',
+        type: 'number',
+        required: true,
+      },
+      {
+        key: 'prix',
+        label: 'Prix (Ar)',
+        type: 'number',
+        required: true,
+      },
+      {
+        key: 'typePrestationId',
+        label: 'Type de prestation',
+        type: 'select',
+        required: true,
+        options: this.typesPrestations,
+      },
+    ];
+    this.cdr.detectChanges();
   }
 
   submit() {

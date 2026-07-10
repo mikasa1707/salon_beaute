@@ -21,7 +21,9 @@ export class DataTableComponent {
   // La pagination est contrôlée par le parent
   @Input() page = 1;
   @Input() totalPages = 1;
+  @Input() showUnitButton = false;
 
+  @Output() openUnites = new EventEmitter<any>();
   @Output() view = new EventEmitter<any>();
   @Output() edit = new EventEmitter<any>();
   @Output() delete = new EventEmitter<any>();
@@ -70,5 +72,9 @@ export class DataTableComponent {
       this.sortField = column;
       this.sortDirection = 'asc';
     }
+  }
+
+  isLowStock(row: any) {
+    return row.stock !== undefined && row.stock <= row.stock_minimum;
   }
 }

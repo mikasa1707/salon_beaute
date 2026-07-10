@@ -11,11 +11,12 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { DataTableComponent } from '../../../shared/components/data-table/data-table';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 import { ModalComponent } from '../../../shared/components/modal/modal';
+import { ProduitUnites } from "../produit-unites/produit-unites";
 
 @Component({
   selector: 'app-produit-list',
   standalone: true,
-  imports: [SearchBarComponent, PageHeaderComponent, DataTableComponent, PaginationComponent, ModalComponent, ProduitForm],
+  imports: [SearchBarComponent, PageHeaderComponent, DataTableComponent, PaginationComponent, ModalComponent, ProduitForm, ProduitUnites],
   templateUrl: './produit-list.html',
   styleUrl: './produit-list.scss',
 })
@@ -27,6 +28,7 @@ export class ProduitList {
   totalPages = 0;
   searchValue = '';
   loading: boolean = false;
+  showUnitesModal = false;
   showModal = false;
   selected?: Produit;
 
@@ -37,7 +39,7 @@ export class ProduitList {
     { field: 'stockTotal', label: 'Stock', },
     { field: 'prix_achat', label: 'Prix achat', type: 'currency', },
     { field: 'prix_vente', label: 'Prix vente', type: 'currency', },
-    { field: 'isLowStock', label: 'Stock faible', type: 'boolean', },
+    { field: 'nbUnites', label: 'Unités', type: 'badge'},
   ];
 
   private searchSubject = new Subject<string>();
@@ -53,7 +55,6 @@ export class ProduitList {
   ngOnInit(): void {
     this.searchSubscription = this.searchSubject.pipe(debounceTime(600), distinctUntilChanged()).subscribe(value => {
       this.searchValue = value;
-      console.log(value);
       this.page = 1;
       this.load(value);
     });
@@ -70,8 +71,8 @@ export class ProduitList {
     this.loading = true;
     this.produitService.findAll(this.page, this.limit, _search).subscribe({
       next: (res: { data: any[]; totalPages: number; total: number }) => {
-        console.log(res);
         this.produits = res.data;
+        console.log(res.data)
         this.total = res.total;
         this.totalPages = res.totalPages;
         this.loading = false;
@@ -127,12 +128,25 @@ export class ProduitList {
     this.showModal = true;
   }
 
+  openUnites(produit: Produit) {
+    this.selected = produit;
+    this.showUnitesModal = true;
+  }
+
+  closeUnites() {
+    this.showUnitesModal = false;
+    this.selected = undefined;
+    console.log(this.showUnitesModal)
+  }
+
   closeModal() {
     this.showModal = false;
+    this.selected = undefined;
   }
 
   save() {
     this.showModal = false;
     this.load();
+    this.selected = undefined;
   }
 }

@@ -1,30 +1,30 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { TypeProduit } from '../../../core/models/type-produit';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormField } from '../../../core/models/form-field';
-import { Marque } from '../../../core/models/marques';
-import { MarqueApi } from '../../../core/services/marque-api';
+import { TypeProduitApi } from '../../../core/services/type-produit-api';
 import { ToastService } from '../../../core/services/toast';
 import { FormBuilderComponent } from "../../../shared/components/form-builder/form-builder";
 
 @Component({
-  selector: 'app-marque-form',
+  selector: 'app-type-produit-form',
   imports: [FormBuilderComponent],
-  templateUrl: './marque-form.html',
-  styleUrl: './marque-form.scss',
+  templateUrl: './type-produit-form.html',
+  styleUrl: './type-produit-form.scss',
 })
-export class MarqueForm {
-  @Input() marque?: Marque;
-  @Output() saved = new EventEmitter<Marque>();
+export class TypeProduitForm {
+  @Input() typeProduit?: TypeProduit;
+  @Output() saved = new EventEmitter<TypeProduit>();
 
   form: FormGroup;
   loading = false;
-  marques: Marque[] = [];
+  typeProduits: TypeProduit[] = [];
 
   fields: FormField[] = [];
 
   constructor(
     private fb: FormBuilder,
-    private marqueService: MarqueApi,
+    private typeProduitService: TypeProduitApi,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
   ) {
@@ -55,9 +55,9 @@ export class MarqueForm {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this.marque) {
+    if (this.typeProduit) {
       this.form.patchValue({
-        ...this.marque,
+        ...this.typeProduit,
       });
       this.initFields();
     } else {
@@ -76,14 +76,14 @@ export class MarqueForm {
     this.loading = true;
 
     const data = this.form.value;
-    const request = this.marque?.id ? this.marqueService.update(this.marque.id, data) : this.marqueService.create(data);
+    const request = this.typeProduit?.id ? this.typeProduitService.update(this.typeProduit.id, data) : this.typeProduitService.create(data);
 
     request.subscribe({
       next: result => {
         this.loading = false;
-        this.toast.success(this.marque?.id ? 'Marque modifiée' : 'Marque créée');
+        this.toast.success(this.typeProduit?.id ? 'TypeProduit modifiée' : 'TypeProduit créée');
 
-        if (!this.marque?.id) {
+        if (!this.typeProduit?.id) {
           this.form.reset({
             duree: 30,
             prix: 0,

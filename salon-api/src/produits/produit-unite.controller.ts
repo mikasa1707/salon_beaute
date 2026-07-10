@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, ParseIntPipe } from '@nestjs/common';
 import { ProduitUniteService } from './produit-unite.service';
 import { CreateProduitUniteDto } from './dto/create-produit-unite.dto';
 import { UpdateProduitUniteDto } from './dto/update-produit-unite.dto';
@@ -22,7 +22,30 @@ export class ProduitUniteController {
     return this.produitsService.create(createProduitDto);
   }
 
-  @Get()
+  // @Get()
+  // @Roles(
+  //   PersonnelRole.RECEPTION,
+  //   PersonnelRole.ADMIN,
+  //   PersonnelRole.RESPONSABLE,
+  //   PersonnelRole.COIFFEUR,
+  //   PersonnelRole.ESTHETICIEN,
+  // )
+  // findAll(
+  //   @Query('page') page?: string,
+  //   @Query('limit') limit?: string,
+  //   @Query('search') search?: string,
+  // ) {
+  //   const pageNumber = page ? +page : 1;
+  //   const limitNumber = limit ? +limit : 10;
+  //   const searchString = search || '';
+  //   return this.produitsService.findAll(
+  //     pageNumber,
+  //     limitNumber,
+  //     searchString,
+  //   );
+  // }
+
+  @Get(':id/unites')
   @Roles(
     PersonnelRole.RECEPTION,
     PersonnelRole.ADMIN,
@@ -30,18 +53,17 @@ export class ProduitUniteController {
     PersonnelRole.COIFFEUR,
     PersonnelRole.ESTHETICIEN,
   )
-  findAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('search') search?: string,
+  findAllUnites(
+    @Param('id', ParseIntPipe) produitId: number,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('search') search = '',
   ) {
-    const pageNumber = page ? +page : 1;
-    const limitNumber = limit ? +limit : 10;
-    const searchString = search || '';
     return this.produitsService.findAll(
-      pageNumber,
-      limitNumber,
-      searchString,
+      produitId,
+      page,
+      limit,
+      search,
     );
   }
 

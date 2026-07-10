@@ -1,4 +1,4 @@
-<app-page-header title="Produits" subtitle="Gestion des produits du salon" icon="fa-solid fa-scissors">
+<app-page-header title="" subtitle="Gestion des unités de conditionnement" icon="fa-solid fa-boxes-stacked">
   <div class="d-flex gap-2 flex-wrap">
     <!-- Recherche -->
     <div class="search-wrapper">
@@ -14,13 +14,12 @@
 
 <app-data-table
   [columns]="columns"
-  [data]="produits"
+  [data]="unites"
   [loading]="loading"
   [page]="page"
   [totalPages]="totalPages"
   (pageChange)="changePage($event)"
-  [showUnitButton]="true"
-  (openUnites)="openUnites($event)"
+  /* (view)="view($event)" */
   (edit)="openEdit($event)"
   (delete)="delete($event)"
 >
@@ -37,9 +36,5 @@
 </app-pagination>
 
 <app-modal [title]="selected ? 'Modifier produit' : 'Nouveau produit'" [show]="showModal" (closed)="closeModal()">
-  <app-produit-form [produit]="selected" (saved)="save()"> </app-produit-form>
-</app-modal>
-
-<app-modal title="Unités - {{ selected?.nom }}" size="xl" [show]="showUnitesModal" (closed)="closeUnites()">
-  <app-produit-unites [produit]="selected!"></app-produit-unites>
+  <app-produit-unites-form [produit]="produit" [unite]="selected" (saved)="save()"> </app-produit-unites-form>
 </app-modal>

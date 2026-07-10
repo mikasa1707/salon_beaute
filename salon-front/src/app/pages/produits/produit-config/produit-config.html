@@ -1,1 +1,31 @@
-<p>produit-config works!</p>
+<app-page-header title="Configurations des produits" subtitle="" icon="fa-solid fa-wrench">
+</app-page-header>
+
+<div class="card shadow-sm">
+  <div class="card-header">
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab === 'marques'" (click)="changeTab('marques')">
+          <i class="fa-solid fa-tags"></i>
+          Marques
+        </button>
+      </li>
+
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab === 'types'" (click)="changeTab('types')">
+          <i class="fa-solid fa-box"></i>
+          Types produits
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card-body">
+    @if (activeTab === 'marques') {
+      <app-marque-list />
+    }
+    @if (activeTab === 'types') {
+      <app-type-produits />
+    }
+  </div>
+</div>

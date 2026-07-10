@@ -8,13 +8,15 @@ import { ProduitUnite } from "../models/produit-unite";
 })
 export class ProduitUniteApi {
 
-    private api = environment.apiUrl + '/produits';
+    private api = environment.apiUrl + '/produit-unite';
 
     constructor(private http: HttpClient) { }
 
-    findAll(page = 1, limit = 10, search = '') {
-        return this.http.get<any>(
-            `${this.api}?page=${page}&limit=${limit}&search=${search}`
+    findAll(produitId: number, page = 1, limit = 10, search = '') {
+        return this.http.get<any>(`${this.api}/${produitId}/unites`,
+            {
+                params: { page, limit, search }
+            }
         );
     }
 

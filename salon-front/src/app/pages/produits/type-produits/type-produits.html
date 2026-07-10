@@ -1,1 +1,39 @@
-<p>type-produits works!</p>
+<app-page-header title="TypeProduits" subtitle="Gestion des Type produits du salon" icon="fa-solid fa-scissors">
+  <div class="d-flex gap-2 flex-wrap">
+    <!-- Recherche -->
+    <div class="search-wrapper">
+      <app-search-bar (searchChange)="search($event)"> </app-search-bar>
+    </div>
+
+    <!-- Ajouter -->
+    <button class="btn btn-primary d-flex align-items-center gap-2 px-3" type="button" (click)="openCreate()">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </div>
+</app-page-header>
+
+<app-data-table
+  [columns]="columns"
+  [data]="typeProduits"
+  [loading]="loading"
+  [page]="page"
+  [totalPages]="totalPages"
+  (pageChange)="changePage($event)"
+  (edit)="openEdit($event)"
+  (delete)="delete($event)"
+>
+</app-data-table>
+
+<app-pagination
+  [page]="page"
+  [totalPages]="totalPages"
+  [total]="total"
+  [limit]="limit"
+  (pageChange)="changePage($event)"
+  (limitChange)="changeLimit($event)"
+>
+</app-pagination>
+
+<app-modal [title]="selected ? 'Modifier type produit' : 'Nouveau type produit'" [show]="showModal" (closed)="closeModal()">
+  <app-type-produit-form [typeProduit]="selected" (saved)="save()"> </app-type-produit-form>
+</app-modal>

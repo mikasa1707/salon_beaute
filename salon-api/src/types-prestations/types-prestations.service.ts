@@ -23,6 +23,9 @@ export class TypesPrestationsService {
   async findAll(page = 1, limit = 10, search = '') {
     const [data, total] = await this.repo.findAndCount({
       where: [{ nom: ILike(`%${search}%`), actif: true }],
+      relations: {
+        prestations: true,
+      },
 
       skip: (page - 1) * limit,
       take: limit,
@@ -30,7 +33,12 @@ export class TypesPrestationsService {
         nom: 'ASC',
       },
     });
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+
+    const datas = data.map(typeData => ({
+      ...typeData,
+      nbPrestation: typeData.prestations?.filter(p => p.actif).length ?? 0,
+    }));
+    return { data: datas , total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: number) {
@@ -40,7 +48,7 @@ export class TypesPrestationsService {
     });
 
     if (!_data) {
-      throw new NotFoundException(`Marque ${id} introuvable`);
+      throw new NotFoundException(`Type prestation ${id} introuvable`);
     }
     return _data;
   }
@@ -52,7 +60,7 @@ export class TypesPrestationsService {
     });
 
     if (!_data) {
-      throw new NotFoundException(`Marque ${id} introuvable`);
+      throw new NotFoundException(`Type prestation ${id} introuvable`);
     }
 
     return await this.repo.save(_data);

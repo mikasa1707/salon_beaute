@@ -32,26 +32,52 @@
           </tr>
         } @else {
           @for (row of displayedData; track row.id) {
-            <tr>
+            <tr [class.stock-danger]="isLowStock(row)">
               @for (col of columns; track col.field) {
                 <td>
                   @if (col.type === 'badge') {
-                    <span class="badge bg-primary">
-                      {{ getValue(row, col.field) }}
-                    </span>
+                    @if (col.field === 'nbUnites') {
+                      <span
+                        class="badge fs-6 px-3"
+                        [class.bg-primary]="!row.hasLowStockUnit"
+                        [class.bg-danger]="row.hasLowStockUnit"
+                        [class.blink-badge]="row.hasLowStockUnit"
+                      >
+                        <i class="fa-solid fa-box me-1"></i>
+                        {{ getValue(row, col.field) }}
+                      </span>
+                    } @else {
+                      <span class="badge bg-primary fs-6 px-3 py-2">
+                        {{ getValue(row, col.field) }}
+                      </span>
+                    }
                   } @else if (col.type === 'currency') {
-                    {{ getValue(row, col.field) | currency: 'Ar' }}
+                    <span class="fw-semibold">
+                      {{ getValue(row, col.field) | currency: 'Ar' }}
+                    </span>
                   } @else if (col.type === 'timemn') {
-                    {{ getValue(row, col.field) }} mn
+                    <span class="badge bg-secondary fs-6"> {{ getValue(row, col.field) }} mn </span>
                   } @else if (col.type === 'timehr') {
-                    {{ getValue(row, col.field) }} h
+                    <span class="badge bg-secondary fs-6"> {{ getValue(row, col.field) }} h </span>
                   } @else if (col.type === 'color') {
                     <div
-                      class="rounded-circle border"
-                      style="width: 20px; height: 20px"
+                      class="rounded-circle border shadow-sm"
+                      style="width: 24px; height: 24px"
                       [style.background]="getValue(row, col.field)"
                       [title]="getValue(row, col.field)"
                     ></div>
+                  } @else if (col.type === 'boolean') {
+                    @if (getValue(row, col.field)) {
+                      <span class="badge bg-success fs-6 px-3">
+                        <i class="fa-solid fa-check me-1"></i>
+                        Actif
+                      </span>
+                    } @else {
+                      <span class="badge bg-danger fs-6 px-3 blink-badge">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                        Inactif
+                      </span>
+                    }
                   } @else {
                     {{ getValue(row, col.field) }}
                   }
@@ -60,6 +86,11 @@
 
               <td class="text-end">
                 <div class="btn-group btn-group-sm">
+                  @if (showUnitButton) {
+                    <button class="btn btn-outline-info" (click)="openUnites.emit(row)" title="Gérer les unités">
+                      <i class="fa-solid fa-box"></i>
+                    </button>
+                  }
                   <!-- <button class="btn btn-outline-info" (click)="view.emit(row)" title="Voir">
                     <i class="fa-solid fa-eye"></i>
                   </button> -->

@@ -1,25 +1,50 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
 import { PersonnelApi } from '../../../core/services/personnel-api';
 import { ToastService } from '../../../core/services/toast';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Personnel } from '../../../core/models/personnel';
 import { CommonModule } from '@angular/common';
+import { FormField } from '../../../core/models/form-field';
+import { FormBuilderComponent } from "../../../shared/components/form-builder/form-builder";
 
 @Component({
   selector: 'app-personnel-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormBuilderComponent],
   templateUrl: './personnel-form.html',
   styleUrl: './personnel-form.scss',
 })
-export class PersonnelForm {
+export class PersonnelForm implements OnChanges, OnInit {
   form: any;
-  roles = ['ADMIN', 'RESPONSABLE', 'COIFFEUR', 'ESTHETICIEN', 'RECEPTION'];
+  roles = [
+  {
+    label: 'ADMIN',
+    value: 'ADMIN'
+  },
+  {
+    label: 'RESPONSABLE',
+    value: 'RESPONSABLE'
+  },
+  {
+    label: 'COIFFEUR',
+    value: 'COIFFEUR'
+  },
+  {
+    label: 'ESTHETICIEN',
+    value: 'ESTHETICIEN'
+  },
+  {
+    label: 'RECEPTION',
+    value: 'RECEPTION'
+  }
+];
+  fields: FormField[] = [];
 
   constructor(
     private fb: FormBuilder,
     private personnelService: PersonnelApi,
     private toast: ToastService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.form = this.fb.group({
       nom: ['', Validators.required],
@@ -38,6 +63,10 @@ export class PersonnelForm {
   @Output() saved = new EventEmitter<Personnel>();
 
   loading = false;
+
+  ngOnInit() {
+    this.initFields();
+  }
 
   ngOnChanges() {
     if (this.personnel) {
@@ -58,6 +87,56 @@ export class PersonnelForm {
       this.form.controls['password'].setValidators([Validators.required, Validators.minLength(6)]);
       this.form.controls['password'].updateValueAndValidity();
     }
+  }
+
+  private initFields() {
+    this.fields = [
+      {
+        key: 'nom',
+        label: 'Nom',
+        type: 'text',
+        required: true,
+      },
+      {
+        key: 'prenom',
+        label: 'Prénom',
+        type: 'text',
+        required: true,
+      },
+      {
+        key: 'telephone',
+        label: 'Téléphone',
+        type: 'text',
+        required: true,
+      },
+      {
+        key: 'email',
+        label: 'Email',
+        type: 'email',
+        required: true,
+      },
+      {
+        key: 'role',
+        label: 'Rôle',
+        type: 'select',
+        required: true,
+        options: this.roles,
+        optionLabel: 'label',
+        optionValue: 'value',
+      },
+      {
+        key: 'password',
+        label: 'Mot de passe',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'couleurAgenda',
+        label: 'Couleur agenda',
+        type: 'color',
+      }
+    ];
+    this.cdr.detectChanges();
   }
 
   submit() {

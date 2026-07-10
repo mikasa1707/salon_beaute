@@ -46,7 +46,6 @@ export class PersonnelList implements OnInit {
     { field: 'telephone', label: 'Téléphone' },
     { field: 'email', label: 'Email' },
     { field: 'role', label: 'Rôle' },
-    { field: 'actif', label: 'Statut' },
     { field: 'couleurAgenda', label: 'Couleur', type: 'color' }
   ];
 

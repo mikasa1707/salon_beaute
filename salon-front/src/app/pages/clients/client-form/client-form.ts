@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnChanges, OnInit } from '@angular/core';
 import { EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -6,21 +6,26 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ClientService } from '../../../core/services/client-api';
 import { Client } from '../../../core/models/client'
 import { ToastService } from '../../../core/services/toast';
+import { FormField } from '../../../core/models/form-field';
+import { FormBuilderComponent } from "../../../shared/components/form-builder/form-builder";
 
 @Component({
   selector: 'app-client-form',
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule
-  ],
+    ReactiveFormsModule,
+    FormBuilderComponent
+],
   templateUrl: './client-form.html'
 })
-export class ClientForm {
+export class ClientForm implements OnChanges, OnInit {
 
   form: any;
+  fields: FormField[] = [];
 
-  constructor(private fb: FormBuilder, private clientService: ClientService, private toast: ToastService) {
+  constructor(private fb: FormBuilder, private clientService: ClientService, private toast: ToastService,
+    private cdr: ChangeDetectorRef,) {
 
     this.form = this.fb.group({
       nom: ['', [Validators.required]],
@@ -36,6 +41,10 @@ export class ClientForm {
 
   loading = false;
 
+  ngOnInit() {
+    this.initFields();
+  }
+
   ngOnChanges() {
     if (this.client) {
       this.form.patchValue(this.client);
@@ -43,6 +52,36 @@ export class ClientForm {
     else {
       this.form.reset();
     }
+  }
+
+  private initFields() {
+    this.fields = [
+      {
+        key: 'nom',
+        label: 'Nom',
+        type: 'text',
+        required: true,
+      },
+      {
+        key: 'prenom',
+        label: 'Prenom',
+        type: 'text',
+        required: true,
+      },
+      {
+        key: 'telephone',
+        label: 'Téléphone',
+        type: 'text',
+        required: true,
+      },
+      {
+        key: 'email',
+        label: 'Email',
+        type: 'text',
+        required: true,
+      },
+    ];
+    this.cdr.detectChanges();
   }
 
   submit() {

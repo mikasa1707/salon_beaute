@@ -118,3 +118,50 @@ body {
 .modal-backdrop {
   z-index: 1050;
 }
+
+.stock-danger {
+  background-color: var(--bs-danger-bg-subtle);
+  animation: border-blink 1s infinite;
+}
+
+@keyframes border-blink {
+  0%,
+  100% {
+    border: 2px solid var(--bs-danger);
+  }
+
+  50% {
+    border: 2px solid transparent;
+  }
+}
+.blink-badge {
+  animation: badge-blink 1s infinite;
+}
+
+@keyframes badge-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.stock-alert-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background-color: var(--bs-danger);
+  border-radius: 50%;
+  margin-left: 8px;
+  animation: dot-blink 1s infinite;
+  box-shadow: 0 0 8px var(--bs-danger);
+}
+
+@keyframes dot-blink {
+  50% {
+    opacity: 0.2;
+  }
+}

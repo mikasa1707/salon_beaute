@@ -10,7 +10,7 @@ export class TypesProduitsService {
   constructor(
     @InjectRepository(TypeProduit)
     private readonly repo: Repository<TypeProduit>,
-  ) {}
+  ) { }
 
   async create(createDto: CreateTypeProduitDto) {
     const _data = this.repo.create(createDto);
@@ -18,28 +18,29 @@ export class TypesProduitsService {
   }
 
   async findAll(page = 1, limit = 10, search = '',) {
-      const [data, total] = await this.repo.findAndCount({
-        where: [
-          {
-            nom: ILike(`%${search}%`),
-            actif: true,
-          },
-        ],
-        relations: {
-          produits: true,
+    const [data, total] = await this.repo.findAndCount({
+      where: [
+        {
+          nom: ILike(`%${search}%`),
+          actif: true,
         },
-        skip: (page - 1) * limit,
-        take: limit,
-        order: {
-          nom: 'ASC',
-        },
-      });
-  
-      const produits = data.map(produit => ({
-        ...produit,
-      }));
-      return { data: produits, total, page, limit, totalPages: Math.ceil(total / limit), };
-    }
+      ],
+      relations: {
+        produits: true,
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        nom: 'ASC',
+      },
+    });
+
+    const produits = data.map(typeProduit => ({
+      ...typeProduit,
+      nbProduits: typeProduit.produits?.filter(p => p.actif).length ?? 0,
+    }));
+    return { data: produits, total, page, limit, totalPages: Math.ceil(total / limit), };
+  }
 
   async findOne(id: number) {
     const _data = await this.repo.findOne({
