@@ -23,6 +23,7 @@ export enum ReservationOrigine {
 export enum ReservationStatut {
   EN_ATTENTE = 'EN_ATTENTE',
   CONFIRMEE = 'CONFIRMEE',
+  ARRIVEE = 'ARRIVEE',
   EN_COURS = 'EN_COURS',
   TERMINEE = 'TERMINEE',
   ANNULEE = 'ANNULEE',
@@ -33,6 +34,11 @@ export enum ReservationStatut {
 export class Reservation {
   @PrimaryGeneratedColumn()
   id!: number;
+
+  @Column({
+    unique: true,
+  })
+  numero!: string;
 
   @ManyToOne(() => Client)
   @JoinColumn({ name: 'client_id' })
@@ -49,8 +55,26 @@ export class Reservation {
 
   @Column({
     type: 'datetime',
+    nullable: true,
   })
-  date_fin!: Date;
+  date_debut_reelle?: Date;
+
+  @Column({
+    type: 'datetime',
+  })
+  date_fin_prevue!: Date;
+
+  @Column({
+    type: 'datetime',
+    nullable: true,
+  })
+  date_fin_reelle?: Date;
+
+  @Column({
+    type: 'datetime',
+    nullable: true,
+  })
+  date_arrivee?: Date;
 
   @Column({
     type: 'enum',

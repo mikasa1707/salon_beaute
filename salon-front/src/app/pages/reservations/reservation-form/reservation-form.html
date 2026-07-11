@@ -1,1 +1,22 @@
-<p>reservation-form works!</p>
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div class="card shadow-sm">
+    <div class="card-header fw-bold">Nouvelle réservation</div>
+
+    <div class="card-body">
+      <app-reservation-information [form]="form"> </app-reservation-information>
+      <hr />
+
+      <app-reservation-prestations [(selected)]="selectedPrestations"> </app-reservation-prestations>
+      <hr />
+
+      <app-reservation-notes [form]="form"> </app-reservation-notes>
+    </div>
+
+    <div class="card-footer">
+      <app-reservation-summary [prestations]="selectedPrestations"> </app-reservation-summary>
+      <div class="text-end mt-3">
+        <button class="btn btn-primary">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</form>

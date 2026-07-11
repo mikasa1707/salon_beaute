@@ -1,0 +1,31 @@
+<div [formGroup]="form" class="row g-3">
+  <div class="col-md-4">
+    <label class="form-label"> Origine </label>
+
+    <select class="form-select" formControlName="origine">
+      <option value="RENDEZ_VOUS">RDV</option>
+
+      <option value="SANS_RDV">Sans RDV</option>
+
+      <option value="TELEPHONE">Téléphone</option>
+    </select>
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label"> Client </label>
+
+    <input class="form-control" placeholder="Rechercher client..." />
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label"> Personnel </label>
+
+    <input class="form-control" placeholder="Rechercher personnel..." />
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label"> Date </label>
+
+    <input type="datetime-local" class="form-control" formControlName="dateDebut" />
+  </div>
+</div>
