@@ -5,10 +5,16 @@ import { Prestation } from './entities/prestation.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Reservation } from 'src/reservations/entities/reservation.entity';
 import { TypePrestation } from 'src/types-prestations/entities/types-prestation.entity';
+import { Personnel } from 'src/personnels/entities/personnel.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Prestation, Reservation, TypePrestation]),
+    TypeOrmModule.forFeature([
+      Prestation,
+      Reservation,
+      TypePrestation,
+      Personnel,
+    ]),
   ],
   controllers: [PrestationsController],
   providers: [PrestationsService],

@@ -6,11 +6,14 @@ import { Personnel } from '../../../core/models/personnel';
 import { CommonModule } from '@angular/common';
 import { FormField } from '../../../core/models/form-field';
 import { FormBuilderComponent } from "../../../shared/components/form-builder/form-builder";
+import { SelectorForm } from "../../../shared/components/selector-form/selector-form";
+import { PrestationApi } from '../../../core/services/prestation-api';
+import { Prestation } from '../../../core/models/prestation';
 
 @Component({
   selector: 'app-personnel-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormBuilderComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormBuilderComponent, SelectorForm],
   templateUrl: './personnel-form.html',
   styleUrl: './personnel-form.scss',
 })
@@ -39,10 +42,13 @@ export class PersonnelForm implements OnChanges, OnInit {
   }
 ];
   fields: FormField[] = [];
+  prestations: Prestation[] = [];
+  selectedPrestationsIds: number[] = [];
 
   constructor(
     private fb: FormBuilder,
     private personnelService: PersonnelApi,
+        private prestationService: PrestationApi,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
   ) {
@@ -65,6 +71,7 @@ export class PersonnelForm implements OnChanges, OnInit {
   loading = false;
 
   ngOnInit() {
+    this.loadPrestations();
     this.initFields();
   }
 
@@ -78,6 +85,7 @@ export class PersonnelForm implements OnChanges, OnInit {
       this.form.controls['password'].clearValidators();
       this.form.controls['password'].setValidators([Validators.minLength(6)]);
       this.form.controls['password'].updateValueAndValidity();
+      this.selectedPrestationsIds = this.personnel.prestations?.map(x => x.id) ?? [];
     } else {
       this.form.reset({
         password: '123456',
@@ -86,8 +94,22 @@ export class PersonnelForm implements OnChanges, OnInit {
       });
       this.form.controls['password'].setValidators([Validators.required, Validators.minLength(6)]);
       this.form.controls['password'].updateValueAndValidity();
+      this.selectedPrestationsIds = [];
     }
   }
+
+  loadPrestations() {
+    this.prestationService.findAll(1, 1000, '').subscribe({
+      next: res => {
+        this.prestations = res.data;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.toast.error('Impossible de charger les personnels');
+      },
+    });
+  }
+
 
   private initFields() {
     this.fields = [
@@ -147,7 +169,10 @@ export class PersonnelForm implements OnChanges, OnInit {
 
     this.loading = true;
 
-    const data = this.form.value;
+    const data = {
+      ...this.form.value,
+      prestationIds: this.selectedPrestationsIds,
+    };
     const request = this.personnel?.id
       ? this.personnelService.update(this.personnel.id, data)
       : this.personnelService.create(data);
@@ -162,6 +187,7 @@ export class PersonnelForm implements OnChanges, OnInit {
             couleurAgenda: '#0d6efd',
             actif: true,
           });
+          this.selectedPrestationsIds = [];
         }
         this.saved.emit(result);
       },

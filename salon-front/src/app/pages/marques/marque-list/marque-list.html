@@ -34,6 +34,6 @@
 >
 </app-pagination>
 
-<app-modal [title]="selected ? 'Modifier marque' : 'Nouveau marque'" [show]="showModal" (closed)="closeModal()">
+ <app-modal size="lg" [title]="selected ? 'Modifier marque' : 'Nouveau marque'" [show]="showModal" (closed)="closeModal()">
   <app-marque-form [marque]="selected" (saved)="save()"> </app-marque-form>
 </app-modal>

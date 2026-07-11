@@ -1,5 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToMany,
+} from 'typeorm';
 import { Reservation } from '../../reservations/entities/reservation.entity';
+import { Prestation } from 'src/prestations/entities/prestation.entity';
 
 export enum PersonnelRole {
   ADMIN = 'ADMIN',
@@ -53,4 +60,7 @@ export class Personnel {
 
   @OneToMany(() => Reservation, (reservation) => reservation.personnel)
   reservations!: Reservation[];
+
+  @ManyToMany(() => Prestation, (prestation) => prestation.personnels)
+  prestations!: Prestation[];
 }

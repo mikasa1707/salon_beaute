@@ -37,7 +37,7 @@ export class ClientList implements OnInit {
   searchValue = '';
   loading: boolean = false;
   showModal = false;
-  selectedClient?: Client;
+  selected?: Client;
 
   columns = [
     { field: 'nom', label: 'Nom' },
@@ -123,12 +123,12 @@ export class ClientList implements OnInit {
   }
 
   openCreate() {
-    this.selectedClient = undefined;
+    this.selected = undefined;
     this.showModal = true;
   }
 
   openEdit(client: Client) {
-    this.selectedClient = client;
+    this.selected = client;
     this.showModal = true;
   }
 

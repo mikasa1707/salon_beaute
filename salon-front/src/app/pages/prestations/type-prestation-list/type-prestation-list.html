@@ -35,6 +35,6 @@
 >
 </app-pagination>
 
-<app-modal [title]="selected ? 'Modifier prestation' : 'Nouveau prestation'" [show]="showModal" (closed)="closeModal()">
+ <app-modal size="lg" [title]="selected ? 'Modifier prestation' : 'Nouveau prestation'" [show]="showModal" (closed)="closeModal()">
   <app-type-typePrestation-form [typePrestation]="selected" (saved)="save()"> </app-type-typePrestation-form>
 </app-modal>

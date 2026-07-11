@@ -1,0 +1,50 @@
+<div class="card shadow-sm">
+  <div class="card-header fw-semibold">
+    {{ title }}
+  </div>
+
+  <div class="card-body">
+    <!-- Recherche -->
+    <div class="input-group input-group-sm mb-3">
+      <span class="input-group-text bg-white border-end-0">
+        <i class="fa-solid fa-magnifying-glass text-muted"></i>
+      </span>
+
+      <input
+        type="text"
+        class="form-control border-start-0"
+        placeholder="Rechercher..."
+        [(ngModel)]="searchText"
+        (ngModelChange)="page = 1"
+      />
+    </div>
+
+    <!-- Liste -->
+    <div class="d-flex flex-wrap gap-2">
+      @for (item of filteredItems; track item[valueField]) {
+        <button
+          type="button"
+          class="btn btn-sm"
+          [class.btn-primary]="isChecked(item[valueField])"
+          [class.btn-outline-primary]="!isChecked(item[valueField])"
+          (click)="toggle(item[valueField])"
+        >
+          {{ item[labelField] }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (totalPages > 1) {
+    <div class="card-footer d-flex justify-content-center">
+      <app-pagination
+        [page]="page"
+        [totalPages]="totalPages"
+        [total]="filteredCount"
+        [limit]="limit"
+        (pageChange)="changePage($event)"
+      >
+      </app-pagination>
+    </div>
+  }
+</div>

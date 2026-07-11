@@ -40,9 +40,10 @@
 </app-pagination>
 
 <app-modal
-  [title]="selectedClient ? 'Modifier client' : 'Nouveau client'"
+size="lg"
+  [title]="selected ? 'Modifier client' : 'Nouveau client'"
   [show]="showModal"
   (closed)="closeModal()"
 >
-  <app-client-form [client]="selectedClient" (saved)="save()"> </app-client-form>
+  <app-client-form [client]="selected" (saved)="save()"> </app-client-form>
 </app-modal>

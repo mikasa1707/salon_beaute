@@ -2,19 +2,31 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePersonnelDto } from './dto/create-personnel.dto';
 import { UpdatePersonnelDto } from './dto/update-personnel.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { Personnel } from './entities/personnel.entity';
+import { Prestation } from 'src/prestations/entities/prestation.entity';
 
 @Injectable()
 export class PersonnelsService {
   constructor(
     @InjectRepository(Personnel)
     private readonly repo: Repository<Personnel>,
+    @InjectRepository(Prestation)
+    private readonly prestationRepository: Repository<Prestation>,
   ) {}
 
   async create(createDto: CreatePersonnelDto) {
-    const _data = this.repo.create(createDto);
-    return await this.repo.save(_data);
+    const { prestationIds, ...data } = createDto;
+
+    const personnel = this.repo.create(data);
+
+    if (prestationIds?.length) {
+      personnel.prestations = await this.prestationRepository.findBy({
+        id: In(prestationIds),
+      });
+    }
+
+    return await this.repo.save(personnel);
   }
 
   async findAll(page = 1, limit = 10, search = '') {
@@ -25,6 +37,7 @@ export class PersonnelsService {
         { telephone: ILike(`%${search}%`), actif: true },
         { email: ILike(`%${search}%`), actif: true },
       ],
+      relations: { reservations: true, prestations: true },
 
       skip: (page - 1) * limit,
       take: limit,
@@ -38,7 +51,7 @@ export class PersonnelsService {
   async findOne(id: number) {
     const _data = await this.repo.findOne({
       where: { id },
-      relations: { reservations: true },
+      relations: { reservations: true, prestations: true },
     });
 
     if (!_data) {
@@ -48,16 +61,28 @@ export class PersonnelsService {
   }
 
   async update(id: number, updateDto: UpdatePersonnelDto) {
-    const _data = await this.repo.preload({
-      id,
-      ...updateDto,
+    const { prestationIds, ...data } = updateDto;
+
+    const personnel = await this.repo.findOne({
+      where: { id },
+      relations: { reservations: true, prestations: true },
     });
 
-    if (!_data) {
-      throw new NotFoundException(`Personnel ${id} introuvable`);
+    if (!personnel) {
+      throw new NotFoundException('Personnel introuvable');
     }
 
-    return await this.repo.save(_data);
+    Object.assign(personnel, data);
+
+    if (prestationIds !== undefined) {
+      personnel.prestations = prestationIds.length
+        ? await this.prestationRepository.findBy({
+            id: In(prestationIds),
+          })
+        : [];
+    }
+
+    return await this.repo.save(personnel);
   }
 
   // async remove(id: number) {

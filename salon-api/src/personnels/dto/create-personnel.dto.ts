@@ -1,4 +1,11 @@
-import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { PersonnelRole } from '../entities/personnel.entity';
 
 export class CreatePersonnelDto {
@@ -29,4 +36,9 @@ export class CreatePersonnelDto {
   @IsOptional()
   @IsString()
   couleurAgenda?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  prestationIds?: number[];
 }

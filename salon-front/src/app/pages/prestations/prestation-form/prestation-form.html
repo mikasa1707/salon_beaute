@@ -1,6 +1,12 @@
-<app-form-builder
-    [form]="form"
-    [fields]="fields"
-    [loading]="loading"
-    (submitForm)="submit()">
+<app-form-builder [form]="form" [fields]="fields" [loading]="loading" (submitForm)="submit()">
+  <div class="mt-4 mb-2 pt-3 border-top">
+    <app-selector-form
+      title="Personnel pouvant réaliser cette prestation"
+      [items]="personnels"
+      type="checkbox"
+      [limit]="8"
+      [(selected)]="selectedPersonnelIds"
+    >
+    </app-selector-form>
+  </div>
 </app-form-builder>

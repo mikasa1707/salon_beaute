@@ -36,7 +36,7 @@
 >
 </app-pagination>
 
-<app-modal [title]="selected ? 'Modifier produit' : 'Nouveau produit'" [show]="showModal" (closed)="closeModal()">
+ <app-modal size="lg" [title]="selected ? 'Modifier produit' : 'Nouveau produit'" [show]="showModal" (closed)="closeModal()">
   <app-produit-form [produit]="selected" (saved)="save()"> </app-produit-form>
 </app-modal>
 

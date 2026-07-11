@@ -1,4 +1,10 @@
-import { IsNumber, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreatePrestationDto {
   @IsNumber()
@@ -12,4 +18,9 @@ export class CreatePrestationDto {
 
   @IsNumber()
   prix!: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  personnelIds?: number[];
 }

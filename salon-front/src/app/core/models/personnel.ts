@@ -1,3 +1,5 @@
+import { Prestation } from "./prestation";
+
 export interface Personnel {
     id: number;
     nom: string;
@@ -7,4 +9,6 @@ export interface Personnel {
     role: string;
     couleurAgenda?: string;
     actif: boolean;
+
+    prestations: Prestation[];
 }

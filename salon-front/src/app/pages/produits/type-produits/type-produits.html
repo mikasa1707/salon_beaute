@@ -1,4 +1,4 @@
-<app-page-header title="TypeProduits" subtitle="Gestion des Type produits du salon" icon="fa-solid fa-scissors">
+<app-page-header title="Type Produits" subtitle="Gestion des Type produits du salon" icon="fa-solid fa-scissors">
   <div class="d-flex gap-2 flex-wrap">
     <!-- Recherche -->
     <div class="search-wrapper">
@@ -34,6 +34,6 @@
 >
 </app-pagination>
 
-<app-modal [title]="selected ? 'Modifier type produit' : 'Nouveau type produit'" [show]="showModal" (closed)="closeModal()">
+ <app-modal size="lg" [title]="selected ? 'Modifier type produit' : 'Nouveau type produit'" [show]="showModal" (closed)="closeModal()">
   <app-type-produit-form [typeProduit]="selected" (saved)="save()"> </app-type-produit-form>
 </app-modal>
