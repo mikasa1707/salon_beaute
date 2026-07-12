@@ -36,7 +36,8 @@ export class ReservationPrestations implements OnInit {
 
   onSelectedChange(value: any[]): void {
     this.selected = value;
-
     this.selectedChange.emit(value);
   }
+
+  
 }

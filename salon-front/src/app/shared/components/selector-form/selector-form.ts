@@ -1,4 +1,6 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {
+  Component, Input, Output, EventEmitter, TemplateRef, ContentChild
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../pagination/pagination';
@@ -18,6 +20,8 @@ export class SelectorForm {
   @Input() valueField = 'id';
   @Input() limit = 10;
   @Input() selected: any[] | number | null = [];
+
+  @ContentChild(TemplateRef) itemTemplate?: TemplateRef<any>;
 
   @Output() selectedChange = new EventEmitter<any>();
 

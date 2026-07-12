@@ -16,11 +16,12 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { PersonnelRole } from './entities/personnel.entity';
+import { AvailablePersonnelDto } from './dto/available-personnel.dto';
 
 @Controller('personnels')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PersonnelsController {
-  constructor(private readonly personnelsService: PersonnelsService) {}
+  constructor(private readonly personnelsService: PersonnelsService) { }
 
   @Post()
   @Roles(
@@ -51,6 +52,16 @@ export class PersonnelsController {
       limitNumber,
       searchString,
     );
+  }
+
+  @Post('available')
+  @Roles(
+    PersonnelRole.RECEPTION,
+    PersonnelRole.ADMIN,
+    PersonnelRole.RESPONSABLE,
+  )
+  getAvailablePersonnel(@Body() dto: AvailablePersonnelDto) {
+    return this.personnelsService.getAvailablePersonnel(dto);
   }
 
   @Get(':id')

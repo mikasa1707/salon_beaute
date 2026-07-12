@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, Repository } from 'typeorm';
 import { Personnel } from './entities/personnel.entity';
 import { Prestation } from 'src/prestations/entities/prestation.entity';
+import { AvailablePersonnelDto } from './dto/available-personnel.dto';
 
 @Injectable()
 export class PersonnelsService {
@@ -13,7 +14,7 @@ export class PersonnelsService {
     private readonly repo: Repository<Personnel>,
     @InjectRepository(Prestation)
     private readonly prestationRepository: Repository<Prestation>,
-  ) {}
+  ) { }
 
   async create(createDto: CreatePersonnelDto) {
     const { prestationIds, ...data } = createDto;
@@ -77,8 +78,8 @@ export class PersonnelsService {
     if (prestationIds !== undefined) {
       personnel.prestations = prestationIds.length
         ? await this.prestationRepository.findBy({
-            id: In(prestationIds),
-          })
+          id: In(prestationIds),
+        })
         : [];
     }
 
@@ -101,5 +102,45 @@ export class PersonnelsService {
     return {
       message: 'Personnel supprimé',
     };
+  }
+
+  async getAvailablePersonnel(dto: AvailablePersonnelDto) {
+    const { prestationIds } = dto;
+
+    if (!prestationIds?.length) {
+      return [];
+    }
+    const personnels = await this.repo.find({
+      where: {
+        actif: true,
+      },
+      relations: {
+        prestations: true,
+        reservations: true,
+      },
+      order: {
+        nom: 'ASC',
+      },
+    });
+
+    const personnelDisponibles = personnels.filter(personnel => {
+      const personnelPrestationIds = (personnel.prestations ?? []).map(prestation => prestation.id);
+      return prestationIds.some(id =>
+        personnelPrestationIds.includes(id)
+      );
+    })
+      .map(personnel => ({
+        id: personnel.id,
+        nom: personnel.nom,
+        prenom: personnel.prenom,
+        prestations: personnel.prestations.filter(prestation => prestationIds.includes(prestation.id))
+          .map(prestation => ({
+            id: prestation.id,
+            nom: prestation.nom,
+            duree: prestation.duree,
+            prix: prestation.prix
+          }))
+      }));
+    return personnelDisponibles;
   }
 }

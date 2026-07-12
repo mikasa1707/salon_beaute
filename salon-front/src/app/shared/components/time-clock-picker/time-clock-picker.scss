@@ -1,0 +1,79 @@
+.clock-picker {
+  width: 280px;
+}
+
+.clock-header {
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.clock {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+}
+
+.clock-number {
+  position: absolute;
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: 50%;
+
+  border: 0;
+
+  background: white;
+}
+
+.clock-number:hover {
+  background: #0d6efd;
+
+  color: white;
+}
+
+/* positionnement approximatif */
+
+.clock-number:nth-child(1) {
+  top: 10px;
+  left: 110px;
+}
+
+.clock-number:nth-child(2) {
+  top: 45px;
+  right: 35px;
+}
+
+.clock-number:nth-child(3) {
+  top: 110px;
+  right: 10px;
+}
+
+.clock-number:nth-child(4) {
+  bottom: 45px;
+  right: 35px;
+}
+
+.clock-number:nth-child(5) {
+  bottom: 10px;
+  left: 110px;
+}
+
+.clock-number:nth-child(6) {
+  bottom: 45px;
+  left: 35px;
+}
+
+.clock-number:nth-child(7) {
+  top: 110px;
+  left: 10px;
+}
+
+.clock-number:nth-child(8) {
+  top: 45px;
+  left: 35px;
+}

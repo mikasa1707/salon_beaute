@@ -29,7 +29,12 @@
           [class.btn-outline-primary]="!isChecked(item[valueField])"
           (click)="toggle(item[valueField])"
         >
-          {{ item[labelField] }}
+          @if (itemTemplate) {
+            <ng-container [ngTemplateOutlet]="itemTemplate" [ngTemplateOutletContext]="{ $implicit: item }">
+            </ng-container>
+          } @else {
+            {{ item[labelField] }}
+          }
         </button>
       }
     </div>

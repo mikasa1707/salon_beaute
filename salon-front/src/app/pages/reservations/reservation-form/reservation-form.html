@@ -5,7 +5,7 @@
     <div class="card-header fw-bold">Nouvelle réservation</div>
 
     <div class="card-body">
-      <app-reservation-information [form]="form">
+      <app-reservation-information [form]="form" [selectedPrestations]="selectedPrestations">
       <hr />
         <app-reservation-prestations [(selected)]="selectedPrestations"> </app-reservation-prestations>
       </app-reservation-information>

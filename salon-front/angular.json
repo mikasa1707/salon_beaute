@@ -30,11 +30,14 @@
               }
             ],
             "styles": [
-              "node_modules/bootswatch/dist/superhero/bootstrap.min.css",
+              "node_modules/bootswatch/dist/yeti/bootstrap.min.css",
               "src/styles.scss",
+              "node_modules/flatpickr/dist/flatpickr.min.css",
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css"
             ],
-            "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"]
+            "scripts": [
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
+            ]
           },
           "configurations": {
             "production": {

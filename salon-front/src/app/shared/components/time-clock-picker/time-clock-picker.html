@@ -1,0 +1,24 @@
+<div class="clock-picker">
+  <div class="clock-header">
+    {{ hour.toString().padStart(2, '0') }}:
+    {{ minute.toString().padStart(2, '0') }}
+  </div>
+
+  @if (mode === 'hour') {
+    <div class="clock">
+      @for (h of hours; track h) {
+        <button type="button" class="clock-number" (click)="selectHour(h)">
+          {{ h }}
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="clock">
+      @for (m of minutes; track m) {
+        <button type="button" class="clock-number" (click)="selectMinute(m)">
+          {{ m.toString().padStart(2, '0') }}
+        </button>
+      }
+    </div>
+  }
+</div>

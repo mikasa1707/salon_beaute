@@ -10,7 +10,7 @@ import { Personnel } from '../models/personnel';
 export class PersonnelApi {
   private apiUrl = `${environment.apiUrl}/personnels`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   findAll(page = 1, limit = 10, search = ''): Observable<any> {
     let params = new HttpParams().set('page', page).set('limit', limit);
@@ -22,6 +22,14 @@ export class PersonnelApi {
 
   findOne(id: number): Observable<Personnel> {
     return this.http.get<Personnel>(`${this.apiUrl}/${id}`);
+  }
+
+  getAvailablePersonnel(data: {
+    date: string;
+    heure: string;
+    prestationIds: number[];
+  }): Observable<any> {
+    return this.http.post<Personnel>(`${environment.apiUrl}/personnels/available`, data);
   }
 
   create(personnel: Partial<Personnel>): Observable<Personnel> {
