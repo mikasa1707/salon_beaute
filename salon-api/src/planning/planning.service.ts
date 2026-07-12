@@ -56,7 +56,7 @@ export class PlanningService {
 
     const occupied = agenda.map((r) => ({
       start: new Date(r.date_debut),
-      end: new Date(r.date_fin),
+      end: new Date(r.date_fin_prevue),
     }));
 
     const available = slots.filter((slot) => {

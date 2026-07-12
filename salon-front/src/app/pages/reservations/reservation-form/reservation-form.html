@@ -1,12 +1,15 @@
+<app-page-header title="Réservation" subtitle="" icon="fa-solid fa-calendar"> </app-page-header>
+
 <form [formGroup]="form" (ngSubmit)="save()">
   <div class="card shadow-sm">
     <div class="card-header fw-bold">Nouvelle réservation</div>
 
     <div class="card-body">
-      <app-reservation-information [form]="form"> </app-reservation-information>
+      <app-reservation-information [form]="form">
       <hr />
+        <app-reservation-prestations [(selected)]="selectedPrestations"> </app-reservation-prestations>
+      </app-reservation-information>
 
-      <app-reservation-prestations [(selected)]="selectedPrestations"> </app-reservation-prestations>
       <hr />
 
       <app-reservation-notes [form]="form"> </app-reservation-notes>

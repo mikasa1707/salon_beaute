@@ -1,1 +1,9 @@
-<p>reservation-prestations works!</p>
+<app-selector-form
+  title="Prestations"
+  [items]="prestations"
+  type="checkbox"
+  [limit]="10"
+  [(selected)]="selected"
+  (selectedChange)="onSelectedChange($event)"
+>
+</app-selector-form>

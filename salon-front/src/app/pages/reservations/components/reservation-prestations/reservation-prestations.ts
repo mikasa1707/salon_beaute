@@ -1,30 +1,42 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+
+import { SelectorForm } from '../../../../shared/components/selector-form/selector-form';
+import { PrestationApi } from '../../../../core/services/prestation-api';
+import { ToastService } from '../../../../core/services/toast';
 
 @Component({
   selector: 'app-reservation-prestations',
-  imports: [],
+  standalone: true,
+  imports: [SelectorForm],
   templateUrl: './reservation-prestations.html',
   styleUrl: './reservation-prestations.scss',
 })
-export class ReservationPrestations {
+export class ReservationPrestations implements OnInit {
+  @Input() prestations: any[] = [];
+  @Input() selected: any[] = [];
 
-  @Input()  selected: any[] = [];
+  @Output() selectedChange = new EventEmitter<any[]>();
 
-  @Output()  selectedChange = new EventEmitter<any[]>();
+  constructor(private prestationService: PrestationApi,
+    private toast: ToastService,
+    private cdr: ChangeDetectorRef,) {}
 
-  add(prestation: any) {
-    this.selected = [
-      ...this.selected,
-      prestation
-    ];
-    this.selectedChange.emit(this.selected);
+  ngOnInit(): void {
+    this.loadPrestations();
   }
 
-  remove(id: number) {
-    this.selected =
-      this.selected.filter(
-        x => x.id !== id
-      );
-    this.selectedChange.emit(this.selected);
+  loadPrestations(): void {
+    this.prestationService.findAll(1,1000,'').subscribe({
+      next: res => {
+        this.prestations = res.data;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  onSelectedChange(value: any[]): void {
+    this.selected = value;
+
+    this.selectedChange.emit(value);
   }
 }

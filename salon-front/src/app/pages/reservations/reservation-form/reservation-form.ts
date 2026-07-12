@@ -6,6 +6,7 @@ import { ReservationInformation } from '../components/reservation-information/re
 import { ReservationPrestations } from '../components/reservation-prestations/reservation-prestations';
 import { ReservationSummary } from '../components/reservation-summary/reservation-summary';
 import { ReservationNotes } from '../components/reservation-notes/reservation-notes';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 
 @Component({
   selector: 'app-reservation-form',
@@ -17,31 +18,28 @@ import { ReservationNotes } from '../components/reservation-notes/reservation-no
     ReservationPrestations,
     ReservationSummary,
     ReservationNotes,
+    PageHeaderComponent,
   ],
   templateUrl: './reservation-form.html',
 })
 export class ReservationForm {
-
   form: FormGroup;
   selectedPrestations: any[] = [];
 
-  constructor(
-    private fb: FormBuilder
-  ) {
-
+  constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
       origine: ['RENDEZ_VOUS'],
       clientId: [null],
       personnelId: [null],
       dateDebut: [null],
+      heureDebut: [null],
       statut: ['EN_ATTENTE'],
-      notes: ['']
+      notes: [''],
     });
   }
 
   get totalPrix() {
     return this.selectedPrestations.reduce((total, p) => total + Number(p.prix), 0);
-
   }
 
   get totalDuree() {
@@ -53,8 +51,7 @@ export class ReservationForm {
       ...this.form.value,
       prestations: this.selectedPrestations,
       totalPrix: this.totalPrix,
-      totalDuree: this.totalDuree
+      totalDuree: this.totalDuree,
     });
   }
-
 }

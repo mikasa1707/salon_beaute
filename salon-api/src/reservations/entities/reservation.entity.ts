@@ -61,6 +61,7 @@ export class Reservation {
 
   @Column({
     type: 'datetime',
+    nullable: true,
   })
   date_fin_prevue!: Date;
 

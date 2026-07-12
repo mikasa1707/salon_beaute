@@ -12,6 +12,7 @@ import { CreateReservationPrestationDto } from './create-reservation-prestation.
 
 export enum ReservationStatut {
   EN_ATTENTE = 'EN_ATTENTE',
+  ARRIVEE = 'ARRIVEE',
   CONFIRMEE = 'CONFIRMEE',
   EN_COURS = 'EN_COURS',
   TERMINEE = 'TERMINEE',

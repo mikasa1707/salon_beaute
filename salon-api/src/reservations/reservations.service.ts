@@ -91,14 +91,13 @@ export class ReservationsService {
     const conflicts = await this.repo
       .createQueryBuilder('r')
       .where('r.personnel_id = :personnelId', { personnelId })
-      .andWhere('r.status != :cancelled', { cancelled: 'ANNULEE' })
-      .andWhere(
-        `(
-        r.start_time < :endTime
-        AND r.end_time > :startTime
-      )`,
-        { startTime, endTime },
-      )
+      .andWhere('r.statut != :cancelled', {
+        cancelled: ReservationStatut.ANNULEE,
+      })
+      .andWhere(`r.date_debut < :endTime AND r.date_fin_prevue > :startTime `, {
+        startTime,
+        endTime,
+      })
       .getCount();
 
     return conflicts === 0;
@@ -272,7 +271,7 @@ export class ReservationsService {
 
     // 5. UPDATE réservation
     reservation.date_debut = newDateDebut;
-    reservation.date_fin = newDateFin;
+    reservation.date_fin_prevue = newDateFin;
     reservation.personnel = { id: newPersonnelId } as Personnel;
     reservation.total_prix = totalPrix;
     reservation.total_duree = totalDuree;
@@ -316,11 +315,20 @@ export class ReservationsService {
     const current = reservation.statut;
 
     const allowedTransitions: Record<ReservationStatut, ReservationStatut[]> = {
-      EN_ATTENTE: [ReservationStatut.CONFIRMEE, ReservationStatut.ANNULEE],
+      EN_ATTENTE: [
+        ReservationStatut.CONFIRMEE,
+        ReservationStatut.ANNULEE,
+        ReservationStatut.ARRIVEE,
+      ],
       CONFIRMEE: [
         ReservationStatut.EN_COURS,
         ReservationStatut.ANNULEE,
         ReservationStatut.ABSENT,
+      ],
+      [ReservationStatut.ARRIVEE]: [
+        ReservationStatut.EN_COURS,
+        ReservationStatut.ANNULEE,
+        ReservationStatut.TERMINEE,
       ],
       EN_COURS: [ReservationStatut.TERMINEE, ReservationStatut.ANNULEE],
       TERMINEE: [],

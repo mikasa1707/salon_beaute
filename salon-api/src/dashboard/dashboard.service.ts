@@ -110,6 +110,10 @@ export class DashboardService {
       (r) => r.statut === ReservationStatut.ANNULEE,
     ).length;
 
+    const arrivees = reservations.filter(
+      (r) => r.statut === ReservationStatut.ARRIVEE,
+    ).length;
+
     return {
       total,
       en_attente,
@@ -117,6 +121,7 @@ export class DashboardService {
       en_cours,
       terminees,
       annulees,
+      arrivees,
     };
   }
 

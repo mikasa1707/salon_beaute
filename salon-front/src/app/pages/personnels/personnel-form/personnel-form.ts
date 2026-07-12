@@ -5,8 +5,8 @@ import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Personnel } from '../../../core/models/personnel';
 import { CommonModule } from '@angular/common';
 import { FormField } from '../../../core/models/form-field';
-import { FormBuilderComponent } from "../../../shared/components/form-builder/form-builder";
-import { SelectorForm } from "../../../shared/components/selector-form/selector-form";
+import { FormBuilderComponent } from '../../../shared/components/form-builder/form-builder';
+import { SelectorForm } from '../../../shared/components/selector-form/selector-form';
 import { PrestationApi } from '../../../core/services/prestation-api';
 import { Prestation } from '../../../core/models/prestation';
 
@@ -20,27 +20,27 @@ import { Prestation } from '../../../core/models/prestation';
 export class PersonnelForm implements OnChanges, OnInit {
   form: any;
   roles = [
-  {
-    label: 'ADMIN',
-    value: 'ADMIN'
-  },
-  {
-    label: 'RESPONSABLE',
-    value: 'RESPONSABLE'
-  },
-  {
-    label: 'COIFFEUR',
-    value: 'COIFFEUR'
-  },
-  {
-    label: 'ESTHETICIEN',
-    value: 'ESTHETICIEN'
-  },
-  {
-    label: 'RECEPTION',
-    value: 'RECEPTION'
-  }
-];
+    {
+      label: 'ADMIN',
+      value: 'ADMIN',
+    },
+    {
+      label: 'RESPONSABLE',
+      value: 'RESPONSABLE',
+    },
+    {
+      label: 'COIFFEUR',
+      value: 'COIFFEUR',
+    },
+    {
+      label: 'ESTHETICIEN',
+      value: 'ESTHETICIEN',
+    },
+    {
+      label: 'RECEPTION',
+      value: 'RECEPTION',
+    },
+  ];
   fields: FormField[] = [];
   prestations: Prestation[] = [];
   selectedPrestationsIds: number[] = [];
@@ -48,7 +48,7 @@ export class PersonnelForm implements OnChanges, OnInit {
   constructor(
     private fb: FormBuilder,
     private personnelService: PersonnelApi,
-        private prestationService: PrestationApi,
+    private prestationService: PrestationApi,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
   ) {
@@ -110,7 +110,6 @@ export class PersonnelForm implements OnChanges, OnInit {
     });
   }
 
-
   private initFields() {
     this.fields = [
       {
@@ -156,7 +155,7 @@ export class PersonnelForm implements OnChanges, OnInit {
         key: 'couleurAgenda',
         label: 'Couleur agenda',
         type: 'color',
-      }
+      },
     ];
     this.cdr.detectChanges();
   }
