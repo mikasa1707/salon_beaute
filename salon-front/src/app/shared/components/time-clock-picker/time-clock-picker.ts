@@ -35,4 +35,22 @@ export class TimeClockPicker {
       }`;
     this.valueChange.emit(value);
   }
+
+  getPosition(hour: number) {
+    const angle = (hour * 30 - 90) * Math.PI / 180;
+    return {
+      x: 50 + Math.cos(angle) * 40,
+      y: 50 + Math.sin(angle) * 40
+    };
+  }
+
+  getMinutePosition(minute: number) {
+    const positions: any = {
+      0: { x: 50, y: 10 },
+      15: { x: 90, y: 50 },
+      30: { x: 50, y: 90 },
+      45: { x: 10, y: 50 }
+    };
+    return positions[minute];
+  }
 }

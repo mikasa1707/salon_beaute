@@ -5,7 +5,8 @@ import {
   Output,
   AfterViewInit,
   ViewChild,
-  ElementRef
+  ElementRef,
+  HostListener
 } from '@angular/core';
 
 import {
@@ -22,7 +23,8 @@ import { TimeClockPicker } from '../time-clock-picker/time-clock-picker';
   selector: 'app-date-time-field',
   standalone: true,
   imports: [ReactiveFormsModule, TimeClockPicker],
-  templateUrl: './date-time-field.html'
+  templateUrl: './date-time-field.html',
+  styleUrl: './date-time-field.scss'
 })
 export class DateTimeField implements AfterViewInit {
 
@@ -40,40 +42,63 @@ export class DateTimeField implements AfterViewInit {
   @ViewChild('dateInput') dateInput!: ElementRef;
   @ViewChild('timeInput') timeInput!: ElementRef;
 
+  isClockOpen = false;
+
   ngAfterViewInit(): void {
     flatpickr(this.dateInput.nativeElement, {
       locale: French,
+      altInput: true,
+      altFormat: 'd/m/Y',
       dateFormat: 'Y-m-d',
       minDate: this.allowPast ? undefined : 'today',
       defaultDate: this.form.get(this.dateControl)?.value,
       onChange: dates => {
         if (dates.length) {
-          const date = dates[0].toISOString().split('T')[0];
+          const date = flatpickr.formatDate(
+            dates[0],
+            'Y-m-d'
+          );
           this.form.patchValue({ [this.dateControl]: date });
           this.changed.emit();
         }
       }
     });
 
-    flatpickr(this.timeInput.nativeElement, {
-      enableTime: true,
-      noCalendar: true,
-      time_24hr: true,
-      dateFormat: 'H:i',
-      minuteIncrement: 15,
-      defaultDate: this.form.get(this.timeControl)?.value,
-      onChange: dates => {
-        if (dates.length) {
-          const time = dates[0].toTimeString().substring(0, 5);
-          this.form.patchValue({ [this.timeControl]: time });
-          this.changed.emit();
+    if (this.timePickerMode === 'input') {
+      flatpickr(this.timeInput.nativeElement, {
+        enableTime: true,
+        noCalendar: true,
+        time_24hr: true,
+        dateFormat: 'H:i',
+        minuteIncrement: 15,
+
+        onChange: dates => {
+          if (dates.length) {
+            const time = flatpickr.formatDate(dates[0], 'H:i');
+            this.form.patchValue({ [this.timeControl]: time });
+            this.changed.emit();
+          }
         }
-      }
-    });
+      });
+    }
   }
 
-  setTime(value: string) {
-    this.form.patchValue({ [this.timeControl]: value });
+  setTime(value: string): void {
+    this.form.patchValue({
+      [this.timeControl]: value
+    });
     this.changed.emit();
+    this.isClockOpen = false;
+  }
+
+  toggleClock() {
+    this.isClockOpen = !this.isClockOpen;
+  }
+
+  clickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.time-picker-container')) {
+      this.isClockOpen = false;
+    }
   }
 }

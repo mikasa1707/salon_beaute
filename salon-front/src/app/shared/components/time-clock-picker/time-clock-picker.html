@@ -6,17 +6,28 @@
 
   @if (mode === 'hour') {
     <div class="clock">
-      @for (h of hours; track h) {
-        <button type="button" class="clock-number" (click)="selectHour(h)">
-          {{ h }}
+      @for (hour of hours; track hour) {
+        <button
+          type="button"
+          class="clock-number"
+          [style.left.%]="getPosition(hour).x"
+          [style.top.%]="getPosition(hour).y"
+          (click)="selectHour(hour)"
+        >
+          {{ hour }}
         </button>
       }
     </div>
   } @else {
     <div class="clock">
-      @for (m of minutes; track m) {
-        <button type="button" class="clock-number" (click)="selectMinute(m)">
-          {{ m.toString().padStart(2, '0') }}
+      @for (mn of minutes; track mn) {
+        <button
+          class="clock-number"
+          [style.left.%]="getMinutePosition(mn).x"
+          [style.top.%]="getMinutePosition(mn).y"
+          (click)="selectMinute(mn)"
+        >
+          {{ mn }}
         </button>
       }
     </div>

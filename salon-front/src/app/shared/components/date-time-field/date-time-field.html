@@ -11,23 +11,44 @@
         <i class="fa-solid fa-calendar"></i>
       </span>
 
-      <input #dateInput type="text" class="form-control" placeholder="Choisir une date" />
+      <input
+        #dateInput
+        type="text"
+        class="form-control"
+        style="cursor: pointer"
+        placeholder="Choisir une date"
+      />
     </div>
   </div>
 
   <!-- HEURE -->
   <div class="col-md-6">
-    @if (timePickerMode === 'clock') {
-      <app-time-clock-picker [value]="form.get(timeControl)?.value" (valueChange)="setTime($event)">
-      </app-time-clock-picker>
-    } @else {
+    <label class="form-label">
+      {{ timeLabel }}
+    </label>
+
+    <div class="time-picker-container">
       <div class="input-group">
         <span class="input-group-text">
           <i class="fa-solid fa-clock"></i>
         </span>
 
-        <input #timeInput type="text" class="form-control" />
+        <input
+          class="form-control"
+          readonly
+          [value]="form.get(timeControl)?.value"
+          placeholder="Choisir une heure"
+          style="cursor: pointer"
+          (click)="toggleClock()"
+        />
       </div>
-    }
+
+      @if (isClockOpen) {
+        <div class="clock-overlay">
+          <app-time-clock-picker [value]="form.get(timeControl)?.value" (valueChange)="setTime($event)">
+          </app-time-clock-picker>
+        </div>
+      }
+    </div>
   </div>
 </div>
