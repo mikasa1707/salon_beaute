@@ -2,7 +2,8 @@ import {
   Component,
   EventEmitter,
   Output,
-  Input
+  Input,
+  OnInit
 } from '@angular/core';
 
 @Component({
@@ -11,7 +12,7 @@ import {
   templateUrl: './time-clock-picker.html',
   styleUrl: './time-clock-picker.scss'
 })
-export class TimeClockPicker {
+export class TimeClockPicker implements OnInit {
 
   @Input() value = '08:00';
 
@@ -20,8 +21,16 @@ export class TimeClockPicker {
   mode: 'hour' | 'minute' = 'hour';
   hour = 8;
   minute = 0;
-  hours = Array.from({ length: 12 }, (_, i) => i + 1);
-  minutes = [0, 15, 30, 45];
+  hours = Array.from({ length: 24 }, (_, i) => i + 1);
+  minutes = Array.from({ length: 12 }, (_, j) => j * 5);
+
+  ngOnInit(): void {
+    if (this.value) {
+      const [hour, minute] = this.value.split(':');
+      this.hour = Number(hour);
+      this.minute = Number(minute);
+    }
+  }
 
   selectHour(hour: number) {
     this.hour = hour;
@@ -37,20 +46,26 @@ export class TimeClockPicker {
   }
 
   getPosition(hour: number) {
-    const angle = (hour * 30 - 90) * Math.PI / 180;
+    const isInner = hour > 12;
+    const index = isInner ? hour - 12 : hour;
+    const radius = isInner ? 75 : 115;
+    const angle = (index * 30 - 90) * Math.PI / 180;
+
     return {
-      x: 50 + Math.cos(angle) * 40,
-      y: 50 + Math.sin(angle) * 40
+      left: 50 + Math.cos(angle) * radius / 2.8,
+      top: 50 + Math.sin(angle) * radius / 2.8,
+      inner: isInner
     };
   }
 
   getMinutePosition(minute: number) {
-    const positions: any = {
-      0: { x: 50, y: 10 },
-      15: { x: 90, y: 50 },
-      30: { x: 50, y: 90 },
-      45: { x: 10, y: 50 }
+    const index = minute / 5;
+    const angle = (index * 30 - 90) * Math.PI / 180;
+    const radius = 110;
+
+    return {
+      x: 50 + Math.cos(angle) * radius / 2.8,
+      y: 50 + Math.sin(angle) * radius / 2.8
     };
-    return positions[minute];
   }
 }

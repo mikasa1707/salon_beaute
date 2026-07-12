@@ -10,11 +10,11 @@
         <button
           type="button"
           class="clock-number"
-          [style.left.%]="getPosition(hour).x"
-          [style.top.%]="getPosition(hour).y"
+          [style.left.%]="getPosition(hour).left"
+          [style.top.%]="getPosition(hour).top"
           (click)="selectHour(hour)"
         >
-          {{ hour }}
+          {{hour.toString().padStart(2,'0')}}
         </button>
       }
     </div>
@@ -27,7 +27,7 @@
           [style.top.%]="getMinutePosition(mn).y"
           (click)="selectMinute(mn)"
         >
-          {{ mn }}
+          {{mn.toString().padStart(2,'0')}}
         </button>
       }
     </div>
