@@ -9,7 +9,7 @@
         class="btn"
         [class.btn-primary]="form.value.origine === 'RENDEZ_VOUS'"
         [class.btn-outline-primary]="form.value.origine !== 'RENDEZ_VOUS'"
-        (click)="form.patchValue({ origine: 'RENDEZ_VOUS' })"
+        (click)="changeOrigine('RENDEZ_VOUS')"
       >
         📅 RDV
       </button>
@@ -19,7 +19,7 @@
         class="btn"
         [class.btn-primary]="form.value.origine === 'SANS_RDV'"
         [class.btn-outline-primary]="form.value.origine !== 'SANS_RDV'"
-        (click)="form.patchValue({ origine: 'SANS_RDV' })"
+        (click)="changeOrigine('SANS_RDV')"
       >
         ⚡ Sans RDV
       </button>
@@ -59,7 +59,8 @@
 
   <ng-content></ng-content>
 
-  <app-date-time-field [form]="form" timePickerMode="clock" [allowPast]="false"> </app-date-time-field>
+  <app-date-time-field [form]="form" timePickerMode="clock" [allowPast]="false" [disabled]="origine === 'SANS_RDV'">
+  </app-date-time-field>
 
   <!-- PERSONNEL -->
 
