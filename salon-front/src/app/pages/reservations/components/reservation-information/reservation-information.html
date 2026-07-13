@@ -29,34 +29,35 @@
   <!-- CLIENT -->
 
   <div class="col-md-8">
-    <label class="form-label"> Client </label>
+    <label class="form-label fw-semibold"> Client </label>
 
-    <!-- <div
-      class="form-control d-flex justify-content-between align-items-center"
-      role="button"
-      (click)="openClientModal()"
-    >
-      <span>
-        {{ selectedClient?.nom || 'Sélectionner un client' }}
-      </span>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <app-entity-picker
+        [config]="clientPicker"
+        [(selected)]="selectedClient"
+        (selectedChange)="onClientChange($event)"
+      >
+      </app-entity-picker>
 
-      <i class="fa fa-search"></i>
-    </div> -->
+      @if (selectedClient.length) {
+        <button class="btn btn-primary position-relative" type="button">
+          {{ selectedClient[0].nom }}
+
+          <span
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+            style="cursor: pointer"
+            (click)="removeClient()"
+          >
+            ×
+          </span>
+        </button>
+      } @else {
+        <span class="text-muted small"> Aucun client sélectionné </span>
+      }
+    </div>
   </div>
 
   <ng-content></ng-content>
-
-  <!-- DATE - HEURE -->
-
-  <!-- <div class="col-md-4">
-    <label class="form-label"> Date </label>
-    <input type="date" class="form-control" formControlName="dateDebut" (change)="resetPersonnelSelection()" />
-  </div>
-
-  <div class="col-md-4">
-    <label class="form-label"> Heure </label>
-    <input type="time" class="form-control" formControlName="heureDebut" (change)="resetPersonnelSelection()" />
-  </div> -->
 
   <app-date-time-field [form]="form" timePickerMode="clock" [allowPast]="false"> </app-date-time-field>
 
@@ -117,7 +118,7 @@
   </app-selector-form>
 
   <div modal-footer class="mt-1">
-    <button type="button" class="btn btn-sm btn-secondary m-1" (click)="closePersonnelModal()">Annuler</button>
-    <button type="button" class="btn btn-sm btn-primary m-1" (click)="validatePersonnel()">Valider</button>
+    <button type="button" class="btn btn-sm btn-secondary" (click)="closePersonnelModal()">Annuler</button>
+    <button type="button" class="btn btn-sm btn-primary" (click)="validatePersonnel()">Valider</button>
   </div>
 </app-modal>

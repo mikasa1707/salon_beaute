@@ -6,6 +6,7 @@ import {
   Reservation,
   ReservationStatut,
 } from '../reservations/entities/reservation.entity';
+
 import { Facturation } from '../facturations/entities/facturation.entity';
 import { Produit } from 'src/produits/entities/produit.entity';
 import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
@@ -42,9 +43,6 @@ export class DashboardService {
     private readonly venteRepo: Repository<Vente>,
   ) {}
 
-  // =========================
-  // UTILS DATE RANGE
-  // =========================
   private getDayRange(date: Date) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);
@@ -56,8 +54,9 @@ export class DashboardService {
   }
 
   // =========================
-  // 💰 REVENUE
+  // CA
   // =========================
+
   async getDailyRevenue(date: Date) {
     const { start, end } = this.getDayRange(date);
 
@@ -77,8 +76,9 @@ export class DashboardService {
   }
 
   // =========================
-  // 📅 RESERVATIONS STATS
+  // RESERVATIONS
   // =========================
+
   async getReservationStats(date: Date) {
     const { start, end } = this.getDayRange(date);
 
@@ -88,46 +88,39 @@ export class DashboardService {
       },
     });
 
-    const total = reservations.length;
-
-    const en_attente = reservations.filter(
-      (r) => r.statut === ReservationStatut.EN_ATTENTE,
-    ).length;
-
-    const confirmees = reservations.filter(
-      (r) => r.statut === ReservationStatut.CONFIRMEE,
-    ).length;
-
-    const en_cours = reservations.filter(
-      (r) => r.statut === ReservationStatut.EN_COURS,
-    ).length;
-
-    const terminees = reservations.filter(
-      (r) => r.statut === ReservationStatut.TERMINEE,
-    ).length;
-
-    const annulees = reservations.filter(
-      (r) => r.statut === ReservationStatut.ANNULEE,
-    ).length;
-
-    const arrivees = reservations.filter(
-      (r) => r.statut === ReservationStatut.ARRIVEE,
-    ).length;
-
     return {
-      total,
-      en_attente,
-      confirmees,
-      en_cours,
-      terminees,
-      annulees,
-      arrivees,
+      total: reservations.length,
+
+      en_attente: reservations.filter(
+        (r) => r.statut === ReservationStatut.EN_ATTENTE,
+      ).length,
+
+      confirmees: reservations.filter(
+        (r) => r.statut === ReservationStatut.CONFIRMEE,
+      ).length,
+
+      arrivees: reservations.filter(
+        (r) => r.statut === ReservationStatut.ARRIVEE,
+      ).length,
+
+      en_cours: reservations.filter(
+        (r) => r.statut === ReservationStatut.EN_COURS,
+      ).length,
+
+      terminees: reservations.filter(
+        (r) => r.statut === ReservationStatut.TERMINEE,
+      ).length,
+
+      annulees: reservations.filter(
+        (r) => r.statut === ReservationStatut.ANNULEE,
+      ).length,
     };
   }
 
   // =========================
-  // 👩‍💼 STAFF PERFORMANCE
+  // PERFORMANCE PERSONNEL
   // =========================
+
   async getStaffPerformance(date: Date) {
     const { start, end } = this.getDayRange(date);
 
@@ -136,29 +129,33 @@ export class DashboardService {
         date_debut: Between(start, end),
         statut: ReservationStatut.TERMINEE,
       },
-      relations: { personnel: true },
+
+      relations: {
+        personnels: true,
+      },
     });
 
     const map = new Map<number, StaffStats>();
 
-    for (const r of reservations) {
-      const staffId = r.personnel.id;
+    for (const reservation of reservations) {
+      const revenue = Number(reservation.total_prix ?? 0);
 
-      const revenue = Number(r.total_prix ?? 0);
+      for (const personnel of reservation.personnels) {
+        if (!map.has(personnel.id)) {
+          map.set(personnel.id, {
+            personnel,
+            total_revenue: 0,
+            reservations_count: 0,
+          });
+        }
 
-      if (!map.has(staffId)) {
-        map.set(staffId, {
-          personnel: r.personnel,
-          total_revenue: 0,
-          reservations_count: 0,
-        });
+        const data = map.get(personnel.id);
+
+        if (data) {
+          data.total_revenue += revenue;
+          data.reservations_count++;
+        }
       }
-
-      const data = map.get(staffId);
-
-      if (!data) return;
-      data.total_revenue += revenue;
-      data.reservations_count += 1;
     }
 
     return Array.from(map.values()).sort(
@@ -167,8 +164,9 @@ export class DashboardService {
   }
 
   // =========================
-  // 🔥 TOP PRESTATIONS
+  // TOP PRESTATIONS
   // =========================
+
   async getTopPrestations(date: Date) {
     const { start, end } = this.getDayRange(date);
 
@@ -177,28 +175,35 @@ export class DashboardService {
         date_debut: Between(start, end),
         statut: ReservationStatut.TERMINEE,
       },
-      relations: { prestations: { prestation: true } },
+
+      relations: {
+        prestations: {
+          prestation: true,
+        },
+      },
     });
 
     const map = new Map<number, PrestaStats>();
 
-    for (const r of reservations) {
-      for (const p of r.prestations) {
-        const id = p.prestation.id;
+    for (const reservation of reservations) {
+      for (const item of reservation.prestations) {
+        const prestation = item.prestation;
 
-        if (!map.has(id)) {
-          map.set(id, {
-            prestation: p.prestation,
+        if (!map.has(prestation.id)) {
+          map.set(prestation.id, {
+            prestation,
             count: 0,
             revenue: 0,
           });
         }
 
-        const data = map.get(id);
+        const data = map.get(prestation.id);
 
-        if (!data) return;
-        data.count += p.quantite;
-        data.revenue += Number(p.prix) * p.quantite;
+        if (data) {
+          data.count += item.quantite;
+
+          data.revenue += Number(item.prix) * item.quantite;
+        }
       }
     }
 
@@ -206,24 +211,31 @@ export class DashboardService {
   }
 
   // =========================
-  // 📊 GLOBAL DASHBOARD
+  // DASHBOARD GLOBAL
   // =========================
+
   async getDashboard(date: Date) {
     const [
       revenue,
       reservations,
       staff,
-      top,
-      todayRes,
-      tomorrowRes,
+      prestations,
+      today,
+      tomorrow,
       stockAlerts,
     ] = await Promise.all([
       this.getDailyRevenue(date),
+
       this.getReservationStats(date),
+
       this.getStaffPerformance(date),
+
       this.getTopPrestations(date),
+
       this.getTodayReservations(date),
+
       this.getTomorrowReservations(date),
+
       this.getStockAlerts(),
     ]);
 
@@ -231,55 +243,77 @@ export class DashboardService {
       date,
 
       revenue,
+
       reservations,
+
       staff,
-      top_prestations: top,
+
+      top_prestations: prestations,
 
       ops: {
         today_reservations: {
-          count: todayRes.length,
-          data: todayRes,
+          count: today.length,
+          data: today,
         },
+
         tomorrow_reservations: {
-          count: tomorrowRes.length,
-          data: tomorrowRes,
+          count: tomorrow.length,
+          data: tomorrow,
         },
+
         stock_alerts: stockAlerts,
       },
     };
   }
 
+  // =========================
+  // STOCK ALERT
+  // =========================
+
   async getStockAlerts() {
     const produits = await this.produitRepo.find({
-      relations: { unites: true },
+      relations: {
+        unites: true,
+      },
     });
 
     return produits
+
       .map((p) => {
-        const total = p.unites.reduce((s, u) => s + u.stock, 0);
+        const stock = p.unites.reduce((sum, u) => sum + u.stock, 0);
 
         return {
           produit: p,
-          total_stock: total,
+
+          total_stock: stock,
+
           stock_minimum: p.stock_minimum,
-          is_alert: total <= p.stock_minimum,
+
+          is_alert: stock <= p.stock_minimum,
         };
       })
+
       .filter((p) => p.is_alert);
   }
 
   async getTodayReservations(date: Date) {
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-
-    const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
+    const { start, end } = this.getDayRange(date);
 
     return this.reservationRepo.find({
       where: {
         date_debut: Between(start, end),
       },
-      relations: { client: true, personnel: true, prestations: true },
+
+      relations: {
+        client: true,
+
+        personnels: true,
+
+        prestations: {
+          prestation: true,
+        },
+      },
+
       order: {
         date_debut: 'ASC',
       },
@@ -288,28 +322,43 @@ export class DashboardService {
 
   async getTomorrowReservations(date: Date) {
     const tomorrow = new Date(date);
+
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const start = new Date(tomorrow);
-    start.setHours(0, 0, 0, 0);
-
-    const end = new Date(tomorrow);
-    end.setHours(23, 59, 59, 999);
+    const { start, end } = this.getDayRange(tomorrow);
 
     return this.reservationRepo.find({
       where: {
         date_debut: Between(start, end),
       },
-      relations: { client: true, personnel: true },
+
+      relations: {
+        client: true,
+
+        personnels: true,
+
+        prestations: {
+          prestation: true,
+        },
+      },
+
       order: {
         date_debut: 'ASC',
       },
     });
   }
 
+  // =========================
+  // STOCK OVERVIEW
+  // =========================
+
   async getStockOverview() {
     const produits = await this.produitRepo.find({
-      relations: { unites: true, marque: true, typeProduit: true },
+      relations: {
+        unites: true,
+        marque: true,
+        typeProduit: true,
+      },
     });
 
     return produits.map((p) => {
@@ -317,8 +366,11 @@ export class DashboardService {
 
       return {
         id: p.id,
+
         nom: p.nom,
+
         marque: p.marque?.nom,
+
         type: p.typeProduit?.nom,
 
         stock_minimum: p.stock_minimum,
@@ -329,22 +381,57 @@ export class DashboardService {
 
         unites: p.unites.map((u) => ({
           id: u.id,
+
           nom: u.nom,
+
           stock: u.stock,
+
           prix: u.prix,
         })),
       };
     });
   }
 
-  async getDailyDashboard(salonId: number) {
+  async getStockUnitDashboard() {
+    const unites = await this.uniteRepo.find({
+      relations: {
+        produit: true,
+      },
+    });
+
+    const data = unites.map((u) => ({
+      produit: u.produit.nom,
+
+      unite: u.nom,
+
+      stock: u.stock,
+
+      stock_minimum: u.stock_minimum,
+
+      alert: u.stock <= u.stock_minimum,
+    }));
+
+    return {
+      total_unites: unites.length,
+
+      alert_count: data.filter((x) => x.alert).length,
+
+      unites: data,
+    };
+  }
+
+  async getDailyDashboard() {
     const today = new Date();
+
     today.setHours(0, 0, 0, 0);
 
     const ventes = await this.venteRepo.find({
+      relations: {
+        cashRegister: true,
+      },
+
       where: {
         cashRegister: {
-          salonId,
           openedAt: MoreThanOrEqual(today),
         },
       },
@@ -354,59 +441,10 @@ export class DashboardService {
 
     return {
       totalCA,
+
       nombreVentes: ventes.length,
+
       ticketMoyen: ventes.length ? totalCA / ventes.length : 0,
-    };
-  }
-
-  async getDashboardStock() {
-    const [overview, alerts, alertfull] = await Promise.all([
-      this.getStockOverview(),
-      this.getStockAlerts(),
-      this.getStockAlertsFull(),
-    ]);
-
-    return {
-      total_produits: overview.length,
-      produits_en_alerte: alerts.length,
-      produits: overview,
-      alertes: alerts,
-      alertes_full: alertfull,
-    };
-  }
-
-  async getStockUnitDashboard() {
-    const unites = await this.uniteRepo.find({
-      relations: { produit: true },
-    });
-
-    const mapped = unites.map((u) => ({
-      produit: u.produit.nom,
-      unite: u.nom,
-      stock: u.stock,
-      stock_minimum: u.stock_minimum,
-      alert: u.stock <= u.stock_minimum,
-    }));
-
-    return {
-      total_unites: unites.length,
-      alert_count: mapped.filter((u) => u.alert).length,
-      unites: mapped,
-    };
-  }
-
-  async getStockAlertsFull() {
-    const unites = await this.getStockAlerts();
-
-    const produitsMap = new Map<number, boolean>();
-
-    for (const u of unites) {
-      produitsMap.set(u.produit.id, true);
-    }
-
-    return {
-      unit_alerts: unites,
-      total_alerts: unites.length,
     };
   }
 }

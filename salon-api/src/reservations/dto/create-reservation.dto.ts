@@ -32,7 +32,7 @@ export class CreateReservationDto {
   client_id!: number;
 
   @IsNumber()
-  personnel_id!: number;
+  personnel_ids!: number[];
 
   @IsDateString()
   date_debut!: Date;

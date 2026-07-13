@@ -1,6 +1,4 @@
-import {
-  Component, Input, Output, EventEmitter, TemplateRef, ContentChild
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter, TemplateRef, ContentChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../pagination/pagination';
@@ -20,6 +18,7 @@ export class SelectorForm {
   @Input() valueField = 'id';
   @Input() limit = 10;
   @Input() selected: any[] | number | null = [];
+  @Input() valueMode: 'id' | 'object' = 'id';
 
   @ContentChild(TemplateRef) itemTemplate?: TemplateRef<any>;
 
@@ -28,27 +27,47 @@ export class SelectorForm {
   searchText = '';
   page = 1;
 
-  isChecked(id: any) {
+  isChecked(item: any): boolean {
     if (this.type === 'radio') {
-      return this.selected === id;
+      if (this.valueMode === 'id') {
+        return this.selected === item[this.valueField];
+      }
+
+      return (this.selected as any)?.[this.valueField] === item[this.valueField];
     }
 
-    return (this.selected as any[])?.includes(id);
+    if (this.valueMode === 'id') {
+      return (this.selected as any[])?.includes(item[this.valueField]);
+    }
+
+    return (this.selected as any[])?.some(x => x[this.valueField] === item[this.valueField]);
   }
 
-  toggle(id: any) {
+  toggle(item: any): void {
+    const value = this.valueMode === 'id' ? item[this.valueField] : item;
+
     if (this.type === 'radio') {
-      this.selectedChange.emit(id);
+      this.selectedChange.emit(value);
 
       return;
     }
 
     let values = [...((this.selected as any[]) || [])];
 
-    if (values.includes(id)) {
-      values = values.filter(x => x !== id);
+    if (this.valueMode === 'id') {
+      if (values.includes(value)) {
+        values = values.filter(x => x !== value);
+      } else {
+        values.push(value);
+      }
     } else {
-      values.push(id);
+      const exists = values.some(x => x[this.valueField] === item[this.valueField]);
+
+      if (exists) {
+        values = values.filter(x => x[this.valueField] !== item[this.valueField]);
+      } else {
+        values.push(item);
+      }
     }
 
     this.selectedChange.emit(values);

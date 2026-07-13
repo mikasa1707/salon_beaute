@@ -19,7 +19,7 @@ export class PlanningService {
 
     return this.repo.find({
       where: {
-        personnel: { id: personnelId },
+        personnels: { id: personnelId },
         date_debut: Between(start, end),
       },
       order: {

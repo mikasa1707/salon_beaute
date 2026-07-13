@@ -22,7 +22,6 @@ export class ReservationSummary {
       );
   }
 
-
   get duree() {
     return this.prestations
       .reduce(

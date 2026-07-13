@@ -8,6 +8,7 @@ import { Prestation } from 'src/prestations/entities/prestation.entity';
 import { Facturation } from 'src/facturations/entities/facturation.entity';
 import { FacturationItem } from 'src/facturations/entities/facturation-item.entity';
 import { FacturationsService } from 'src/facturations/facturations.service';
+import { ReservationPersonnel } from './entities/reservation-personnel.entity';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { FacturationsService } from 'src/facturations/facturations.service';
       Prestation,
       Facturation,
       FacturationItem,
+      ReservationPersonnel,
     ]),
   ],
   controllers: [ReservationsController],

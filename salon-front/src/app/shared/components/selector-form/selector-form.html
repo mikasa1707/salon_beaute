@@ -25,9 +25,9 @@
         <button
           type="button"
           class="btn btn-sm"
-          [class.btn-primary]="isChecked(item[valueField])"
-          [class.btn-outline-primary]="!isChecked(item[valueField])"
-          (click)="toggle(item[valueField])"
+          [class.btn-primary]="isChecked(item)"
+          [class.btn-outline-primary]="!isChecked(item)"
+          (click)="toggle(item)"
         >
           @if (itemTemplate) {
             <ng-container [ngTemplateOutlet]="itemTemplate" [ngTemplateOutletContext]="{ $implicit: item }">

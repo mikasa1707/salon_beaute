@@ -32,7 +32,7 @@ export class ReservationsController {
     PersonnelRole.ESTHETICIEN,
   )
   create(@Body() createReservationDto: CreateReservationDto) {
-    return this.reservationsService.create(createReservationDto);
+    return this.reservationsService.createReservation(createReservationDto);
   }
 
   @Get()
@@ -71,7 +71,10 @@ export class ReservationsController {
     @Param('id') id: string,
     @Body() updateReservationDto: UpdateReservationDto,
   ) {
-    return this.reservationsService.update(+id, updateReservationDto);
+    return this.reservationsService.updateReservation(
+      +id,
+      updateReservationDto,
+    );
   }
 
   @Delete(':id')

@@ -8,6 +8,7 @@ import {
 
 import { Reservation } from '../../reservations/entities/reservation.entity';
 import { Prestation } from '../../prestations/entities/prestation.entity';
+import { Personnel } from 'src/personnels/entities/personnel.entity';
 
 @Entity('reservation_prestations')
 export class ReservationPrestation {
@@ -23,6 +24,10 @@ export class ReservationPrestation {
   @ManyToOne(() => Prestation)
   @JoinColumn({ name: 'prestation_id' })
   prestation!: Prestation;
+
+  @ManyToOne(() => Personnel)
+  @JoinColumn({ name: 'personnel_id' })
+  personnel!: Personnel;
 
   @Column({
     type: 'decimal',
