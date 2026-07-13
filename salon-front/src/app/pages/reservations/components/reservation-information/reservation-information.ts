@@ -1,8 +1,9 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 
 import { PersonnelApi } from '../../../../core/services/personnel-api';
-import { Personnel } from '../../../../core/models/personnel';
+import { AvailablePersonnel, Personnel } from '../../../../core/models/personnel';
 import { SelectorForm } from '../../../../shared/components/selector-form/selector-form';
 import { ModalComponent } from '../../../../shared/components/modal/modal';
 import { ToastService } from '../../../../core/services/toast';
@@ -12,27 +13,33 @@ import { Client } from '../../../../core/models/client';
 import { ClientService } from '../../../../core/services/client-api';
 import { EntityPickerConfig } from '../../../../shared/components/entity-picker/entity-picker.model';
 import { EntityPicker } from '../../../../shared/components/entity-picker/entity-picker';
+import { ClientForm } from "../../../clients/client-form/client-form";
 
 @Component({
   selector: 'app-reservation-information',
   standalone: true,
-  imports: [ReactiveFormsModule, SelectorForm, ModalComponent, DateTimeField, EntityPicker],
+  imports: [ReactiveFormsModule, SelectorForm, ModalComponent, DateTimeField, EntityPicker, DatePipe, ClientForm],
   templateUrl: './reservation-information.html',
 })
 export class ReservationInformation implements OnInit {
   @Input() form!: FormGroup;
   @Input() selectedPrestations: any[] = [];
 
-  @Output() personnelChange = new EventEmitter<Personnel[]>();
+  @Output() personnelChange = new EventEmitter<AvailablePersonnel[]>();
 
-  personnels: Personnel[] = [];
+  @ViewChild(EntityPicker) clientPickerComponent!: EntityPicker;
 
-  selectedPersonnel: Personnel[] = [];
+  personnels: AvailablePersonnel[] = [];
+
+  selectedPersonnel: AvailablePersonnel[] = [];
   selectedPersonnelIds: number[] = [];
 
   selectedClient: Client[] = [];
 
   showPersonnelModal = false;
+  showClientModal = false;
+  clientRefreshKey = 0;
+
   clientPicker!: EntityPickerConfig;
 
   constructor(
@@ -40,7 +47,7 @@ export class ReservationInformation implements OnInit {
     private clientService: ClientService,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.clientPicker = {
@@ -133,7 +140,6 @@ export class ReservationInformation implements OnInit {
       this.toast.warning('Veuillez sélectionner une date et une heure.');
       return;
     }
-
     this.personnelService
       .getAvailablePersonnel({
         date,
@@ -199,5 +205,22 @@ export class ReservationInformation implements OnInit {
     this.form.patchValue({
       clientId: null,
     });
+  }
+
+  openClientModal(): void {
+    this.showClientModal = true;
+  }
+
+  closeClientModal(): void {
+    this.showClientModal = false;
+  }
+
+  onClientCreated(client: Client): void {
+    this.selectedClient = [client];
+    this.form.patchValue({
+      clientId: client.id,
+    });
+    this.clientRefreshKey++;
+    this.closeClientModal();
   }
 }

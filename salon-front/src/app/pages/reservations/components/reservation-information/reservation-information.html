@@ -32,15 +32,23 @@
     <label class="form-label fw-semibold"> Client </label>
 
     <div class="d-flex align-items-center gap-2 flex-wrap">
-      <app-entity-picker
-        [config]="clientPicker"
-        [(selected)]="selectedClient"
-        (selectedChange)="onClientChange($event)"
-      >
-      </app-entity-picker>
+      @if (!showClientModal) {
+        <app-entity-picker
+          [config]="clientPicker"
+          [(selected)]="selectedClient"
+          (selectedChange)="onClientChange($event)"
+          [refreshKey]="clientRefreshKey"
+        >
+          <button type="button" class="btn btn-sm btn-success w-100" (click)="openClientModal()">
+            <i class="fa-solid fa-user-plus me-1"></i>
+            Nouveau client
+          </button>
+        </app-entity-picker>
+      }
 
-      @if (selectedClient.length) {
+      @if (selectedClient.length && !showClientModal) {
         <button class="btn btn-primary position-relative" type="button">
+          {{ selectedClient[0].prenom }}
           {{ selectedClient[0].nom }}
 
           <span
@@ -51,7 +59,8 @@
             ×
           </span>
         </button>
-      } @else {
+      }
+      @if (!selectedClient.length && !showClientModal) {
         <span class="text-muted small"> Aucun client sélectionné </span>
       }
     </div>
@@ -109,12 +118,43 @@
     [(selected)]="selectedPersonnelIds"
   >
     <ng-template let-item>
-      <div class="fw-semibold">{{ item.prenom }}</div>
-      <small class="">
-        @for (prestation of item.prestations; track prestation.id) {
-          + {{ prestation.nom }} <br />
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="fw-semibold">{{ item.prenom }}</div>
+
+          @for (prestation of item.prestations; track prestation.id) {
+            <small> + {{ prestation.nom }} </small><br />
+          }
+        </div>
+
+        @if (item.disponible) {
+          <span class="badge bg-success ms-2"> Disponible </span>
+        } @else {
+          <span class="badge bg-warning">
+            {{ item.conflicts.length }}
+          </span>
         }
-      </small>
+      </div>
+
+      @if (!item.disponible) {
+        <div class="alert alert-warning mt-2 mb-0 py-2">
+          <strong> Attention : ce personnel a déjà une réservation </strong>
+
+          @for (conflict of item.conflicts; track conflict.reservationId) {
+            <div class="small mt-1">
+              {{ conflict.client }}
+
+              -
+
+              {{ conflict.debut | date: 'HH:mm' }}
+
+              à
+
+              {{ conflict.fin | date: 'HH:mm' }}
+            </div>
+          }
+        </div>
+      }
     </ng-template>
   </app-selector-form>
 
@@ -122,4 +162,8 @@
     <button type="button" class="btn btn-sm btn-secondary" (click)="closePersonnelModal()">Annuler</button>
     <button type="button" class="btn btn-sm btn-primary" (click)="validatePersonnel()">Valider</button>
   </div>
+</app-modal>
+
+<app-modal size="lg" title="Nouveau client" [show]="showClientModal" (closed)="closeClientModal()">
+  <app-client-form (saved)="onClientCreated($event)" (cancel)="closeClientModal()"> </app-client-form>
 </app-modal>

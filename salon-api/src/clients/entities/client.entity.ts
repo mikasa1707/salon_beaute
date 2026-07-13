@@ -1,12 +1,20 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Reservation } from '../../reservations/entities/reservation.entity';
 
+export enum ClientGenre {
+  MADAME = 'Mme',
+  MONSIEUR = 'Mr',
+  MADEMOISELLE = 'Mlle',
+}
+
 @Entity('clients')
 export class Client {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ length: 100 })
+  @Column({
+    nullable: true, length: 100
+  })
   nom!: string;
 
   @Column({ length: 100 })
@@ -27,8 +35,9 @@ export class Client {
   reservations!: Reservation[];
 
   @Column({
-    nullable: true,
-    type: 'int'
+    type: 'enum',
+    enum: ClientGenre,
+    default: ClientGenre.MADAME,
   })
-  salonId!: number;
+  genre!: ClientGenre;
 }

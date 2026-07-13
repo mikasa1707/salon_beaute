@@ -3,12 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  CreateReservationDto,
-  ReservationOrigine,
-} from './dto/create-reservation.dto';
+import { CreateReservationDto, } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
-import { Reservation, ReservationStatut } from './entities/reservation.entity';
+import { Reservation, ReservationOrigine, ReservationStatut } from './entities/reservation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Prestation } from 'src/prestations/entities/prestation.entity';
@@ -29,7 +26,7 @@ export class ReservationsService {
     private readonly reservationPersonnelRepo: Repository<ReservationPersonnel>,
 
     private readonly facturationService: FacturationsService,
-  ) {}
+  ) { }
 
   async create(createDto: CreateReservationDto) {
     const _data = this.repo.create(createDto);
@@ -92,7 +89,7 @@ export class ReservationsService {
     personnelIds: number[],
     startTime: Date,
     endTime: Date,
-  ): Promise<boolean> {
+  ): Promise<any> {
     const conflicts = await this.repo
       .createQueryBuilder('r')
       .innerJoin('r.personnels', 'rp')
@@ -112,9 +109,8 @@ export class ReservationsService {
           startTime,
           endTime,
         },
-      )
-      .getCount();
-    return conflicts === 0;
+      );
+    return conflicts;
   }
 
   async createReservation(dto: CreateReservationDto) {

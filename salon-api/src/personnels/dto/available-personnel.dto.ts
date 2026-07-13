@@ -1,6 +1,6 @@
 import { IsArray, IsDateString, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-export class AvailablePersonnelDto {
+export class CheckAvailablePersonnelDto  {
 
     @IsNotEmpty()
     @IsDateString()

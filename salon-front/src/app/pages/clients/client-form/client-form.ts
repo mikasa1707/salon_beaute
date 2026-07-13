@@ -28,8 +28,8 @@ export class ClientForm implements OnChanges, OnInit {
     private cdr: ChangeDetectorRef,) {
 
     this.form = this.fb.group({
-      nom: ['', [Validators.required]],
-      prenom: [''],
+      nom: [''],
+      prenom: ['', [Validators.required]],
       telephone: ['', [Validators.required]],
       email: ['', [Validators.email]]
     });

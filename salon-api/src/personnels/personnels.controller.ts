@@ -16,7 +16,8 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { PersonnelRole } from './entities/personnel.entity';
-import { AvailablePersonnelDto } from './dto/available-personnel.dto';
+import { CheckAvailablePersonnelDto } from './dto/available-personnel.dto';
+import { AvailablePersonnelResponseDto } from './dto/available-personnel-response.dto';
 
 @Controller('personnels')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -60,7 +61,9 @@ export class PersonnelsController {
     PersonnelRole.ADMIN,
     PersonnelRole.RESPONSABLE,
   )
-  getAvailablePersonnel(@Body() dto: AvailablePersonnelDto) {
+  getAvailablePersonnel(
+    @Body() dto: CheckAvailablePersonnelDto,
+  ) {
     return this.personnelsService.getAvailablePersonnel(dto);
   }
 

@@ -1,4 +1,5 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import { ClientGenre } from '../entities/client.entity';
 
 export class CreateClientDto {
   @IsString()
@@ -21,4 +22,7 @@ export class CreateClientDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @IsEnum(ClientGenre)
+  genre!: ClientGenre;
 }

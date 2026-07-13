@@ -9,23 +9,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { CreateReservationPrestationDto } from './create-reservation-prestation.dto';
-
-export enum ReservationStatut {
-  EN_ATTENTE = 'EN_ATTENTE',
-  ARRIVEE = 'ARRIVEE',
-  CONFIRMEE = 'CONFIRMEE',
-  EN_COURS = 'EN_COURS',
-  TERMINEE = 'TERMINEE',
-  ANNULEE = 'ANNULEE',
-  ABSENT = 'ABSENT',
-}
-
-export enum ReservationOrigine {
-  RENDEZ_VOUS = 'RENDEZ_VOUS',
-  SANS_RDV = 'SANS_RDV',
-  TELEPHONE = 'TELEPHONE',
-  EN_LIGNE = 'EN_LIGNE',
-}
+import { ReservationOrigine, ReservationStatut } from '../entities/reservation.entity';
 
 export class CreateReservationDto {
   @IsNumber()

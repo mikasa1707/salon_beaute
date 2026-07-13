@@ -25,6 +25,7 @@ export class TimeClockPicker implements OnInit {
   minutes = Array.from({ length: 12 }, (_, j) => j * 5);
 
   ngOnInit(): void {
+    console.log(this.value)
     if (this.value) {
       const [hour, minute] = this.value.split(':');
       this.hour = Number(hour);

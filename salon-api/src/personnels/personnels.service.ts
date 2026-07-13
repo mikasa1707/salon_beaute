@@ -5,7 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, Repository } from 'typeorm';
 import { Personnel } from './entities/personnel.entity';
 import { Prestation } from 'src/prestations/entities/prestation.entity';
-import { AvailablePersonnelDto } from './dto/available-personnel.dto';
+import { CheckAvailablePersonnelDto } from './dto/available-personnel.dto';
+import { Reservation, ReservationStatut } from 'src/reservations/entities/reservation.entity';
 
 @Injectable()
 export class PersonnelsService {
@@ -14,6 +15,8 @@ export class PersonnelsService {
     private readonly repo: Repository<Personnel>,
     @InjectRepository(Prestation)
     private readonly prestationRepository: Repository<Prestation>,
+    @InjectRepository(Reservation)
+    private readonly reservationRepo: Repository<Reservation>,
   ) { }
 
   async create(createDto: CreatePersonnelDto) {
@@ -104,8 +107,8 @@ export class PersonnelsService {
     };
   }
 
-  async getAvailablePersonnel(dto: AvailablePersonnelDto) {
-    const { prestationIds } = dto;
+  async getAvailablePersonnel(dto: CheckAvailablePersonnelDto) {
+    const { date, heure, prestationIds } = dto;
 
     if (!prestationIds?.length) {
       return [];
@@ -123,24 +126,112 @@ export class PersonnelsService {
       },
     });
 
-    const personnelDisponibles = personnels.filter(personnel => {
-      const personnelPrestationIds = (personnel.prestations ?? []).map(prestation => prestation.id);
-      return prestationIds.some(id =>
-        personnelPrestationIds.includes(id)
-      );
-    })
-      .map(personnel => ({
-        id: personnel.id,
-        nom: personnel.nom,
-        prenom: personnel.prenom,
-        prestations: personnel.prestations.filter(prestation => prestationIds.includes(prestation.id))
-          .map(prestation => ({
-            id: prestation.id,
-            nom: prestation.nom,
-            duree: prestation.duree,
-            prix: prestation.prix
-          }))
-      }));
+    const prestations = await this.prestationRepository.find({
+      where: {
+        id: In(prestationIds),
+      },
+    });
+
+    const dureeTotal = prestations.reduce(
+      (total, prestation) => total + prestation.duree,
+      0,
+    );
+
+
+    const startDate = new Date(`${date}T${heure}:00`);
+    const endDate = new Date(startDate);
+    endDate.setMinutes(
+      endDate.getMinutes() + dureeTotal,
+    );
+
+    const personnelDisponibles = await Promise.all(
+      personnels
+        .filter((personnel) => {
+          const personnelPrestationIds = (personnel.prestations ?? []).map(
+            (prestation) => prestation.id,
+          );
+
+          return prestationIds.some((id) =>
+            personnelPrestationIds.includes(id),
+          );
+        })
+        .map(async (personnel) => {
+
+          const conflicts = await this.getPersonnelConflicts(
+            personnel.id,
+            startDate,
+            endDate,
+          );
+
+          return {
+            id: personnel.id,
+            nom: personnel.nom,
+            prenom: personnel.prenom,
+            prestations: personnel.prestations
+              .filter((prestation) =>
+                prestationIds.includes(prestation.id),
+              )
+              .map((prestation) => ({
+                id: prestation.id,
+                nom: prestation.nom,
+                duree: prestation.duree,
+                prix: prestation.prix,
+              })),
+            disponible: conflicts.length === 0,
+            conflicts,
+          };
+        }),
+    );
     return personnelDisponibles;
+  }
+
+  private async getPersonnelConflicts(
+    personnelId: number,
+    startDate: Date,
+    endDate: Date,
+  ) {
+    const reservations = await this.reservationRepo
+      .createQueryBuilder('reservation')
+      .innerJoin('reservation.personnels', 'personnel')
+      .leftJoin('reservation.client', 'client')
+      .where('personnel.id = :personnelId', { personnelId })
+      .andWhere('reservation.statut != :statut', {
+        statut: ReservationStatut.ANNULEE,
+      })
+      .select([
+        'reservation.id',
+        'reservation.date_debut',
+        'reservation.total_duree',
+        'client.nom',
+        'client.prenom',
+      ])
+      .getMany();
+      
+    const conflicts = reservations
+      .map((reservation) => {
+        const debut = new Date(reservation.date_debut);
+
+        const fin = new Date(debut);
+        fin.setMinutes(
+          fin.getMinutes() + (reservation.total_duree ?? 0),
+        );
+
+        return {
+          reservationId: reservation.id,
+          client: reservation.client
+            ? `${reservation.client.prenom} ${reservation.client.nom}`
+            : 'Client inconnu',
+          debut,
+          fin,
+        };
+      })
+      .filter((reservation) => {
+        return (
+          reservation.debut < endDate &&
+          reservation.fin > startDate
+        );
+      });
+
+    return conflicts;
   }
 }
