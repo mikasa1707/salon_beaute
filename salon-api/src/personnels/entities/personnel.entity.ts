@@ -5,8 +5,8 @@ import {
   OneToMany,
   ManyToMany,
 } from 'typeorm';
-import { Reservation } from '../../reservations/entities/reservation.entity';
 import { Prestation } from 'src/prestations/entities/prestation.entity';
+import { ReservationPersonnel } from 'src/reservations/entities/reservation-personnel.entity';
 
 export enum PersonnelRole {
   ADMIN = 'ADMIN',
@@ -58,8 +58,8 @@ export class Personnel {
   })
   couleurAgenda!: string;
 
-  @OneToMany(() => Reservation, (reservation) => reservation.personnel)
-  reservations!: Reservation[];
+  @OneToMany(() => ReservationPersonnel, (rp) => rp.personnel)
+  reservations!: ReservationPersonnel[];
 
   @ManyToMany(() => Prestation, (prestation) => prestation.personnels)
   prestations!: Prestation[];

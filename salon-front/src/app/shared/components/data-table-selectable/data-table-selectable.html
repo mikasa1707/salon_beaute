@@ -1,0 +1,29 @@
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th></th>
+
+      @for (col of columns; track col.field) {
+        <th>
+          {{ col.label }}
+        </th>
+      }
+    </tr>
+  </thead>
+
+  <tbody>
+    @for (row of data; track row.id) {
+      <tr (click)="toggle(row)" [class.table-primary]="isSelected(row)" style="cursor: pointer">
+        <td>
+          <input type="checkbox" [checked]="isSelected(row)" />
+        </td>
+
+        @for (col of columns; track col.field) {
+          <td>
+            {{ row[col.field] }}
+          </td>
+        }
+      </tr>
+    }
+  </tbody>
+</table>

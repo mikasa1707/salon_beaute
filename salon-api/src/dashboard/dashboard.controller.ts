@@ -32,6 +32,6 @@ export class DashboardController {
 
   @Get('stock')
   stock() {
-    return this.service.getDashboardStock();
+    return this.service.getDashboard(new Date());
   }
 }

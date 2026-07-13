@@ -1,0 +1,24 @@
+<button type="button" class="btn btn-outline-primary" (click)="open()">
+  <i class="fa-solid fa-user-plus"></i>
+  {{ config.title }}
+</button>
+
+<app-modal [title]="config.title" [show]="showModal" (closed)="close()">
+  @if (loading) {
+    <div class="text-center p-4">
+      <div class="spinner-border"></div>
+    </div>
+  } @else {
+    <app-data-table-selectable
+      [columns]="config.columns"
+      [data]="items"
+      [mode]="config.multiple ? 'multiple' : 'single'"
+      [(selected)]="selected"
+    >
+    </app-data-table-selectable>
+  }
+  <div modal-footer>
+    <button type="button" class="btn btn-secondary" (click)="close()">Annuler</button>
+    <button type="button" class="btn btn-primary" (click)="validate()">Valider</button>
+  </div>
+</app-modal>

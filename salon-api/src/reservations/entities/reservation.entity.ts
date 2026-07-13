@@ -10,8 +10,8 @@ import {
 } from 'typeorm';
 
 import { Client } from '../../clients/entities/client.entity';
-import { Personnel } from '../../personnels/entities/personnel.entity';
 import { ReservationPrestation } from './reservation-prestation.entity';
+import { ReservationPersonnel } from './reservation-personnel.entity';
 
 export enum ReservationOrigine {
   RENDEZ_VOUS = 'RENDEZ_VOUS',
@@ -44,9 +44,10 @@ export class Reservation {
   @JoinColumn({ name: 'client_id' })
   client!: Client;
 
-  @ManyToOne(() => Personnel)
-  @JoinColumn({ name: 'personnel_id' })
-  personnel!: Personnel;
+  @OneToMany(() => ReservationPersonnel, (rp) => rp.reservation, {
+    cascade: true,
+  })
+  personnels!: ReservationPersonnel[];
 
   @Column({
     type: 'datetime',
