@@ -75,8 +75,13 @@ export class ReservationForm {
     const dto = {
       client_id: this.form.value.clientId,
       personnel_ids: this.selectedPersonnel.map(p => p.id),
+      origine: this.form.value.origine,
+      statut: this.form.value.statut,
       date_debut: new Date(`${this.form.value.dateDebut}T${this.form.value.heureDebut}:00`),
-      prestations: this.selectedPrestations.map(p => ({ prestation_id: p.id, quantite: 1 })),
+      prestations: this.selectedPrestations.map(p => ({
+        prestation_id: p.id,
+        quantite: 1,
+      })),
     };
 
     this.reservationService.create(dto).subscribe({

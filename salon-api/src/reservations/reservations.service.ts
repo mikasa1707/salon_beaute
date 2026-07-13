@@ -3,7 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateReservationDto } from './dto/create-reservation.dto';
+import {
+  CreateReservationDto,
+  ReservationOrigine,
+} from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { Reservation, ReservationStatut } from './entities/reservation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -115,7 +118,14 @@ export class ReservationsService {
   }
 
   async createReservation(dto: CreateReservationDto) {
-    const { client_id, personnel_ids, date_debut, prestations } = dto;
+    const {
+      client_id,
+      personnel_ids,
+      date_debut,
+      prestations,
+      origine,
+      statut,
+    }: CreateReservationDto = dto;
     const numero = await this.generateNumero();
 
     // 1. Charger prestations DB
@@ -175,31 +185,32 @@ export class ReservationsService {
       })),
       date_debut,
       date_fin,
-      statut: ReservationStatut.EN_ATTENTE,
       total_prix: totalPrix, // ✅ AJOUT
       total_duree: totalDuree, // (si tu l’as aussi)
+      origine: origine ?? ReservationOrigine.RENDEZ_VOUS,
+      statut: statut ?? ReservationStatut.EN_ATTENTE,
     });
 
     // 6. Insert pivot (ReservationPrestation)
     await this.reservationPrestationRepo.save(
-      reservationPrestations.map((rp) => ({
-        reservation: { id: reservation.id },
-        prestation: rp.prestation,
-        prix: rp.prix,
-        duree: rp.duree,
-        quantite: rp.quantite,
-      })),
+      reservationPrestations.map((rp) =>
+        this.reservationPrestationRepo.create({
+          reservation: { id: reservation.id },
+          prestation: rp.prestation,
+          prix: rp.prix,
+          duree: rp.duree,
+          quantite: rp.quantite,
+        }),
+      ),
     );
 
     await this.reservationPersonnelRepo.save(
-      personnel_ids.map((id) => ({
-        reservation: {
-          id: reservation.id,
-        },
-        personnel: {
-          id,
-        },
-      })),
+      personnel_ids.map((id) =>
+        this.reservationPersonnelRepo.create({
+          reservation: { id: reservation.id },
+          personnel: { id },
+        }),
+      ),
     );
 
     // 7. Return full reservation
