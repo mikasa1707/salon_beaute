@@ -105,7 +105,7 @@ export class ProduitUnites implements OnInit, OnDestroy, OnChanges {
     this.loading = true;
 
     this.produitUniteService
-      .findAll(
+      .findbyProduit(
         this.produit.id,
         this.page,
         this.limit,

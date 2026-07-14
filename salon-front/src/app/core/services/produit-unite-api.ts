@@ -12,7 +12,11 @@ export class ProduitUniteApi {
 
     constructor(private http: HttpClient) { }
 
-    findAll(produitId: number, page = 1, limit = 10, search = '') {
+    findAll() {
+        return this.http.get<any[]>(`${this.api}/unites`);
+    }
+
+    findbyProduit(produitId: number, page = 1, limit = 10, search = '') {
         return this.http.get<any>(`${this.api}/${produitId}/unites`,
             {
                 params: { page, limit, search }
@@ -34,6 +38,10 @@ export class ProduitUniteApi {
 
     remove(id: number) {
         return this.http.delete(`${this.api}/${id}`);
+    }
+
+    findUnites() {
+        return this.http.get<any[]>(`${this.api}/unites`);
     }
 
 }

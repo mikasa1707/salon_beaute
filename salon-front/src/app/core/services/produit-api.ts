@@ -33,5 +33,4 @@ export class ProduitApi {
     remove(id: number) {
         return this.http.delete(`${this.api}/${id}`);
     }
-
 }

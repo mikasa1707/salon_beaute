@@ -22,28 +22,28 @@ export class ProduitUniteController {
     return this.produitsService.create(createProduitDto);
   }
 
-  // @Get()
-  // @Roles(
-  //   PersonnelRole.RECEPTION,
-  //   PersonnelRole.ADMIN,
-  //   PersonnelRole.RESPONSABLE,
-  //   PersonnelRole.COIFFEUR,
-  //   PersonnelRole.ESTHETICIEN,
-  // )
-  // findAll(
-  //   @Query('page') page?: string,
-  //   @Query('limit') limit?: string,
-  //   @Query('search') search?: string,
-  // ) {
-  //   const pageNumber = page ? +page : 1;
-  //   const limitNumber = limit ? +limit : 10;
-  //   const searchString = search || '';
-  //   return this.produitsService.findAll(
-  //     pageNumber,
-  //     limitNumber,
-  //     searchString,
-  //   );
-  // }
+  @Get('/unites')
+  @Roles(
+    PersonnelRole.RECEPTION,
+    PersonnelRole.ADMIN,
+    PersonnelRole.RESPONSABLE,
+    PersonnelRole.COIFFEUR,
+    PersonnelRole.ESTHETICIEN,
+  )
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    const pageNumber = page ? +page : 1;
+    const limitNumber = limit ? +limit : 10;
+    const searchString = search || '';
+    return this.produitsService.getAll(
+      pageNumber,
+      limitNumber,
+      searchString,
+    );
+  }
 
   @Get(':id/unites')
   @Roles(

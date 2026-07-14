@@ -134,6 +134,12 @@ export const routes: Routes = [
           import('./pages/stocks/stock-alert/stock-alert').then((m) => m.StockAlert),
       },
 
+      {
+        path: 'stock/transfert',
+        loadComponent: () =>
+          import('./pages/stocks/transfert-produit/transfert-produit').then((m) => m.TransfertProduit),
+      },
+
       // ==========================
       // VENTES
       // ==========================

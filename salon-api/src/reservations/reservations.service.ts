@@ -474,9 +474,7 @@ export class ReservationsService {
     }
 
     reservation.statut = newStatus;
-
     await this.repo.save(reservation);
-
     return this.findOne(id);
   }
 

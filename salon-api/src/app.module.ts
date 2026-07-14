@@ -30,6 +30,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { PrestationProduitsModule } from './prestations_produits/prestations-produits.module';
+import { PrestationsRecettesModule } from './prestations-recettes/prestations-recettes.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { PrestationProduitsModule } from './prestations_produits/prestations-pro
     PlanningModule,
     AuditLogModule,
     PrestationProduitsModule,
+    PrestationsRecettesModule,
   ],
 
   controllers: [AppController],

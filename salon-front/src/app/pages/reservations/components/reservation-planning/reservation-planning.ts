@@ -5,11 +5,14 @@ import { ReservationApi } from '../../../../core/services/reservation-api';
 import { ReservationDetailModal } from '../reservation-detail-modal/reservation-detail-modal';
 import { ToastService } from '../../../../core/services/toast';
 import { ReservationStatut } from '../../../../core/models/reservation-statut.enum';
+import { ModalComponent } from "../../../../shared/components/modal/modal";
+import { ReservationConsumptionComponent } from "../reservation-consumption/reservation-consumption";
+import { PageHeaderComponent } from "../../../../shared/components/page-header/page-header";
 
 @Component({
   selector: 'app-reservation-planning',
   standalone: true,
-  imports: [CommonModule, ReservationCalendarComponent, ReservationDetailModal],
+  imports: [CommonModule, ReservationCalendarComponent, ReservationDetailModal, ModalComponent, ReservationConsumptionComponent, PageHeaderComponent],
   templateUrl: './reservation-planning.html',
   styleUrl: './reservation-planning.scss',
 })
@@ -27,11 +30,16 @@ export class ReservationPlanning implements OnInit {
     ABSENT: [],
   };
 
+  showConsumptionModal = false;
+  selectedConsumptionReservation: any = null;
+  availableProducts: any[] = [];
+  selectedProducts: any[] = [];
+
   constructor(
     private reservationService: ReservationApi,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadReservations();
@@ -92,24 +100,59 @@ export class ReservationPlanning implements OnInit {
     this.updateAvailableActions();
   }
 
+  // updateStatus(event: any) {
+  //   const { id, statut } = event;
+
+  //   this.reservationService.changeStatus(id, statut).subscribe({
+  //     next: reservation => {
+  //       this.toast.success('Statut de la réservation mis à jour');
+  //       // Mettre à jour la réservation affichée dans le modal
+  //       this.selectedReservation = reservation;
+  //       // Recalcul des boutons disponibles
+  //       this.updateAvailableActions();
+  //       // Mettre à jour le calendrier sans fermer le modal
+  //       this.loadReservations();
+  //     },
+  //     error: err => {
+  //       console.error('Erreur changement statut', err);
+  //       this.toast.error(err.error?.message ?? 'Erreur lors du changement de statut');
+  //     },
+  //   });
+  // }
+
   updateStatus(event: any) {
     const { id, statut } = event;
+    if (statut === 'TERMINEE') {
+      this.selectedConsumptionReservation = this.selectedReservation;
+      this.showConsumptionModal = true;
+      return;
+    }
+    this.changeReservationStatus(id, statut);
+  }
 
-    this.reservationService.changeStatus(id, statut).subscribe({
-      next: reservation => {
-        this.toast.success('Statut de la réservation mis à jour');
-        // Mettre à jour la réservation affichée dans le modal
-        this.selectedReservation = reservation;
-        // Recalcul des boutons disponibles
-        this.updateAvailableActions();
-        // Mettre à jour le calendrier sans fermer le modal
-        this.loadReservations();
-      },
-      error: err => {
-        console.error('Erreur changement statut', err);
-        this.toast.error(err.error?.message ?? 'Erreur lors du changement de statut');
-      },
-    });
+  changeReservationStatus(
+    id: number,
+    statut: ReservationStatut,
+    products: any[] = []
+  ) {
+    this.reservationService
+      .changeStatus(id, statut, products)
+      .subscribe({
+        next: reservation => {
+          this.toast.success(
+            'Statut de la réservation mis à jour'
+          );
+          this.selectedReservation = reservation;
+          this.updateAvailableActions();
+          this.loadReservations();
+        },
+        error: err => {
+          this.toast.error(
+            err.error?.message ??
+            'Erreur lors du changement de statut'
+          );
+        },
+      });
   }
 
   updateAvailableActions() {
@@ -118,5 +161,42 @@ export class ReservationPlanning implements OnInit {
       return;
     }
     this.availableStatuses = this.allowedTransitions[this.selectedReservation.statut as ReservationStatut] ?? [];
+  }
+
+  openConsumptionModal() {
+    this.availableProducts = this.selectedReservation.prestations.flatMap((p: any) => p.prestation.produitsUtilises);
+    this.selectedProducts = [];
+    this.showConsumptionModal = true;
+  }
+
+  addProduct(product: any) {
+    const exist = this.selectedProducts.find(
+      p => p.prestationProduitId === product.id
+    );
+    if (exist) {
+      exist.quantite++;
+    } else {
+      this.selectedProducts.push({
+        prestationProduitId: product.id,
+        quantite: 1,
+        produit: product
+      });
+    }
+  }
+
+  removeProduct(product: any) {
+    this.selectedProducts =
+      this.selectedProducts.filter(
+        p => p.prestationProduitId !== product.prestationProduitId
+      );
+  }
+
+  confirmConsumption(event: any[]) {
+    this.changeReservationStatus(
+      this.selectedReservation.id,
+      ReservationStatut.TERMINEE,
+      event
+    );
+    this.showConsumptionModal = false;
   }
 }

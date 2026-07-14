@@ -11,6 +11,8 @@ import { FacturationsService } from 'src/facturations/facturations.service';
 import { ReservationPersonnel } from './entities/reservation-personnel.entity';
 import { StockConsumptionService } from 'src/stocks/stock-consumption.service';
 import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
+import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
+import { StockMovement } from 'src/stocks/entities/stock-movements.entity';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { PrestationProduit } from 'src/prestations_produits/entities/prestations
       FacturationItem,
       ReservationPersonnel,
       PrestationProduit,
+      ProduitUnite,
+      StockMovement
     ]),
   ],
   controllers: [ReservationsController],

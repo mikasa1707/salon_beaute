@@ -17,6 +17,34 @@ export class ProduitUniteService {
     return await this.repo.save(_data);
   }
 
+  async getAll(
+    page = 1,
+    limit = 10,
+    search = '',) {
+    const [data, total] = await this.repo.findAndCount({
+      where: [
+        {
+          nom: ILike(`%${search}%`),
+          actif: true,
+        },
+      ],
+      relations: {
+        produit: true,
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        nom: 'ASC',
+      },
+    });
+    const produits = data.map(produit => ({
+      ...produit,
+      stockTotal: this.getTotalStock(produit),
+      isLowStock: this.isLowStock(produit),
+    }));
+    return { data: produits, total, page, limit, totalPages: Math.ceil(total / limit), };
+  }
+
   async findAll(
     produitId: number,
     page = 1,

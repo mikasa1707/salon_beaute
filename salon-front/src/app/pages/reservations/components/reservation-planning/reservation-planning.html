@@ -1,22 +1,26 @@
-<div class="container-fluid">
-  <div class="d-flex justify-content-between mb-3">
-    <h3>
-      <i class="fa-solid fa-calendar-days"></i>
-      Planning
-    </h3>
+<app-page-header
+  title="Transfert stock prestation"
+  subtitle="Gestion des Ttransfert stock prestation"
+  icon="fa-solid fa-boxes-stacked"
+>
+  <button class="btn btn-primary d-flex align-items-center gap-2 px-3" type="button">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+</app-page-header>
 
-    <button class="btn btn-primary">Nouveau RDV</button>
-  </div>
+<app-reservation-calendar [events]="events" (reservationClick)="openReservationDetail($event)">
+</app-reservation-calendar>
 
-  <app-reservation-calendar [events]="events" (reservationClick)="openReservationDetail($event)">
-  </app-reservation-calendar>
+@if (selectedReservation) {
+  <app-reservation-detail-modal
+    [reservation]="selectedReservation"
+    (close)="selectedReservation = null"
+    (statusChange)="updateStatus($event)"
+  >
+  </app-reservation-detail-modal>
+}
 
-  @if (selectedReservation) {
-    <app-reservation-detail-modal
-      [reservation]="selectedReservation"
-      (close)="selectedReservation = null"
-      (statusChange)="updateStatus($event)"
-    >
-    </app-reservation-detail-modal>
-  }
-</div>
+<app-modal size="xl" title="Produits utilisés" [show]="showConsumptionModal" (closed)="showConsumptionModal = false">
+  <app-reservation-consumption [reservation]="selectedConsumptionReservation" (confirmed)="confirmConsumption($event)">
+  </app-reservation-consumption>
+</app-modal>

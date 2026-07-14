@@ -1,0 +1,41 @@
+<app-page-header title="Transfert stock prestation" subtitle="Gestion des Ttransfert stock prestation" icon="fa-solid fa-boxes-stacked">
+</app-page-header>
+
+<div class="container-fluid">
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label"> Produit unité </label>
+
+          <app-entity-picker
+            [config]="unitePickerConfig"
+            [selected]="selectedUniteList"
+            (selectedChange)="onUniteSelected($event)"
+          >
+          </app-entity-picker>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label"> Quantité </label>
+
+          <input type="number" class="form-control" [(ngModel)]="quantite" />
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+          <button class="btn btn-primary w-100" (click)="transfer()" [disabled]="!selectedUnite || quantite <= 0">
+            <i class="fa-solid fa-right-left"></i>
+
+            Transférer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Stock prestation</div>
+
+    <app-data-table-selectable [columns]="columns" [data]="stockPrestations"> </app-data-table-selectable>
+  </div>
+</div>

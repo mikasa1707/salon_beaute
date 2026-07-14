@@ -1,0 +1,48 @@
+<div class="row">
+  <!-- Produits disponibles -->
+
+  <div class="col-md-6">
+    <h6>Produits disponibles</h6>
+
+    <div *ngFor="let p of availableProducts" class="card mb-2 cursor-pointer" (click)="add(p)">
+      <div class="card-body">
+        <div class="fw-bold">
+          {{ p.produit.nom }}
+        </div>
+
+        <div>
+          {{ p.unite.nom }}
+        </div>
+
+        <small> Stock : {{ p.stock }} </small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sélection -->
+
+  <div class="col-md-6">
+    <h6>Produits utilisés</h6>
+
+    <div *ngFor="let p of selectedProducts" class="card mb-2">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <span>
+            {{ p.produit.produit.nom }}
+          </span>
+
+          <button class="btn btn-sm btn-danger" (click)="remove(p)">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+
+        <input type="number" class="form-control mt-2" [(ngModel)]="p.quantite" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-success mt-3" (click)="save()">
+  <i class="fa-solid fa-check"></i>
+  Terminer
+</button>

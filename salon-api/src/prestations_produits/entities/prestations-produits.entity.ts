@@ -15,6 +15,7 @@ export class PrestationProduit {
   id!: number;
 
   @ManyToOne(() => Prestation, {
+    nullable: true,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'prestation_id' })

@@ -1,27 +1,64 @@
-import { Controller, Get, Post, Delete, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+} from '@nestjs/common';
 import { PrestationProduitsService } from './prestations_produits.service';
-import { CreatePrestationProduitDto } from './dto/create-prestation-produit.dto';
+import { TransferPrestationProduitDto } from './dto/transfer-prestation-produit.dto';
 
 @Controller('prestations-produits')
 export class PrestationProduitsController {
-  constructor(private readonly service: PrestationProduitsService) {}
 
-  @Get(':id/produits')
-  findAll(@Param('id') id: string) {
+  constructor(
+    private readonly service: PrestationProduitsService,
+  ) { }
+
+  /**
+   * Stock disponible prestations
+   */
+  @Get()
+  findAll() {
+    return this.service.findAll();
+  }
+
+  /**
+   * Détail stock prestation
+   */
+  @Get(':id')
+  findOne(@Param('id') id: string,) {
+    return this.service.findOne(+id);
+  }
+
+  /**
+   * Produits liés à une prestation
+   * (utile plus tard)
+   */
+  @Get('prestation/:id')
+  findByPrestation(@Param('id') id: string,) {
     return this.service.findByPrestation(+id);
   }
 
-  @Post(':id/produits')
-  create(
-    @Param('id') id: string,
-
-    @Body() dto: CreatePrestationProduitDto,
-  ) {
-    return this.service.create(+id, dto);
+  /**
+   * Transfert ProduitUnite -> PrestationProduit
+   */
+  @Post('transfer')
+  transfer(@Body() dto: TransferPrestationProduitDto,) {
+    return this.service.transfer(dto);
   }
 
-  @Delete('produits/:id')
-  remove(@Param('id') id: string) {
+  /**
+   * Consommation après prestation terminée
+   */
+  @Post('consume')
+  consume(@Body() produits: { prestationProduitId: number; quantite: number; }[],) {
+    return this.service.consume(produits);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string,) {
     return this.service.remove(+id);
   }
 }

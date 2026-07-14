@@ -13,6 +13,7 @@ import { TypePrestation } from '../../types-prestations/entities/types-prestatio
 import { Personnel } from 'src/personnels/entities/personnel.entity';
 import { ReservationPrestation } from 'src/reservations/entities/reservation-prestation.entity';
 import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
+import { PrestationRecette } from 'src/prestations-recettes/entities/prestations-recette.entity';
 
 @Entity('prestations')
 export class Prestation {
@@ -65,4 +66,13 @@ export class Prestation {
     cascade: true,
   })
   produitsUtilises!: PrestationProduit[];
+
+  @OneToMany(
+    () => PrestationRecette,
+    recette => recette.prestation,
+    {
+      cascade: true
+    }
+  )
+  recettes!: PrestationRecette[];
 }

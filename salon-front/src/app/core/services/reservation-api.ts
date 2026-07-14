@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../environnements/environnement';
 import { Reservation } from '../models/reservation';
+import { ReservationStatut } from '../models/reservation-statut.enum';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +12,7 @@ import { Reservation } from '../models/reservation';
 export class ReservationApi {
   private readonly api = `${environment.apiUrl}/reservations`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   create(data: any): Observable<Reservation> {
     return this.http.post<Reservation>(`${this.api}`, data);
@@ -33,9 +34,17 @@ export class ReservationApi {
     return this.http.delete(`${this.api}/${id}`);
   }
 
-  changeStatus(id: number, status: string): Observable<Reservation> {
+  changeStatus(
+    id: number,
+    newStatus: ReservationStatut,
+    products: {
+      prestationProduitId: number;
+      quantite: number;
+    }[] = [],
+  ): Observable<Reservation> {
     return this.http.patch<Reservation>(`${this.api}/${id}/status`, {
-      status,
+      status: newStatus,
+      products,
     });
   }
 }
