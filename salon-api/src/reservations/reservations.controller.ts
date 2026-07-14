@@ -100,8 +100,13 @@ export class ReservationsController {
   changeStatus(
     @Param('id') id: string,
     @Body('status') status: ReservationStatut,
+    @Body('products')
+    products: {
+      prestationProduitId: number;
+      quantite: number;
+    }[],
   ) {
-    return this.reservationsService.changeStatus(+id, status);
+    return this.reservationsService.changeStatus(+id, status, products);
   }
 
   @Patch(':id/confirm')

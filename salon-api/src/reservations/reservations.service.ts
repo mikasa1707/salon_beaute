@@ -16,6 +16,8 @@ import { Prestation } from 'src/prestations/entities/prestation.entity';
 import { ReservationPrestation } from './entities/reservation-prestation.entity';
 import { FacturationsService } from 'src/facturations/facturations.service';
 import { ReservationPersonnel } from './entities/reservation-personnel.entity';
+import { StockConsumptionService } from 'src/stocks/stock-consumption.service';
+import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
 
 @Injectable()
 export class ReservationsService {
@@ -30,6 +32,7 @@ export class ReservationsService {
     private readonly reservationPersonnelRepo: Repository<ReservationPersonnel>,
 
     private readonly facturationService: FacturationsService,
+    private readonly stockConsumptionService: StockConsumptionService,
   ) {}
 
   async create(createDto: CreateReservationDto) {
@@ -418,7 +421,14 @@ export class ReservationsService {
     return this.findOne(id);
   }
 
-  async changeStatus(id: number, newStatus: ReservationStatut) {
+  async changeStatus(
+    id: number,
+    newStatus: ReservationStatut,
+    products: {
+      prestationProduitId: number;
+      quantite: number;
+    }[] = [],
+  ) {
     const reservation = await this.repo.findOne({
       where: { id },
       relations: { prestations: true, personnels: true, client: true },
@@ -459,6 +469,7 @@ export class ReservationsService {
     }
 
     if (newStatus === ReservationStatut.TERMINEE) {
+      await this.consumeProducts(reservation.id, products ?? []);
       await this.facturationService.createFromReservation(reservation.id);
     }
 
@@ -467,5 +478,42 @@ export class ReservationsService {
     await this.repo.save(reservation);
 
     return this.findOne(id);
+  }
+
+  private async consumeProducts(
+    reservationId: number,
+    products: {
+      prestationProduitId: number;
+      quantite: number;
+    }[],
+  ) {
+    for (const item of products) {
+      const prestationProduit = await this.reservationPrestationRepo.manager
+        .getRepository(PrestationProduit)
+        .findOne({
+          where: {
+            id: item.prestationProduitId,
+          },
+        });
+
+      if (!prestationProduit) {
+        throw new NotFoundException(
+          `Produit prestation ${item.prestationProduitId} introuvable`,
+        );
+      }
+
+      // ici on décrémente la consommation
+      prestationProduit.quantite -= item.quantite;
+
+      if (prestationProduit.quantite < 0) {
+        throw new ConflictException(
+          'Quantité utilisée supérieure à la quantité disponible',
+        );
+      }
+
+      await this.reservationPrestationRepo.manager
+        .getRepository(PrestationProduit)
+        .save(prestationProduit);
+    }
   }
 }
