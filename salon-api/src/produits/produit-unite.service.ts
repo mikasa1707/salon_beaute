@@ -41,6 +41,7 @@ export class ProduitUniteService {
       ...produit,
       stockTotal: this.getTotalStock(produit),
       isLowStock: this.isLowStock(produit),
+      nomComplet: `${produit.produit?.nom ?? ''} - ${produit.nom}`,
     }));
     return { data: produits, total, page, limit, totalPages: Math.ceil(total / limit), };
   }

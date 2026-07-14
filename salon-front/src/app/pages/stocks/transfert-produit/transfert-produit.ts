@@ -57,7 +57,7 @@ export class TransfertProduit implements OnInit {
       service: this.produituniteApi,
       columns: [
         {
-          field: 'produit.nom',
+          field: 'nomComplet',
           label: 'Produit',
         },
         {
