@@ -32,4 +32,10 @@ export class ReservationApi {
   delete(id: number) {
     return this.http.delete(`${this.api}/${id}`);
   }
+
+  changeStatus(id: number, status: string): Observable<Reservation> {
+    return this.http.patch<Reservation>(`${this.api}/${id}/status`, {
+      status,
+    });
+  }
 }

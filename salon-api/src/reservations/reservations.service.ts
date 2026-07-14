@@ -3,9 +3,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateReservationDto, } from './dto/create-reservation.dto';
+import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
-import { Reservation, ReservationOrigine, ReservationStatut } from './entities/reservation.entity';
+import {
+  Reservation,
+  ReservationOrigine,
+  ReservationStatut,
+} from './entities/reservation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Prestation } from 'src/prestations/entities/prestation.entity';
@@ -26,7 +30,7 @@ export class ReservationsService {
     private readonly reservationPersonnelRepo: Repository<ReservationPersonnel>,
 
     private readonly facturationService: FacturationsService,
-  ) { }
+  ) {}
 
   async create(createDto: CreateReservationDto) {
     const _data = this.repo.create(createDto);
@@ -34,14 +38,37 @@ export class ReservationsService {
   }
 
   async findAll() {
-    return await this.repo.find({
+    const reservations = await this.repo.find({
       relations: {
         client: true,
+        personnels: {
+          personnel: true,
+        },
         prestations: {
           prestation: true,
         },
       },
     });
+
+    return reservations.map((r) => ({
+      id: r.id,
+      numero: r.numero,
+      client: r.client,
+      date_debut: r.date_debut,
+      date_fin_prevue: r.date_fin_prevue,
+      statut: r.statut,
+      total_prix: r.total_prix,
+      total_duree: r.total_duree,
+      prestations: r.prestations,
+      personnels: r.personnels
+        .filter((rp) => rp.personnel)
+        .map((rp) => ({
+          id: rp.personnel.id,
+          nom: rp.personnel.nom,
+          prenom: rp.personnel.prenom,
+          couleurAgenda: rp.personnel.couleurAgenda,
+        })),
+    }));
   }
 
   async findOne(id: number) {
@@ -85,12 +112,12 @@ export class ReservationsService {
     return end;
   }
 
-  async checkAvailability(
+  checkAvailability(
     personnelIds: number[],
     startTime: Date,
     endTime: Date,
-  ): Promise<any> {
-    const conflicts = await this.repo
+  ): Promise<any[]> {
+    return this.repo
       .createQueryBuilder('r')
       .innerJoin('r.personnels', 'rp')
       .innerJoin('rp.personnel', 'p')
@@ -109,8 +136,8 @@ export class ReservationsService {
           startTime,
           endTime,
         },
-      );
-    return conflicts;
+      )
+      .getMany();
   }
 
   async createReservation(dto: CreateReservationDto) {

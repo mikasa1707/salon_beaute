@@ -1,0 +1,22 @@
+<div class="container-fluid">
+  <div class="d-flex justify-content-between mb-3">
+    <h3>
+      <i class="fa-solid fa-calendar-days"></i>
+      Planning
+    </h3>
+
+    <button class="btn btn-primary">Nouveau RDV</button>
+  </div>
+
+  <app-reservation-calendar [events]="events" (reservationClick)="openReservationDetail($event)">
+  </app-reservation-calendar>
+
+  @if (selectedReservation) {
+    <app-reservation-detail-modal
+      [reservation]="selectedReservation"
+      (close)="selectedReservation = null"
+      (statusChange)="updateStatus($event)"
+    >
+    </app-reservation-detail-modal>
+  }
+</div>

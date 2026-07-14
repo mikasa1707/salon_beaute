@@ -1,0 +1,51 @@
+.fc {
+  --fc-border-color: #dee2e6;
+  --fc-today-bg-color: rgba(13, 110, 253, 0.08);
+}
+
+.fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.fc-event {
+  min-height: auto !important;
+}
+
+
+.fc-event-main {
+  overflow: hidden;
+}
+
+
+.fc-week-event,
+.fc-day-event,
+.fc-month-event,
+.fc-year-event {
+
+  width: 100%;
+  overflow: hidden;
+
+}
+
+
+.fc-prestation {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+.fc-personnel-icon {
+  color: var(--personnel-color);
+  font-size: 13px;
+}
+
+.fc-daygrid-day-frame {
+  min-height: 110px;
+}
+
+.fc-timegrid-slot {
+  height: 65px !important;
+}

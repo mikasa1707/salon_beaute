@@ -12,6 +12,7 @@ import {
 import { TypePrestation } from '../../types-prestations/entities/types-prestation.entity';
 import { Personnel } from 'src/personnels/entities/personnel.entity';
 import { ReservationPrestation } from 'src/reservations/entities/reservation-prestation.entity';
+import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
 
 @Entity('prestations')
 export class Prestation {
@@ -59,4 +60,9 @@ export class Prestation {
     },
   })
   personnels!: Personnel[];
+
+  @OneToMany(() => PrestationProduit, (pp) => pp.prestation, {
+    cascade: true,
+  })
+  produitsUtilises!: PrestationProduit[];
 }

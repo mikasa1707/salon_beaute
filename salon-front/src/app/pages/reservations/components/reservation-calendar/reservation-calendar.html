@@ -1,0 +1,33 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="btn-group">
+    <button class="btn btn-outline-primary" (click)="previous()">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+
+    <button class="btn btn-primary" (click)="today()">Aujourd'hui</button>
+
+    <button class="btn btn-outline-primary" (click)="next()">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+  </div>
+
+  <h4 class="mb-0">
+    {{ currentTitle }}
+  </h4>
+
+  <div class="btn-group">
+    <button class="btn btn-outline-secondary" (click)="changeView('dayGridMonth')">
+      <i class="fa-solid fa-calendar"></i>
+    </button>
+
+    <button class="btn btn-outline-secondary" (click)="changeView('timeGridWeek')">
+      <i class="fa-solid fa-calendar-week"></i>
+    </button>
+
+    <button class="btn btn-outline-secondary" (click)="changeView('timeGridDay')">
+      <i class="fa-solid fa-calendar-day"></i>
+    </button>
+  </div>
+</div>
+
+<full-calendar #calendar [options]="calendarOptions"> </full-calendar>

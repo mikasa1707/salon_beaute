@@ -1,0 +1,9 @@
+export enum ReservationStatut {
+  EN_ATTENTE = 'EN_ATTENTE',
+  CONFIRMEE = 'CONFIRMEE',
+  ARRIVEE = 'ARRIVEE',
+  EN_COURS = 'EN_COURS',
+  TERMINEE = 'TERMINEE',
+  ANNULEE = 'ANNULEE',
+  ABSENT = 'ABSENT',
+}

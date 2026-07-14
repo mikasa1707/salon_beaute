@@ -20,17 +20,23 @@ export interface PersonnelConflict {
     fin: string;
 }
 
-
-export interface AvailablePersonnel {
-    id: number;
-    nom: string;
-    prenom: string;
-    prestations: {
-        id: number;
-        nom: string;
-        duree: number;
-        prix: number;
-    }[];
+export interface AvailablePersonnel extends Personnel {
     disponible: boolean;
     conflicts: PersonnelConflict[];
 }
+
+// export interface AvailablePersonnel {
+//     id: number;
+//     nom: string;
+//     prenom: string;
+//     prestations: {
+//         id: number;
+//         nom: string;
+//         duree: number;
+//         prix: number;
+//     }[];
+//     role: string;
+//     actif: boolean;
+//     disponible: boolean;
+//     conflicts: PersonnelConflict[];
+// }

@@ -9,7 +9,10 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { CreateReservationPrestationDto } from './create-reservation-prestation.dto';
-import { ReservationOrigine, ReservationStatut } from '../entities/reservation.entity';
+import {
+  ReservationOrigine,
+  ReservationStatut,
+} from '../entities/reservation.entity';
 
 export class CreateReservationDto {
   @IsNumber()

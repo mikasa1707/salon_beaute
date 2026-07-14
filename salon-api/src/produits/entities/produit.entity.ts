@@ -3,14 +3,12 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  OneToOne,
   JoinColumn,
   OneToMany,
 } from 'typeorm';
 
 import { Marque } from '../../marques/entities/marque.entity';
 import { TypeProduit } from '../../types-produits/entities/types-produit.entity';
-import { Stock } from '../../stocks/entities/stock.entity';
 import { ProduitUnite } from './produit_unites.entity';
 
 @Entity('produits')
@@ -51,7 +49,7 @@ export class Produit {
   unites!: ProduitUnite[];
 
   @Column({
-    default: true
+    default: true,
   })
   actif!: boolean;
 }

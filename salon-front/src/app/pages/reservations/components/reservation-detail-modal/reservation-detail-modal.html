@@ -1,0 +1,126 @@
+<div class="modal-backdrop fade show"></div>
+
+<div class="modal d-block">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <!-- HEADER -->
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Réservation {{ reservation.numero }}</h5>
+
+          <span class="badge" [class]="getStatusClass(reservation.statut)">
+            {{ reservation.statut }}
+          </span>
+        </div>
+
+        <button class="btn-close" (click)="closeModal()"></button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body">
+        <!-- CLIENT -->
+        <div class="card mb-3">
+          <div class="card-header">
+            <i class="fa-solid fa-user"></i>
+            Client
+          </div>
+
+          <div class="card-body">
+            <h6>
+              {{ reservation.client?.prenom }}
+              {{ reservation.client?.nom }}
+            </h6>
+
+            <div>
+              <i class="fa-solid fa-phone"></i>
+              {{ reservation.client?.telephone }}
+            </div>
+
+            <div>
+              {{ reservation.client?.email }}
+            </div>
+          </div>
+        </div>
+
+        <!-- DATE -->
+        <div class="row mb-3">
+          <div class="col">
+            <label class="fw-bold"> Début </label>
+
+            <div>
+              {{ reservation.date_debut | date: 'dd/MM/yyyy HH:mm' }}
+            </div>
+          </div>
+
+          <div class="col">
+            <label class="fw-bold"> Total </label>
+
+            <div>{{ reservation.total_prix | number }} Ar</div>
+          </div>
+        </div>
+
+        <!-- PRESTATIONS -->
+        <div class="card mb-3">
+          <div class="card-header">
+            <i class="fa-solid fa-scissors"></i>
+            Prestations
+          </div>
+
+          <ul class="list-group list-group-flush">
+            @for (p of reservation.prestations; track p.id) {
+              <li class="list-group-item d-flex justify-content-between">
+                <span>
+                  {{ p.prestation.nom }}
+                </span>
+
+                <span>{{ p.prix | number }} Ar </span>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <!-- PERSONNEL -->
+        <div class="card mb-3">
+          <div class="card-header">
+            <i class="fa-solid fa-users"></i>
+            Personnel
+          </div>
+
+          <div class="card-body">
+            @for (p of reservation.personnels; track p.id) {
+              <span class="me-2">
+                <i class="fa-solid fa-user" [style.color]="p.couleurAgenda"></i>
+                {{ p.prenom }}
+                {{ p.nom }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <!-- STATUT -->
+        <div class="mt-3">
+          <h6 class="fw-bold">Changer le statut</h6>
+
+          <div class="d-flex gap-2 flex-wrap">
+            @for (status of getAvailableActions(); track status) {
+              <button class="btn btn-sm" [ngClass]="statusButtons[status].class" (click)="changeStatus(status)">
+                <i class="fa-solid {{ statusButtons[status].icon }} me-1"></i>
+
+                {{ statusButtons[status].label }}
+              </button>
+            }
+
+            @if (getAvailableActions().length === 0) {
+              <span class="text-muted"> Aucune action disponible </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>

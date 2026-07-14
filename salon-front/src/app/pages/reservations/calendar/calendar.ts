@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
+import { ReservationPlanning } from "../components/reservation-planning/reservation-planning";
 
 @Component({
   selector: 'app-calendar',
-  imports: [],
+  imports: [ReservationPlanning],
   templateUrl: './calendar.html',
   styleUrl: './calendar.scss',
 })
