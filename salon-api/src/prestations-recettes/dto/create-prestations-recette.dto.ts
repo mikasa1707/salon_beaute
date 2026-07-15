@@ -1,9 +1,12 @@
+import { IsNumber } from 'class-validator';
+
 export class CreatePrestationRecetteDto {
-
-  prestationId!: number;
-
+  @IsNumber()
   produitId!: number;
 
-  quantite!: number;
+  @IsNumber()
+  uniteMesureId!: number;
 
+  @IsNumber()
+  quantite!: number;
 }

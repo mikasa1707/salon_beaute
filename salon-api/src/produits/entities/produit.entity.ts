@@ -10,6 +10,8 @@ import {
 import { Marque } from '../../marques/entities/marque.entity';
 import { TypeProduit } from '../../types-produits/entities/types-produit.entity';
 import { ProduitUnite } from './produit_unites.entity';
+import { PrestationRecette } from 'src/prestations-recettes/entities/prestations-recette.entity';
+import { UniteMesure } from 'src/unites-mesure/entities/unites-mesure.entity';
 
 @Entity('produits')
 export class Produit {
@@ -48,8 +50,17 @@ export class Produit {
   @OneToMany(() => ProduitUnite, (u) => u.produit)
   unites!: ProduitUnite[];
 
+  @ManyToOne(() => UniteMesure)
+  @JoinColumn({
+    name: 'unite_consommation_id',
+  })
+  uniteConsommation!: UniteMesure;
+
   @Column({
     default: true,
   })
   actif!: boolean;
+
+  @OneToMany(() => PrestationRecette, (recette) => recette.produit)
+  recettes!: PrestationRecette[];
 }

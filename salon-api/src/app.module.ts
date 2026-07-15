@@ -31,6 +31,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core/constants';
 import { PrestationProduitsModule } from './prestations_produits/prestations-produits.module';
 import { PrestationsRecettesModule } from './prestations-recettes/prestations-recettes.module';
+import { UnitesMesureModule } from './unites-mesure/unites-mesure.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { PrestationsRecettesModule } from './prestations-recettes/prestations-re
     AuditLogModule,
     PrestationProduitsModule,
     PrestationsRecettesModule,
+    UnitesMesureModule,
   ],
 
   controllers: [AppController],

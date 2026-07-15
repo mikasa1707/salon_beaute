@@ -9,16 +9,28 @@
       <div class="spinner-border"></div>
     </div>
   } @else {
-    <app-data-table-selectable
+    <app-data-table
       [columns]="config.columns"
       [data]="items"
-      [mode]="config.multiple ? 'multiple' : 'single'"
-      [(selected)]="selected"
+      [selectable]="true"
+      [selectionMode]="config.multiple ? 'multiple' : 'single'"
+      [selected]="selected"
+      (selectedChange)="selected = $event"
     >
-    </app-data-table-selectable>
+    </app-data-table>
+
+    <app-pagination
+      [page]="page"
+      [totalPages]="totalPages"
+      [total]="total"
+      [limit]="limit"
+      (pageChange)="changePage($event)"
+      (limitChange)="changeLimit($event)"
+    >
+    </app-pagination>
   }
 
-  <ng-content ></ng-content>
+  <ng-content></ng-content>
 
   <div modal-footer>
     <button type="button" class="btn btn-secondary" (click)="close()">Annuler</button>

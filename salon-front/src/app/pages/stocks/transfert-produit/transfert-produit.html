@@ -1,41 +1,55 @@
-<app-page-header title="Transfert stock prestation" subtitle="Gestion des Ttransfert stock prestation" icon="fa-solid fa-boxes-stacked">
+<app-page-header
+  title="Transfert stock prestation"
+  subtitle="Gestion des Transfert stock prestation"
+  icon="fa-solid fa-boxes-stacked"
+>
 </app-page-header>
 
 <div class="container-fluid">
   <div class="card mb-4">
     <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label"> Produit unité </label>
-
-          <app-entity-picker
-            [config]="unitePickerConfig"
-            [selected]="selectedUniteList"
-            (selectedChange)="onUniteSelected($event)"
-          >
-          </app-entity-picker>
+      <app-entity-picker
+        [config]="unitePickerConfig"
+        [selected]="selectedUniteList"
+        (selectedChange)="onUniteSelected($event)"
+      >
+      </app-entity-picker>
+      @if (selectedUnite) {
+        <hr />
+        <div class="row align-items-end">
+          <div class="col-md-5">
+            <label class="form-label"> Produit sélectionné </label>
+            <div class="form-control bg-light">
+              <strong>{{ selectedUnite.nomComplet }}</strong>
+              <br />
+              <small class="text-muted">
+                Stock disponible :
+                {{ selectedUnite.stock }}
+                {{ selectedUnite.nom }}
+              </small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label"> Quantité </label>
+            <input type="number" class="form-control" min="1" [max]="selectedUnite.stock" [(ngModel)]="quantite" />
+          </div>
+          <div class="col-md-4">
+            <button
+              class="btn btn-primary w-100"
+              (click)="transfer()"
+              [disabled]="quantite < 1 || quantite > selectedUnite.stock"
+            >
+              <i class="fa-solid fa-right-left"></i>
+              Ajouter au stock prestation
+            </button>
+          </div>
         </div>
-
-        <div class="col-md-3">
-          <label class="form-label"> Quantité </label>
-
-          <input type="number" class="form-control" [(ngModel)]="quantite" />
-        </div>
-
-        <div class="col-md-3 d-flex align-items-end">
-          <button class="btn btn-primary w-100" (click)="transfer()" [disabled]="!selectedUnite || quantite <= 0">
-            <i class="fa-solid fa-right-left"></i>
-
-            Transférer
-          </button>
-        </div>
-      </div>
+      }
     </div>
   </div>
 
   <div class="card">
     <div class="card-header">Stock prestation</div>
-
-    <app-data-table-selectable [columns]="columns" [data]="stockPrestations"> </app-data-table-selectable>
+    <app-data-table [columns]="columnsPP" [data]="stockPrestations" [loading]="false"> </app-data-table>
   </div>
 </div>

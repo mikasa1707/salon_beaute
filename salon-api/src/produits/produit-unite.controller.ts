@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { ProduitUniteService } from './produit-unite.service';
 import { CreateProduitUniteDto } from './dto/create-produit-unite.dto';
 import { UpdateProduitUniteDto } from './dto/update-produit-unite.dto';
@@ -10,7 +21,7 @@ import { PersonnelRole } from 'src/personnels/entities/personnel.entity';
 @Controller('produit-unite')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProduitUniteController {
-  constructor(private readonly produitsService: ProduitUniteService) { }
+  constructor(private readonly produitsService: ProduitUniteService) {}
 
   @Post()
   @Roles(
@@ -38,11 +49,7 @@ export class ProduitUniteController {
     const pageNumber = page ? +page : 1;
     const limitNumber = limit ? +limit : 10;
     const searchString = search || '';
-    return this.produitsService.getAll(
-      pageNumber,
-      limitNumber,
-      searchString,
-    );
+    return this.produitsService.getAll(pageNumber, limitNumber, searchString);
   }
 
   @Get(':id/unites')
@@ -59,12 +66,7 @@ export class ProduitUniteController {
     @Query('limit') limit = 10,
     @Query('search') search = '',
   ) {
-    return this.produitsService.findAll(
-      produitId,
-      page,
-      limit,
-      search,
-    );
+    return this.produitsService.findAll(produitId, page, limit, search);
   }
 
   @Get(':id')
@@ -85,7 +87,10 @@ export class ProduitUniteController {
     PersonnelRole.ADMIN,
     PersonnelRole.RESPONSABLE,
   )
-  update(@Param('id') id: string, @Body() updateProduitDto: UpdateProduitUniteDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateProduitDto: UpdateProduitUniteDto,
+  ) {
     return this.produitsService.update(+id, updateProduitDto);
   }
 

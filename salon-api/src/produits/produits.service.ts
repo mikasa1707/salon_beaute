@@ -14,18 +14,15 @@ export class ProduitsService {
 
     @InjectRepository(ProduitUnite)
     private readonly uniteRepo: Repository<ProduitUnite>,
-  ) { }
+  ) {}
 
   async create(createDto: CreateProduitDto) {
-    const {
-      marqueId,
-      typeProduitId,
-      ...data
-    } = createDto;
+    const { marqueId, typeProduitId, uniteConsommationId, ...data } = createDto;
     const produit = this.repo.create({
       ...data,
       marque: { id: Number(marqueId) },
-      typeProduit: { id: Number(typeProduitId) }
+      typeProduit: { id: Number(typeProduitId) },
+      uniteConsommation: { id: Number(uniteConsommationId) },
     });
     return await this.repo.save(produit);
   }
@@ -42,6 +39,7 @@ export class ProduitsService {
         marque: true,
         typeProduit: true,
         unites: true,
+        uniteConsommation: true,
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -50,14 +48,20 @@ export class ProduitsService {
       },
     });
 
-    const produits = data.map(produit => {
-      const unitesActives = produit.unites?.filter(unite => unite.actif) ?? [];
+    const produits = data.map((produit) => {
+      const unitesActives =
+        produit.unites?.filter((unite) => unite.actif) ?? [];
       return {
         ...produit,
         stockTotal: unitesActives.reduce((sum, unite) => sum + unite.stock, 0),
-        isLowStock: unitesActives.reduce((sum, unite) => sum + unite.stock, 0) <= produit.stock_minimum,
+        isLowStock:
+          unitesActives.reduce((sum, unite) => sum + unite.stock, 0) <=
+          produit.stock_minimum,
         nbUnites: unitesActives.length,
-        hasLowStockUnit: unitesActives.some(unite => unite.stock <= unite.stock_minimum),
+        hasLowStockUnit: unitesActives.some(
+          (unite) => unite.stock <= unite.stock_minimum,
+        ),
+        uniteConso: produit.uniteConsommation.symbole,
       };
     });
 
@@ -76,8 +80,9 @@ export class ProduitsService {
       relations: {
         marque: true,
         typeProduit: true,
-        unites: true
-      }
+        unites: true,
+        uniteConsommation: true,
+      },
     });
 
     if (!_data) {
@@ -87,26 +92,16 @@ export class ProduitsService {
   }
 
   async update(id: number, updateDto: UpdateProduitDto) {
-    const {
-      marqueId,
-      typeProduitId,
-      ...data
-    } = updateDto;
+    const { marqueId, typeProduitId, uniteConsommationId, ...data } = updateDto;
     const produit = await this.repo.preload({
       id,
       ...data,
-      marque: marqueId
-        ? { id: Number(marqueId) }
-        : undefined,
-
-      typeProduit: typeProduitId
-        ? { id: Number(typeProduitId) }
-        : undefined,
+      marque: marqueId ? { id: Number(marqueId) } : undefined,
+      typeProduit: typeProduitId ? { id: Number(typeProduitId) } : undefined,
+      uniteConsommation: { id: Number(uniteConsommationId) },
     });
     if (!produit) {
-      throw new NotFoundException(
-        `Produit ${id} introuvable`
-      );
+      throw new NotFoundException(`Produit ${id} introuvable`);
     }
     return await this.repo.save(produit);
   }
@@ -114,10 +109,10 @@ export class ProduitsService {
   async remove(id: number) {
     await this.findOne(id);
     await this.repo.update(id, {
-      actif: false
+      actif: false,
     });
     return {
-      message: 'Produit archivé'
+      message: 'Produit archivé',
     };
   }
 
@@ -133,8 +128,8 @@ export class ProduitsService {
     const unites = await this.uniteRepo.find({
       relations: { produit: { marque: true } },
       where: {
-        actif: true
-      }
+        actif: true,
+      },
     });
 
     return unites

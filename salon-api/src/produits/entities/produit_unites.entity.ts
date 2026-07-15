@@ -4,9 +4,11 @@ import {
   ManyToOne,
   Column,
   OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Produit } from './produit.entity';
 import { PrestationProduit } from '../../prestations_produits/entities/prestations-produits.entity';
+import { UniteMesure } from 'src/unites-mesure/entities/unites-mesure.entity';
 
 @Entity('produit_unites')
 export class ProduitUnite {
@@ -50,6 +52,17 @@ export class ProduitUnite {
     default: 1,
   })
   conversion!: number;
+
+  @Column({
+    default: 'ml',
+  })
+  unite!: string;
+
+  @ManyToOne(() => UniteMesure)
+  @JoinColumn({
+    name: 'unite_mesure_id',
+  })
+  uniteMesure!: UniteMesure;
 
   @OneToMany(() => PrestationProduit, (pp) => pp.unite)
   utilisations!: PrestationProduit[];

@@ -14,12 +14,12 @@ import { PrestationRecette } from 'src/prestations-recettes/entities/prestations
       PrestationProduit,
       Produit,
       ProduitUnite,
-      Prestation, 
-      PrestationRecette
+      Prestation,
+      PrestationRecette,
     ]),
   ],
   controllers: [PrestationProduitsController],
   providers: [PrestationProduitsService],
   exports: [PrestationProduitsService],
 })
-export class PrestationProduitsModule { }
+export class PrestationProduitsModule {}

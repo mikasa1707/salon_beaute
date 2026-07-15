@@ -15,4 +15,7 @@ export class CreateProduitDto {
 
   @IsNumber()
   prix_vente!: number;
+
+  @IsNumber()
+  uniteConsommationId!: number;
 }

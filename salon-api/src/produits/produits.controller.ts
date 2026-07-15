@@ -20,7 +20,7 @@ import { PersonnelRole } from 'src/personnels/entities/personnel.entity';
 @Controller('produits')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProduitsController {
-  constructor(private readonly produitsService: ProduitsService) { }
+  constructor(private readonly produitsService: ProduitsService) {}
 
   @Post()
   @Roles(
@@ -39,7 +39,8 @@ export class ProduitsController {
     PersonnelRole.RESPONSABLE,
     PersonnelRole.COIFFEUR,
     PersonnelRole.ESTHETICIEN,
-  ) findAll(
+  )
+  findAll(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
@@ -47,11 +48,7 @@ export class ProduitsController {
     const pageNumber = page ? +page : 1;
     const limitNumber = limit ? +limit : 10;
     const searchString = search || '';
-    return this.produitsService.findAll(
-      pageNumber,
-      limitNumber,
-      searchString,
-    );
+    return this.produitsService.findAll(pageNumber, limitNumber, searchString);
   }
 
   @Get(':id')

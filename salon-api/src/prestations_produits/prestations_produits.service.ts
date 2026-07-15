@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 import { PrestationProduit } from './entities/prestations-produits.entity';
 import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
@@ -13,10 +13,8 @@ import { Produit } from 'src/produits/entities/produit.entity';
 import { PrestationRecette } from '../prestations-recettes/entities/prestations-recette.entity';
 import { TransferPrestationProduitDto } from './dto/transfer-prestation-produit.dto';
 
-
 @Injectable()
 export class PrestationProduitsService {
-
   constructor(
     @InjectRepository(PrestationProduit)
     private readonly repo: Repository<PrestationProduit>,
@@ -24,20 +22,50 @@ export class PrestationProduitsService {
     @InjectRepository(ProduitUnite)
     private readonly uniteRepo: Repository<ProduitUnite>,
 
-    @InjectRepository(Produit) private readonly produitRepo: Repository<Produit>,
-    @InjectRepository(PrestationRecette) private readonly recetteRepo: Repository<PrestationRecette>,
-  ) { }
+    @InjectRepository(Produit)
+    private readonly produitRepo: Repository<Produit>,
+    @InjectRepository(PrestationRecette)
+    private readonly recetteRepo: Repository<PrestationRecette>,
+  ) {}
 
   /**
    * Liste du stock disponible pour prestations
    */
-  async findAll() {
-    return this.repo.find({
+  // async findAll() {
+  //   return this.repo.find({
+  //     relations: {
+  //       produit: true,
+  //       unite: true,
+  //     },
+  //   });
+  // }
+  async findAll(page = 1, limit = 10, search = '') {
+    const where = search
+      ? [
+          { produit: { nom: ILike(`%${search}%`) } },
+          { unite: { nom: ILike(`%${search}%`) } },
+        ]
+      : {};
+    const [data, total] = await this.repo.findAndCount({
+      where,
       relations: {
         produit: true,
         unite: true,
       },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        id: 'ASC',
+      },
     });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
   /**
    * Détail produit prestation
@@ -53,9 +81,7 @@ export class PrestationProduitsService {
       },
     });
     if (!data) {
-      throw new NotFoundException(
-        'Produit prestation introuvable',
-      );
+      throw new NotFoundException('Produit prestation introuvable');
     }
     return data;
   }
@@ -84,9 +110,7 @@ export class PrestationProduitsService {
    * PrestationProduit
    *
    */
-  async transfer(
-    dto: TransferPrestationProduitDto,
-  ) {
+  async transfer(dto: TransferPrestationProduitDto) {
     const unite = await this.uniteRepo.findOne({
       where: {
         id: dto.produitUniteId,
@@ -95,21 +119,40 @@ export class PrestationProduitsService {
         produit: true,
       },
     });
+
     if (!unite) {
-      throw new NotFoundException(
-        'Produit unité introuvable',
-      );
+      throw new NotFoundException('Produit unité introuvable');
     }
 
     if (unite.stock < dto.quantite) {
-      throw new BadRequestException(
-        'Stock insuffisant',
-      );
+      throw new BadRequestException('Stock insuffisant');
     }
-    // diminution stock réel
+
+    // Décrément stock physique
     unite.stock -= dto.quantite;
     await this.uniteRepo.save(unite);
-    // création stock prestation
+
+    // Conversion vers unité consommable
+    const quantiteConvertie = dto.quantite * Number(unite.conversion);
+
+    // Cherche une ligne existante
+    const existant = await this.repo.findOne({
+      where: {
+        produit: {
+          id: unite.produit.id,
+        },
+        unite: {
+          id: unite.id,
+        },
+      },
+    });
+
+    if (existant) {
+      existant.quantite = Number(existant.quantite) + quantiteConvertie;
+      return this.repo.save(existant);
+    }
+
+    // Création nouvelle ligne
     const data = this.repo.create({
       produit: {
         id: unite.produit.id,
@@ -117,8 +160,9 @@ export class PrestationProduitsService {
       unite: {
         id: unite.id,
       },
-      quantite: dto.quantite,
+      quantite: quantiteConvertie,
     });
+
     return this.repo.save(data);
   }
   /**
@@ -137,7 +181,6 @@ export class PrestationProduitsService {
         produit: true,
       },
     });
-
   }
   /**
    * Consommation réelle
@@ -149,39 +192,29 @@ export class PrestationProduitsService {
       prestationProduitId: number;
       quantite: number;
     }[],
-
   ) {
     const consommation: PrestationProduit[] = [];
     for (const item of produits) {
-      const prestationProduit =
-        await this.repo.findOne({
+      const prestationProduit = await this.repo.findOne({
+        where: {
+          id: item.prestationProduitId,
+        },
 
-          where: {
-            id: item.prestationProduitId,
-          },
-
-          relations: {
-            produit: true,
-            unite: true,
-          },
-
-        });
+        relations: {
+          produit: true,
+          unite: true,
+        },
+      });
       if (!prestationProduit) {
-        throw new NotFoundException(
-          'Produit prestation introuvable',
-        );
+        throw new NotFoundException('Produit prestation introuvable');
       }
-      if (
-        prestationProduit.quantite < item.quantite
-      ) {
+      if (prestationProduit.quantite < item.quantite) {
         throw new BadRequestException(
           `Stock insuffisant pour ${prestationProduit.produit.nom}`,
         );
       }
       prestationProduit.quantite -= item.quantite;
-      consommation.push(
-        await this.repo.save(prestationProduit),
-      );
+      consommation.push(await this.repo.save(prestationProduit));
     }
     return consommation;
   }

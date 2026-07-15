@@ -67,12 +67,6 @@ export class Prestation {
   })
   produitsUtilises!: PrestationProduit[];
 
-  @OneToMany(
-    () => PrestationRecette,
-    recette => recette.prestation,
-    {
-      cascade: true
-    }
-  )
+  @OneToMany(() => PrestationRecette, (recette) => recette.prestation)
   recettes!: PrestationRecette[];
 }

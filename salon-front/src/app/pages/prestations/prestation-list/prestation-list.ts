@@ -5,17 +5,26 @@ import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs'
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog';
 import { PrestationApi } from '../../../core/services/prestation-api';
 import { ToastService } from '../../../core/services/toast';
-import { SearchBarComponent } from "../../../shared/components/search-bar/search-bar";
-import { PageHeaderComponent } from "../../../shared/components/page-header/page-header";
-import { DataTableComponent } from "../../../shared/components/data-table/data-table";
-import { PaginationComponent } from "../../../shared/components/pagination/pagination";
-import { ModalComponent } from "../../../shared/components/modal/modal";
-import { PrestationForm } from "../prestation-form/prestation-form";
+import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
+import { DataTableComponent } from '../../../shared/components/data-table/data-table';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination';
+import { ModalComponent } from '../../../shared/components/modal/modal';
+import { PrestationForm } from '../prestation-form/prestation-form';
+import { PrestationRecetteModal } from "../prestation-recette-modal/prestation-recette-modal";
 
 @Component({
   selector: 'app-prestation-list',
   standalone: true,
-  imports: [SearchBarComponent, PageHeaderComponent, DataTableComponent, PaginationComponent, ModalComponent, PrestationForm],
+  imports: [
+    SearchBarComponent,
+    PageHeaderComponent,
+    DataTableComponent,
+    PaginationComponent,
+    ModalComponent,
+    PrestationForm,
+    PrestationRecetteModal
+],
   templateUrl: './prestation-list.html',
   styleUrl: './prestation-list.scss',
 })
@@ -29,6 +38,8 @@ export class PrestationList implements OnInit {
   loading: boolean = false;
   showModal = false;
   selected?: Prestation;
+  selectedPrestation: any;
+  showRecette = false;
 
   columns: TableColumn[] = [
     { field: 'nom', label: 'Prestations' },
@@ -131,5 +142,10 @@ export class PrestationList implements OnInit {
   save() {
     this.showModal = false;
     this.load();
+  }
+
+  openRecette(prestation: any) {
+    this.selectedPrestation = prestation;
+    this.showRecette = true;
   }
 }

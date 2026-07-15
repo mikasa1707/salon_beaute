@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Reservation } from 'src/reservations/entities/reservation.entity';
 import { TypePrestation } from 'src/types-prestations/entities/types-prestation.entity';
 import { Personnel } from 'src/personnels/entities/personnel.entity';
+import { PrestationRecette } from 'src/prestations-recettes/entities/prestations-recette.entity';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { Personnel } from 'src/personnels/entities/personnel.entity';
       Reservation,
       TypePrestation,
       Personnel,
+      PrestationRecette,
     ]),
   ],
   controllers: [PrestationsController],

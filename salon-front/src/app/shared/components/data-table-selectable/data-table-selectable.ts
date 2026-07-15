@@ -7,20 +7,12 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   templateUrl: './data-table-selectable.html',
 })
 export class DataTableSelectable {
-  @Input()
-  columns: any[] = [];
+  @Input() columns: any[] = [];
+  @Input() data: any[] = [];
+  @Input() mode: 'single' | 'multiple' = 'single';
+  @Input() selected: any[] = [];
 
-  @Input()
-  data: any[] = [];
-
-  @Input()
-  mode: 'single' | 'multiple' = 'single';
-
-  @Input()
-  selected: any[] = [];
-
-  @Output()
-  selectedChange = new EventEmitter<any[]>();
+  @Output() selectedChange = new EventEmitter<any[]>();
 
   toggle(row: any) {
     if (this.mode === 'single') {

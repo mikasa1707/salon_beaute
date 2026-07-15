@@ -1,4 +1,5 @@
 import { Type } from "@angular/core";
+import { TableColumn } from "../../../core/models/table-column";
 
 export interface EntityPickerConfig<T = any> {
   title: string;
@@ -13,9 +14,5 @@ export interface EntityPickerConfig<T = any> {
   createComponent?: Type<any>;
 //   tableColumns?: Column[];
   selectorLabel?: string;
-  columns: {
-    field: string;
-    label: string;
-    type?: string;
-  }[];
+  columns: TableColumn[];
 }

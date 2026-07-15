@@ -9,6 +9,7 @@ import { Stock } from 'src/stocks/entities/stock.entity';
 import { Marque } from 'src/marques/entities/marque.entity';
 import { ProduitUnite } from './entities/produit_unites.entity';
 import { ProduitUniteService } from './produit-unite.service';
+import { PrestationRecette } from 'src/prestations-recettes/entities/prestations-recette.entity';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ProduitUniteService } from './produit-unite.service';
       Stock,
       Marque,
       ProduitUnite,
+      PrestationRecette,
     ]),
   ],
   controllers: [ProduitsController, ProduitUniteController],

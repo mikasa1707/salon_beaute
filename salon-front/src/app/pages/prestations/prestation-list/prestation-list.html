@@ -6,11 +6,7 @@
     </div>
 
     <!-- Ajouter -->
-    <button
-      class="btn btn-primary d-flex align-items-center gap-2 px-3"
-      type="button"
-      (click)="openCreate()"
-    >
+    <button class="btn btn-primary d-flex align-items-center gap-2 px-3" type="button" (click)="openCreate()">
       <i class="fa-solid fa-plus"></i>
     </button>
   </div>
@@ -23,6 +19,8 @@
   [page]="page"
   [totalPages]="totalPages"
   (pageChange)="changePage($event)"
+  [showRecipeButton]="true"
+  (recipe)="openRecette($event)"
   /* (view)="view($event)" */
   (edit)="openEdit($event)"
   (delete)="delete($event)"
@@ -39,10 +37,8 @@
 >
 </app-pagination>
 
-<app-modal
-  [title]="selected ? 'Modifier prestation' : 'Nouveau prestation'"
-  [show]="showModal"
-  (closed)="closeModal()"
->
+<app-modal [title]="selected ? 'Modifier prestation' : 'Nouveau prestation'" [show]="showModal" (closed)="closeModal()">
   <app-prestation-form [prestation]="selected" (saved)="save()"> </app-prestation-form>
 </app-modal>
+
+<app-prestation-recette-modal [show]="showRecette" [prestation]="selectedPrestation" (closed)="showRecette = false" />

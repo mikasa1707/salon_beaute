@@ -23,11 +23,18 @@ export class DataTableComponent {
   @Input() totalPages = 1;
   @Input() showUnitButton = false;
 
+  @Input() selectable = false;
+  @Input() selectionMode: 'single' | 'multiple' = 'single';
+  @Input() selected: any[] = [];
+  @Input() showRecipeButton = false;
+
   @Output() openUnites = new EventEmitter<any>();
   @Output() view = new EventEmitter<any>();
   @Output() edit = new EventEmitter<any>();
   @Output() delete = new EventEmitter<any>();
   @Output() pageChange = new EventEmitter<number>();
+  @Output() recipe = new EventEmitter<any>();
+  @Output() selectedChange = new EventEmitter<any[]>();
 
   changePage(newPage: number) {
     // Vérification de sécurité avant d'émettre
@@ -76,5 +83,25 @@ export class DataTableComponent {
 
   isLowStock(row: any) {
     return row.stock !== undefined && row.stock <= row.stock_minimum;
+  }
+
+  toggle(row: any) {
+    if (!this.selectable) {
+      return;
+    }
+
+    if (this.selectionMode === 'single') {
+      this.selected = [row];
+    } else {
+      const exists = this.selected.some(x => x.id === row.id);
+
+      this.selected = exists ? this.selected.filter(x => x.id !== row.id) : [...this.selected, row];
+    }
+
+    this.selectedChange.emit(this.selected);
+  }
+
+  isSelected(row: any) {
+    return this.selected.some(x => x.id === row.id);
   }
 }

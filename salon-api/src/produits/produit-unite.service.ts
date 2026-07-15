@@ -10,17 +10,14 @@ export class ProduitUniteService {
   constructor(
     @InjectRepository(ProduitUnite)
     private readonly repo: Repository<ProduitUnite>,
-  ) { }
+  ) {}
 
   async create(createDto: CreateProduitUniteDto) {
     const _data = this.repo.create(createDto);
     return await this.repo.save(_data);
   }
 
-  async getAll(
-    page = 1,
-    limit = 10,
-    search = '',) {
+  async getAll(page = 1, limit = 10, search = '') {
     const [data, total] = await this.repo.findAndCount({
       where: [
         {
@@ -37,20 +34,23 @@ export class ProduitUniteService {
         nom: 'ASC',
       },
     });
-    const produits = data.map(produit => ({
+    const produits = data.map((produit) => ({
       ...produit,
       stockTotal: this.getTotalStock(produit),
       isLowStock: this.isLowStock(produit),
-      nomComplet: `${produit.produit?.nom ?? ''} - ${produit.nom}`,
+      nomComplet: `${produit.nom}`,
+      uniteLabel: `${produit.conversion} ${produit.unite}`,
     }));
-    return { data: produits, total, page, limit, totalPages: Math.ceil(total / limit), };
+    return {
+      data: produits,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
-  async findAll(
-    produitId: number,
-    page = 1,
-    limit = 10,
-    search = '',) {
+  async findAll(produitId: number, page = 1, limit = 10, search = '') {
     const [data, total] = await this.repo.findAndCount({
       where: [
         {
@@ -61,6 +61,7 @@ export class ProduitUniteService {
       ],
       relations: {
         produit: true,
+        uniteMesure: true,
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -69,12 +70,18 @@ export class ProduitUniteService {
       },
     });
 
-    const produits = data.map(produit => ({
+    const produits = data.map((produit) => ({
       ...produit,
       stockTotal: this.getTotalStock(produit),
       isLowStock: this.isLowStock(produit),
     }));
-    return { data: produits, total, page, limit, totalPages: Math.ceil(total / limit), };
+    return {
+      data: produits,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number) {
@@ -82,7 +89,8 @@ export class ProduitUniteService {
       where: { id },
       relations: {
         produit: true,
-      }
+        uniteMesure: true,
+      },
     });
 
     if (!_data) {
@@ -107,10 +115,10 @@ export class ProduitUniteService {
   async remove(id: number) {
     await this.findOne(id);
     await this.repo.update(id, {
-      actif: false
+      actif: false,
     });
     return {
-      message: 'Produit archivé'
+      message: 'Produit archivé',
     };
   }
 
@@ -126,8 +134,8 @@ export class ProduitUniteService {
     const unites = await this.repo.find({
       relations: { produit: { marque: true } },
       where: {
-        actif: true
-      }
+        actif: true,
+      },
     });
 
     return unites

@@ -25,7 +25,7 @@ import { StockMovement } from 'src/stocks/entities/stock-movements.entity';
       ReservationPersonnel,
       PrestationProduit,
       ProduitUnite,
-      StockMovement
+      StockMovement,
     ]),
   ],
   controllers: [ReservationsController],

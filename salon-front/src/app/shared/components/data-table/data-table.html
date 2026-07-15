@@ -3,6 +3,9 @@
     <table class="table table-hover align-middle mb-0">
       <thead class="table-primary">
         <tr>
+          @if (selectable) {
+            <th></th>
+          }
           @for (column of columns; track column.field) {
             <th (click)="sort(column.field)" style="cursor: pointer">
               {{ column.label }}
@@ -11,7 +14,9 @@
               }
             </th>
           }
-          <th width="130">Actions</th>
+          @if (!selectable) {
+            <th width="130">Actions</th>
+          }
         </tr>
       </thead>
 
@@ -32,7 +37,18 @@
           </tr>
         } @else {
           @for (row of displayedData; track row.id) {
-            <tr [class.stock-danger]="isLowStock(row)">
+            <tr
+              [ngClass]="{
+                'stock-danger': isLowStock(row),
+                'table-primary': selectable && isSelected(row),
+              }"
+              (click)="selectable && toggle(row)"
+            >
+              @if (selectable) {
+                <td>
+                  <input type="checkbox" [checked]="isSelected(row)" (click)="$event.stopPropagation(); toggle(row)" />
+                </td>
+              }
               @for (col of columns; track col.field) {
                 <td>
                   @if (col.type === 'badge') {
@@ -83,27 +99,33 @@
                   }
                 </td>
               }
-
-              <td class="text-end">
-                <div class="btn-group btn-group-sm">
-                  @if (showUnitButton) {
-                    <button class="btn btn-outline-info" (click)="openUnites.emit(row)" title="Gérer les unités">
-                      <i class="fa-solid fa-box"></i>
-                    </button>
-                  }
-                  <!-- <button class="btn btn-outline-info" (click)="view.emit(row)" title="Voir">
+              @if (!selectable) {
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    @if (showUnitButton) {
+                      <button class="btn btn-outline-info" (click)="openUnites.emit(row)" title="Gérer les unités">
+                        <i class="fa-solid fa-box"></i>
+                      </button>
+                    }
+                    <!-- <button class="btn btn-outline-info" (click)="view.emit(row)" title="Voir">
                     <i class="fa-solid fa-eye"></i>
                   </button> -->
+                    @if (showRecipeButton) {
+                      <button class="btn btn-outline-primary" (click)="recipe.emit(row)" title="Gérer la recette">
+                        <i class="fa-solid fa-flask"></i>
+                      </button>
+                    }
 
-                  <button class="btn btn-outline-warning" (click)="edit.emit(row)" title="Modifier">
-                    <i class="fa-solid fa-pen"></i>
-                  </button>
+                    <button class="btn btn-outline-warning" (click)="edit.emit(row)" title="Modifier">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
 
-                  <button class="btn btn-outline-danger" (click)="delete.emit(row.id)" title="Supprimer">
-                    <i class="fa-solid fa-trash"></i>
-                  </button>
-                </div>
-              </td>
+                    <button class="btn btn-outline-danger" (click)="delete.emit(row.id)" title="Supprimer">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              }
             </tr>
           }
         }

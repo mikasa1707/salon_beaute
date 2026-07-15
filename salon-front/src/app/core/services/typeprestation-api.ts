@@ -8,7 +8,7 @@ import { environment } from '../../../environnements/environnement';
   providedIn: 'root',
 })
 export class TypeprestationApi {
-    private apiUrl = `${environment.apiUrl}/types-prestations`;
+  private apiUrl = `${environment.apiUrl}/types-prestations`;
 
   constructor(private http: HttpClient) {}
 
