@@ -50,6 +50,13 @@
 
   <div class="card">
     <div class="card-header">Stock prestation</div>
-    <app-data-table [columns]="columnsPP" [data]="stockPrestations" [loading]="false"> </app-data-table>
+    <app-data-table
+      [columns]="columnsPP"
+      [data]="stockPrestations"
+      [loading]="false"
+      [canEdit]="false"
+      (delete)="delete($event)"
+    >
+    </app-data-table>
   </div>
 </div>

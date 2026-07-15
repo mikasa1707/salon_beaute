@@ -102,7 +102,8 @@ export class ReservationsController {
     @Body('status') status: ReservationStatut,
     @Body('products')
     products: {
-      prestationProduitId: number;
+      produitId: number;
+      uniteMesureId: number;
       quantite: number;
     }[],
   ) {

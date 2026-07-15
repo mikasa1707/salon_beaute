@@ -125,6 +125,7 @@ export class ProduitList {
 
   openEdit(produit: Produit) {
     this.selected = produit;
+    console.log(produit)
     this.showModal = true;
   }
 

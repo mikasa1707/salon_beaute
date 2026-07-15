@@ -6,15 +6,18 @@ import {
   Param,
   Body,
   Query,
+  Patch,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { PrestationProduitsService } from './prestations_produits.service';
 import { TransferPrestationProduitDto } from './dto/transfer-prestation-produit.dto';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { PersonnelRole } from 'src/personnels/entities/personnel.entity';
+import { UpdatePrestationProduitDto } from './dto/update-prestation-produit.dto';
 
 @Controller('prestations-produits')
 export class PrestationProduitsController {
-  constructor(private readonly service: PrestationProduitsService) {}
+  constructor(private readonly service: PrestationProduitsService) { }
 
   /**
    * Stock disponible prestations
@@ -42,6 +45,11 @@ export class PrestationProduitsController {
    * Détail stock prestation
    */
   @Get(':id')
+  @Roles(
+    PersonnelRole.RECEPTION,
+    PersonnelRole.ADMIN,
+    PersonnelRole.RESPONSABLE,
+  )
   findOne(@Param('id') id: string) {
     return this.service.findOne(+id);
   }
@@ -51,6 +59,11 @@ export class PrestationProduitsController {
    * (utile plus tard)
    */
   @Get('prestation/:id')
+  @Roles(
+    PersonnelRole.RECEPTION,
+    PersonnelRole.ADMIN,
+    PersonnelRole.RESPONSABLE,
+  )
   findByPrestation(@Param('id') id: string) {
     return this.service.findByPrestation(+id);
   }
@@ -59,6 +72,16 @@ export class PrestationProduitsController {
    * Transfert ProduitUnite -> PrestationProduit
    */
   @Post('transfer')
+  @Roles(
+    PersonnelRole.RECEPTION,
+    PersonnelRole.ADMIN,
+    PersonnelRole.RESPONSABLE,
+  )
+  @Roles(
+    PersonnelRole.RECEPTION,
+    PersonnelRole.ADMIN,
+    PersonnelRole.RESPONSABLE,
+  )
   transfer(@Body() dto: TransferPrestationProduitDto) {
     return this.service.transfer(dto);
   }
@@ -67,14 +90,27 @@ export class PrestationProduitsController {
    * Consommation après prestation terminée
    */
   @Post('consume')
+  @Roles(
+    PersonnelRole.RECEPTION,
+    PersonnelRole.ADMIN,
+    PersonnelRole.RESPONSABLE,
+  )
   consume(
     @Body() produits: { prestationProduitId: number; quantite: number }[],
   ) {
     return this.service.consume(produits);
   }
 
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdatePrestationProduitDto,
+  ) {
+    return this.service.update(id, dto);
+  }
+
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.service.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.service.remove(id);
   }
 }

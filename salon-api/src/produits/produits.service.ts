@@ -62,6 +62,7 @@ export class ProduitsService {
           (unite) => unite.stock <= unite.stock_minimum,
         ),
         uniteConso: produit.uniteConsommation.symbole,
+        uniteConsommationId: produit.uniteConsommation.id
       };
     });
 

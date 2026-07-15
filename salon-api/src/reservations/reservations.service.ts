@@ -48,7 +48,14 @@ export class ReservationsService {
           personnel: true,
         },
         prestations: {
-          prestation: true,
+          prestation: {
+            recettes: {
+              produit: {
+                uniteConsommation: true,
+              },
+              uniteMesure: true,
+            },
+          },
         },
       },
     });
@@ -62,7 +69,9 @@ export class ReservationsService {
       statut: r.statut,
       total_prix: r.total_prix,
       total_duree: r.total_duree,
+
       prestations: r.prestations,
+
       personnels: r.personnels
         .filter((rp) => rp.personnel)
         .map((rp) => ({
@@ -75,20 +84,33 @@ export class ReservationsService {
   }
 
   async findOne(id: number) {
-    const _data = await this.repo.findOne({
-      where: { id },
+    const data = await this.repo.findOne({
+      where: {
+        id,
+      },
       relations: {
         client: true,
+        personnels: {
+          personnel: true,
+        },
         prestations: {
-          prestation: true,
+          prestation: {
+            recettes: {
+              produit: {
+                uniteConsommation: true,
+              },
+              uniteMesure: true,
+            },
+          },
         },
       },
     });
 
-    if (!_data) {
-      throw new NotFoundException(`Marque ${id} introuvable`);
+    if (!data) {
+      throw new NotFoundException(`Réservation ${id} introuvable`);
     }
-    return _data;
+
+    return data;
   }
 
   async update(id: number, updateDto: UpdateReservationDto) {
@@ -425,7 +447,8 @@ export class ReservationsService {
     id: number,
     newStatus: ReservationStatut,
     products: {
-      prestationProduitId: number;
+      produitId: number;
+      uniteMesureId: number;
       quantite: number;
     }[] = [],
   ) {
@@ -481,37 +504,38 @@ export class ReservationsService {
   private async consumeProducts(
     reservationId: number,
     products: {
-      prestationProduitId: number;
+      produitId: number;
+      uniteMesureId: number;
       quantite: number;
     }[],
   ) {
+    const prestationProduitRepo =
+      this.reservationPrestationRepo.manager.getRepository(PrestationProduit);
     for (const item of products) {
-      const prestationProduit = await this.reservationPrestationRepo.manager
-        .getRepository(PrestationProduit)
-        .findOne({
-          where: {
-            id: item.prestationProduitId,
+      const prestationProduit = await prestationProduitRepo.findOne({
+        where: {
+          produit: {
+            id: item.produitId,
           },
-        });
-
+          unite: {
+            id: item.uniteMesureId,
+          },
+        },
+      });
       if (!prestationProduit) {
         throw new NotFoundException(
-          `Produit prestation ${item.prestationProduitId} introuvable`,
+          `Stock prestation introuvable pour le produit ${item.produitId}`,
         );
       }
-
-      // ici on décrémente la consommation
-      prestationProduit.quantite -= item.quantite;
-
-      if (prestationProduit.quantite < 0) {
+      const nouvelleQuantite =
+        Number(prestationProduit.quantite) - Number(item.quantite);
+      if (nouvelleQuantite < 0) {
         throw new ConflictException(
-          'Quantité utilisée supérieure à la quantité disponible',
+          `Stock insuffisant pour ${prestationProduit.produit?.nom}`,
         );
       }
-
-      await this.reservationPrestationRepo.manager
-        .getRepository(PrestationProduit)
-        .save(prestationProduit);
+      prestationProduit.quantite = nouvelleQuantite;
+      await prestationProduitRepo.save(prestationProduit);
     }
   }
 }

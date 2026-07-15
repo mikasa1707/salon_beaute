@@ -8,6 +8,7 @@ import { EntityPickerConfig } from '../../../shared/components/entity-picker/ent
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { DataTableComponent } from '../../../shared/components/data-table/data-table';
 import { ToastService } from '../../../core/services/toast';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog';
 
 @Component({
   selector: 'app-transfert-produit',
@@ -33,6 +34,9 @@ export class TransfertProduit implements OnInit {
   totalPP = 0;
   totalPagesPP = 0;
 
+  showModal = false;
+  selected?: any;
+
   columns: any = [
     {
       field: 'nomComplet',
@@ -52,7 +56,7 @@ export class TransfertProduit implements OnInit {
   columnsPP: any = [
     {
       field: 'produit.nom',
-      label: 'Produit',
+      label: 'Produits',
     },
     {
       field: 'unite.unite',
@@ -70,7 +74,8 @@ export class TransfertProduit implements OnInit {
     private api: PrestationProduitApi,
     private cdr: ChangeDetectorRef,
     private toastService: ToastService,
-  ) {}
+    private readonly confirm: ConfirmDialogService
+  ) { }
 
   ngOnInit() {
     this.unitePickerConfig = {
@@ -102,6 +107,23 @@ export class TransfertProduit implements OnInit {
   }
 
   transfer() {
+    if (this.selected?.id) {
+      this.api.update(this.selected.id, {
+        quantite: this.quantite,
+      }).subscribe(() => {
+        this.toastService.success('Stock prestation modifié');
+
+        this.selected = undefined;
+        this.selectedUnite = null;
+        this.selectedUniteList = [];
+        this.quantite = 1;
+
+        this.load();
+      });
+
+      return;
+    }
+
     if (!this.selectedUnite || this.quantite <= 0) {
       return;
     }
@@ -149,5 +171,27 @@ export class TransfertProduit implements OnInit {
     this.limit = newLimit;
     this.page = 1; // 💡 Sécurité : On revient à la page 1 si la taille d'affichage change
     this.load();
+  }
+
+  openCreate() {
+    this.selected = undefined;
+  }
+
+  async delete(id: number) {
+    const ok = await this.confirm.confirm({
+      title: 'Suppression stock prestation',
+      message: 'Cette ligne sera supprimée.',
+      confirmText: 'Supprimer',
+      confirmClass: 'btn-danger',
+    });
+
+    if (!ok) {
+      return;
+    }
+
+    this.api.remove(id).subscribe(() => {
+      this.toastService.success('Stock prestation supprimé');
+      this.load();
+    });
   }
 }

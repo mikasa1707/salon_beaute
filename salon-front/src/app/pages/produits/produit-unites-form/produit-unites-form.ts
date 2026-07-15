@@ -59,7 +59,6 @@ export class ProduitUnitesForm implements OnInit, OnChanges {
   ngOnInit() {
     this.uniteMesureApi.findAll().subscribe(res => {
       this.unitesMesure = res.data ?? res;
-      console.log('unités mesure', this.unitesMesure);
       this.initFields();
       this.cdr.detectChanges();
     });

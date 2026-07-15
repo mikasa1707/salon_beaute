@@ -8,13 +8,7 @@ import { environment } from '../../../environnements/environnement';
 export class PrestationProduitApi {
   private api = `${environment.apiUrl}/prestations-produits`;
 
-  constructor(private http: HttpClient) {}
-
-  // findAll() {
-  //     return this.http.get<any[]>(
-  //         this.api
-  //     );
-  // }
+  constructor(private http: HttpClient) { }
 
   findAll(page = 1, limit = 10, search = '') {
     return this.http.get<any>(`${this.api}?page=${page}&limit=${limit}&search=${search}`);
@@ -22,5 +16,13 @@ export class PrestationProduitApi {
 
   transfer(data: any) {
     return this.http.post(`${this.api}/transfer`, data);
+  }
+
+  update(id: number, data: any) {
+    return this.http.patch(`${this.api}/${id}`, data);
+  }
+
+  remove(id: number) {
+    return this.http.delete(`${this.api}/${id}`);
   }
 }

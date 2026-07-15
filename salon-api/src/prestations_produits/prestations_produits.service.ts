@@ -12,6 +12,7 @@ import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
 import { Produit } from 'src/produits/entities/produit.entity';
 import { PrestationRecette } from '../prestations-recettes/entities/prestations-recette.entity';
 import { TransferPrestationProduitDto } from './dto/transfer-prestation-produit.dto';
+import { UpdatePrestationProduitDto } from './dto/update-prestation-produit.dto';
 
 @Injectable()
 export class PrestationProduitsService {
@@ -46,10 +47,13 @@ export class PrestationProduitsService {
           { unite: { nom: ILike(`%${search}%`) } },
         ]
       : {};
+
     const [data, total] = await this.repo.findAndCount({
       where,
       relations: {
-        produit: true,
+        produit: {
+          uniteConsommation: true,
+        },
         unite: true,
       },
       skip: (page - 1) * limit,
@@ -60,7 +64,11 @@ export class PrestationProduitsService {
     });
 
     return {
-      data,
+      data: data.map((item) => ({
+        ...item,
+        produitId: item.produit.id,
+        uniteMesure: item.produit.uniteConsommation,
+      })),
       total,
       page,
       limit,
@@ -76,7 +84,9 @@ export class PrestationProduitsService {
         id,
       },
       relations: {
-        produit: true,
+        produit: {
+          uniteConsommation: true,
+        },
         unite: true,
       },
     });
@@ -225,5 +235,11 @@ export class PrestationProduitsService {
   async remove(id: number) {
     const data = await this.findOne(id);
     return this.repo.remove(data);
+  }
+
+  async update(id: number, dto: UpdatePrestationProduitDto) {
+    const data = await this.findOne(id);
+    data.quantite = dto.quantite;
+    return this.repo.save(data);
   }
 }

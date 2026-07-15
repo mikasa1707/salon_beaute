@@ -14,6 +14,7 @@ export class DataTableComponent {
   @Input() data: any[] = []; // Ces données sont DÉJÀ paginées par le serveur
   @Input() loading = false;
   @Input() sortable = true;
+  @Input() canEdit = true;
 
   sortField = '';
   sortDirection: 'asc' | 'desc' = 'asc';

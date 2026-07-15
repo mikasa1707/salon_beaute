@@ -38,7 +38,7 @@ export class ProduitUniteService {
       ...produit,
       stockTotal: this.getTotalStock(produit),
       isLowStock: this.isLowStock(produit),
-      nomComplet: `${produit.nom}`,
+      nomComplet: `${produit.produit.nom} ${produit.nom}`,
       uniteLabel: `${produit.conversion} ${produit.unite}`,
     }));
     return {

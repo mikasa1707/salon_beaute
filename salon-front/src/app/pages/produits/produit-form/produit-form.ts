@@ -81,8 +81,9 @@ export class ProduitForm implements OnChanges, OnInit {
       this.buildFields();
     });
 
-    this.uniteMesureApi.findAll().subscribe(res => {
+    this.uniteMesureApi.findAll(1, 1000).subscribe(res => {
       this.unitesMesure = res.data ?? res;
+      console.log(this.unitesMesure)
 
       this.buildFields();
     });

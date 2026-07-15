@@ -23,7 +23,7 @@ import { PaginationComponent } from "../../../shared/components/pagination/pagin
     ModalComponent,
     ClientForm,
     PaginationComponent
-],
+  ],
   templateUrl: './client-list.html',
   styleUrl: './client-list.scss',
 })
@@ -48,9 +48,8 @@ export class ClientList implements OnInit {
 
   private searchSubject = new Subject<string>();
   private searchSubscription!: Subscription;
-  private confirm = inject(ConfirmDialogService);
 
-  constructor(private readonly clientService: ClientService, private cdr: ChangeDetectorRef, private toast: ToastService) { }
+  constructor(private readonly clientService: ClientService, private cdr: ChangeDetectorRef, private toast: ToastService, private readonly confirm: ConfirmDialogService) { }
 
   ngOnInit(): void {
     this.searchSubscription = this.searchSubject.pipe(
@@ -74,7 +73,7 @@ export class ClientList implements OnInit {
   loadClients(_search: any = '') {
     this.loading = true;
     this.clientService.findAll(this.page, this.limit, _search).subscribe({
-      next: (res: { data: any[]; totalPages: number; total: number;}) => {
+      next: (res: { data: any[]; totalPages: number; total: number; }) => {
         console.log(res)
         this.clients = res.data;
         this.total = res.total;
