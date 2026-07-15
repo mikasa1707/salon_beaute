@@ -6,13 +6,22 @@ import { environment } from '../../../environnements/environnement';
 import { Reservation } from '../models/reservation';
 import { ReservationStatut } from '../models/reservation-statut.enum';
 
+export interface ChangeStatusResponse {
+  reservation: Reservation;
+  facturation?: {
+    id: number;
+    total: number;
+    status: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ReservationApi {
   private readonly api = `${environment.apiUrl}/reservations`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   create(data: any): Observable<Reservation> {
     return this.http.post<Reservation>(`${this.api}`, data);
@@ -40,9 +49,9 @@ export class ReservationApi {
     products: {
       prestationProduitId: number;
       quantite: number;
-    }[] = [],
-  ): Observable<Reservation> {
-    return this.http.patch<Reservation>(`${this.api}/${id}/status`, {
+    }[] = []
+  ): Observable<ChangeStatusResponse> {
+    return this.http.patch<ChangeStatusResponse>(`${this.api}/${id}/status`, {
       status: newStatus,
       products,
     });

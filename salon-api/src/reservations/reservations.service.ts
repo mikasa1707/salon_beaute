@@ -454,7 +454,11 @@ export class ReservationsService {
   ) {
     const reservation = await this.repo.findOne({
       where: { id },
-      relations: { prestations: true, personnels: true, client: true },
+      relations: {
+        prestations: true,
+        personnels: true,
+        client: true,
+      },
     });
 
     if (!reservation) {
@@ -474,7 +478,7 @@ export class ReservationsService {
         ReservationStatut.ANNULEE,
         ReservationStatut.ABSENT,
       ],
-      [ReservationStatut.ARRIVEE]: [
+      ARRIVEE: [
         ReservationStatut.EN_COURS,
         ReservationStatut.ANNULEE,
         ReservationStatut.TERMINEE,
@@ -491,14 +495,23 @@ export class ReservationsService {
       );
     }
 
+    let facturation: any = null;
+
     if (newStatus === ReservationStatut.TERMINEE) {
       await this.consumeProducts(reservation.id, products ?? []);
-      await this.facturationService.createFromReservation(reservation.id);
+      facturation = await this.facturationService.createFromReservation(
+        reservation.id,
+      );
     }
 
     reservation.statut = newStatus;
+
     await this.repo.save(reservation);
-    return this.findOne(id);
+
+    return {
+      reservation: await this.findOne(id),
+      facturation,
+    };
   }
 
   private async consumeProducts(

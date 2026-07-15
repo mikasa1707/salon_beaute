@@ -27,26 +27,32 @@ export class FacturationsService {
   // =========================
   async createFromReservation(reservationId: number) {
     return this.dataSource.transaction(async (manager) => {
-      // 🔒 LOCK RESERVATION (anti double facture)
       const reservation = await manager.findOne(Reservation, {
         where: { id: reservationId },
         relations: {
           client: true,
-          prestations: { prestation: true },
+          prestations: {
+            prestation: true,
+          },
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: {
+          mode: 'pessimistic_write',
+        },
       });
 
       if (!reservation) {
         throw new NotFoundException('Réservation introuvable');
       }
 
-      // 🔒 CHECK EXISTING FACTURE (safe in transaction)
       const existing = await manager.findOne(Facturation, {
         where: {
-          reservation: { id: reservationId },
+          reservation: {
+            id: reservationId,
+          },
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: {
+          mode: 'pessimistic_write',
+        },
       });
 
       if (existing) {
@@ -57,35 +63,37 @@ export class FacturationsService {
 
       let total = 0;
 
-      const items = reservation.prestations.map((p) => {
-        const lineTotal = Number(p.prix) * Number(p.quantite);
-        total += lineTotal;
-
-        return manager.create(FacturationItem, {
-          label: p.prestation.nom,
-          prix: p.prix,
-          quantite: p.quantite,
-          duree: p.duree,
-        });
-      });
-
       const facture = manager.create(Facturation, {
         client: reservation.client,
         reservation,
-        total,
+        total: 0,
         status: FacturationStatus.UNPAID,
         isLocked: false,
       });
 
-      const saved = await manager.save(Facturation, facture);
+      const savedFacture = await manager.save(Facturation, facture);
 
-      for (const item of items) {
-        item.facturation = saved;
-      }
+      const items = reservation.prestations.map((item) => {
+        const prixUnitaire = Number(item.prix);
+        const quantite = Number(item.quantite);
+        const lineTotal = prixUnitaire * quantite;
+
+        total += lineTotal;
+
+        return manager.create(FacturationItem, {
+          facturation: savedFacture,
+          label: item.prestation.nom,
+          quantite,
+          prix_unitaire: prixUnitaire,
+          total: lineTotal,
+        });
+      });
 
       await manager.save(FacturationItem, items);
 
-      return saved;
+      savedFacture.total = total;
+
+      return manager.save(Facturation, savedFacture);
     });
   }
 

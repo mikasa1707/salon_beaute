@@ -5,9 +5,10 @@ import { ReservationApi } from '../../../../core/services/reservation-api';
 import { ReservationDetailModal } from '../reservation-detail-modal/reservation-detail-modal';
 import { ToastService } from '../../../../core/services/toast';
 import { ReservationStatut } from '../../../../core/models/reservation-statut.enum';
-import { ModalComponent } from "../../../../shared/components/modal/modal";
-import { ReservationConsumptionComponent } from "../reservation-consumption/reservation-consumption";
-import { PageHeaderComponent } from "../../../../shared/components/page-header/page-header";
+import { ModalComponent } from '../../../../shared/components/modal/modal';
+import { ReservationConsumptionComponent } from '../reservation-consumption/reservation-consumption';
+import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-reservation-planning',
@@ -39,7 +40,8 @@ export class ReservationPlanning implements OnInit {
     private reservationService: ReservationApi,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
-  ) { }
+    private readonly router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadReservations();
@@ -100,26 +102,6 @@ export class ReservationPlanning implements OnInit {
     this.updateAvailableActions();
   }
 
-  // updateStatus(event: any) {
-  //   const { id, statut } = event;
-
-  //   this.reservationService.changeStatus(id, statut).subscribe({
-  //     next: reservation => {
-  //       this.toast.success('Statut de la réservation mis à jour');
-  //       // Mettre à jour la réservation affichée dans le modal
-  //       this.selectedReservation = reservation;
-  //       // Recalcul des boutons disponibles
-  //       this.updateAvailableActions();
-  //       // Mettre à jour le calendrier sans fermer le modal
-  //       this.loadReservations();
-  //     },
-  //     error: err => {
-  //       console.error('Erreur changement statut', err);
-  //       this.toast.error(err.error?.message ?? 'Erreur lors du changement de statut');
-  //     },
-  //   });
-  // }
-
   updateStatus(event: any) {
     const { id, statut } = event;
     if (statut === 'TERMINEE') {
@@ -130,29 +112,28 @@ export class ReservationPlanning implements OnInit {
     this.changeReservationStatus(id, statut);
   }
 
-  changeReservationStatus(
-    id: number,
-    statut: ReservationStatut,
-    products: any[] = []
-  ) {
-    this.reservationService
-      .changeStatus(id, statut, products)
-      .subscribe({
-        next: reservation => {
-          this.toast.success(
-            'Statut de la réservation mis à jour'
-          );
-          this.selectedReservation = reservation;
-          this.updateAvailableActions();
-          this.loadReservations();
-        },
-        error: err => {
-          this.toast.error(
-            err.error?.message ??
-            'Erreur lors du changement de statut'
-          );
-        },
-      });
+  changeReservationStatus(id: number, statut: ReservationStatut, products: any[] = []) {
+    this.reservationService.changeStatus(id, statut, products).subscribe({
+      next: response => {
+        this.toast.success('Statut de la réservation mis à jour');
+
+        this.selectedReservation = response.reservation ?? response;
+
+        this.updateAvailableActions();
+        this.loadReservations();
+
+        if (statut === ReservationStatut.TERMINEE && response.facturation) {
+          this.router.navigate(['/caisse'], {
+            state: {
+              facturationId: response.facturation.id,
+            },
+          });
+        }
+      },
+      error: err => {
+        this.toast.error(err.error?.message ?? 'Erreur lors du changement de statut');
+      },
+    });
   }
 
   updateAvailableActions() {
@@ -170,33 +151,24 @@ export class ReservationPlanning implements OnInit {
   }
 
   addProduct(product: any) {
-    const exist = this.selectedProducts.find(
-      p => p.prestationProduitId === product.id
-    );
+    const exist = this.selectedProducts.find(p => p.prestationProduitId === product.id);
     if (exist) {
       exist.quantite++;
     } else {
       this.selectedProducts.push({
         prestationProduitId: product.id,
         quantite: 1,
-        produit: product
+        produit: product,
       });
     }
   }
 
   removeProduct(product: any) {
-    this.selectedProducts =
-      this.selectedProducts.filter(
-        p => p.prestationProduitId !== product.prestationProduitId
-      );
+    this.selectedProducts = this.selectedProducts.filter(p => p.prestationProduitId !== product.prestationProduitId);
   }
 
   confirmConsumption(event: any[]) {
-    this.changeReservationStatus(
-      this.selectedReservation.id,
-      ReservationStatut.TERMINEE,
-      event
-    );
+    this.changeReservationStatus(this.selectedReservation.id, ReservationStatut.TERMINEE, event);
     this.showConsumptionModal = false;
   }
 }
