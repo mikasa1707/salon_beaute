@@ -517,9 +517,6 @@ export class ReservationsService {
           produit: {
             id: item.produitId,
           },
-          unite: {
-            id: item.uniteMesureId,
-          },
         },
       });
       if (!prestationProduit) {
