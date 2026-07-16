@@ -186,6 +186,12 @@ export const routes: Routes = [
       {
         path: 'caisse',
         loadComponent: () =>
+          import('./pages/caisses/pos-page/pos-page').then((m) => m.PosPage),
+      },
+      
+      {
+        path: 'caisse/registre',
+        loadComponent: () =>
           import('./pages/caisses/cash-register/cash-register').then((m) => m.CashRegister),
       },
 

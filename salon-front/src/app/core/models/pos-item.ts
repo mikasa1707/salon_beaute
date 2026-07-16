@@ -1,14 +1,14 @@
-import { Prestation } from './prestation';
 import { ProduitUnite } from './produit-unite';
+import { Prestation } from './prestation';
 
-export interface VenteProduit {
+export interface PosItem {
   id: number;
-  label?: string;
+  label: string;
+  type: 'PRODUIT' | 'PRESTATION';
   quantite: number;
   prix_unitaire: number;
   total: number;
+  locked: boolean;
   produitUnite?: ProduitUnite;
   prestation?: Prestation;
-  locked?:boolean;
-  type?: 'PRODUIT' | 'PRESTATION';
 }

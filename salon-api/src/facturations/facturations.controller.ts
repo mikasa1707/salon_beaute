@@ -4,6 +4,8 @@ import {
   Param,
   ParseIntPipe,
   Get,
+  Query,
+  DefaultValuePipe,
   UseGuards,
 } from '@nestjs/common';
 
@@ -31,6 +33,28 @@ export class FacturationsController {
   }
 
   // =========================
+  // GET ALL FACTURES
+  // =========================
+  @Get()
+  @Roles(
+    PersonnelRole.RECEPTION,
+    PersonnelRole.ADMIN,
+    PersonnelRole.RESPONSABLE,
+  )
+  findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+    page: number,
+
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe)
+    limit: number,
+
+    @Query('search')
+    search = '',
+  ) {
+    return this.facturationsService.findAll(page, limit, search);
+  }
+
+  // =========================
   // GET FACTURE BY ID
   // =========================
   @Get(':id')
@@ -39,7 +63,7 @@ export class FacturationsController {
     PersonnelRole.ADMIN,
     PersonnelRole.RESPONSABLE,
   )
-  getOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.facturationsService.findOne(id);
   }
 }

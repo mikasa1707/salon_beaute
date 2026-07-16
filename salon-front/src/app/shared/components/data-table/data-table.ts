@@ -28,6 +28,7 @@ export class DataTableComponent {
   @Input() selectionMode: 'single' | 'multiple' = 'single';
   @Input() selected: any[] = [];
   @Input() showRecipeButton = false;
+  @Input() showViewButton = false;
 
   @Output() openUnites = new EventEmitter<any>();
   @Output() view = new EventEmitter<any>();

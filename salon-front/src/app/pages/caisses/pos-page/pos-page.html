@@ -1,0 +1,49 @@
+<div class="container-fluid">
+  <!-- HEADER -->
+  <app-page-header title="Caisse" subtitle="Point de vente" icon="fa-solid fa-cash-register"></app-page-header>
+
+  <div class="row g-3">
+    <!-- ===================== -->
+    <!-- ZONE PRODUITS -->
+    <!-- ===================== -->
+
+    <div class="col-lg-8">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Produits</h5>
+            <app-filter-button label="Type produit" [options]="typesProduit" [multiple]="true" (filterChange)="filterType($event)"></app-filter-button>
+            <app-search-bar (searchChange)="search($event)"></app-search-bar>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- Liste produits -->
+          <app-pos-product-grid [products]="produits" (selected)="addToCart($event)"></app-pos-product-grid>
+        </div>
+
+        <div class="card-footer">
+          <app-pagination
+            [page]="page"
+            [totalPages]="totalPages"
+            [total]="total"
+            [limit]="limit"
+            (pageChange)="changePage($event)"
+            (limitChange)="changeLimit($event)"></app-pagination>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== -->
+    <!-- PANIER -->
+    <!-- ===================== -->
+
+    <div class="col-lg-4">
+      <div class="sticky-top" style="top: 20px">
+        <app-pos-cart></app-pos-cart>
+
+        <app-pos-summary (payment)="openPayment()"></app-pos-summary>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,40 @@
+<div class="pos-summary">
+  <div class="card">
+    <div class="card-body">
+      <h5>Résumé</h5>
+
+      <hr />
+
+      <div class="d-flex justify-content-between">
+        <span>Sous-total</span>
+
+        <strong>
+          {{ total | currency: 'MGA' }}
+        </strong>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <span>Remise</span>
+
+        <strong>
+          {{ remise | currency: 'MGA' }}
+        </strong>
+      </div>
+
+      <hr />
+
+      <div class="d-flex justify-content-between fs-4">
+        <span>Total</span>
+
+        <strong>
+          {{ total - remise | currency: 'MGA' }}
+        </strong>
+      </div>
+
+      <button class="btn btn-success w-100" (click)="payment.emit()">
+        <i class="fa-solid fa-money-bill"></i>
+        Payer
+      </button>
+    </div>
+  </div>
+</div>

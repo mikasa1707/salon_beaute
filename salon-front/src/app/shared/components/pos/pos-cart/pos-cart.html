@@ -1,0 +1,50 @@
+<div class="pos-cart">
+  <h5 class="mb-3">Panier</h5>
+
+  @for (item of cart; track item.id) {
+    <div class="card mb-2">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <strong>
+            {{ item.label }}
+          </strong>
+
+          @if (item.locked) {
+            <span class="badge bg-warning text-dark">
+              <i class="fa-solid fa-lock"></i>
+              Facture
+            </span>
+          }
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          @if (!item.locked) {
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-secondary" (click)="decrease(item)">-</button>
+
+              <span class="btn btn-light">
+                {{ item.quantite }}
+              </span>
+
+              <button class="btn btn-outline-secondary" (click)="increase(item)">+</button>
+            </div>
+
+            <button class="btn btn-sm btn-outline-danger" (click)="remove(item)">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          } @else {
+            <span>Qté : {{ item.quantite }}</span>
+          }
+
+          <strong>
+            {{ item.total | currency: 'MGA' }}
+          </strong>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (cart.length === 0) {
+    <div class="alert alert-secondary text-center">Panier vide</div>
+  }
+</div>

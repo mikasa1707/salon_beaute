@@ -335,6 +335,20 @@
 
       <li>
         <a
+          routerLink="/facturations"
+          routerLinkActive="active bg-primary text-white shadow-sm"
+          class="nav-link rounded-3 px-3 py-3 d-flex gap-3 text-light"
+          title="Factures"
+        >
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+          @if (!isCollapsed) {
+            <span>Factures</span>
+          }
+        </a>
+      </li>
+
+      <li>
+        <a
           routerLink="/caisse"
           routerLinkActive="active bg-primary text-white shadow-sm"
           class="nav-link rounded-3 px-3 py-3 d-flex gap-3 text-light"

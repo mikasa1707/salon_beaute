@@ -1,0 +1,89 @@
+<app-modal title="Aperçu facture" size="lg" [show]="show" (closed)="close()">
+  @if (facture) {
+    <div class="facture-print">
+      <div class="text-center mb-3">
+        <h3>Salon Beauté</h3>
+        <h5>Facture N° {{ facture.numero }}</h5>
+      </div>
+
+      <hr />
+
+      <div class="row mb-2">
+        <div class="col">
+          <strong>Client :</strong>
+          {{ facture.nom }}
+        </div>
+
+        <div class="col text-end">
+          <strong>Date :</strong>
+          {{ facture.date_facture }}
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <strong>Statut :</strong>
+
+        @if (facture.statut === 'PAID') {
+          <span class="badge bg-success">Payée</span>
+        } @else {
+          <span class="badge bg-warning text-dark">Non payée</span>
+        }
+      </div>
+
+      <hr />
+
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Désignation</th>
+            <th class="text-center">Qté</th>
+            <th class="text-end">Prix</th>
+            <th class="text-end">Total</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (item of facture.items; track item.id) {
+            <tr>
+              <td>
+                {{ item.label }}
+              </td>
+
+              <td class="text-center">
+                {{ item.quantite }}
+              </td>
+
+              <td class="text-end">
+                {{ item.prix_unitaire | currency: 'Ar' }}
+              </td>
+
+              <td class="text-end">
+                {{ item.total | currency: 'Ar' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <hr />
+
+      <h4 class="text-end">
+        Total :
+        {{ facture.total | currency: 'Ar' }}
+      </h4>
+
+      <div class="text-end no-print">
+        @if (facture.statut !== 'PAID') {
+          <button class="btn btn-success me-2" (click)="sendToCashier()">
+            <i class="fa-solid fa-cash-register"></i>
+            Envoyer en caisse
+          </button>
+        }
+        <button class="btn btn-primary" (click)="print()">
+          <i class="fa-solid fa-print"></i>
+          Imprimer
+        </button>
+      </div>
+    </div>
+  }
+</app-modal>

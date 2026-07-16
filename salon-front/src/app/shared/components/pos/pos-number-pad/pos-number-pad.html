@@ -1,0 +1,9 @@
+<div class="number-pad">
+  @for (k of keys; track k) {
+    <button class="btn btn-secondary" (click)="press(k)">
+      {{ k }}
+    </button>
+  }
+
+  <button class="btn btn-danger" (click)="clear()">C</button>
+</div>

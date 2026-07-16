@@ -1,1 +1,35 @@
-<p>facturation-list works!</p>
+<app-page-header title="Factures" subtitle="Gestion des factures du salon" icon="fa-solid fa-users">
+  <div class="d-flex gap-2 flex-wrap">
+    <!-- Recherche -->
+    <div class="search-wrapper">
+      <app-search-bar (searchChange)="search($event)"></app-search-bar>
+    </div>
+
+    <!-- Ajouter -->
+    <!-- <button class="btn btn-primary d-flex align-items-center gap-2 px-3" type="button" (click)="openCreate()">
+      <i class="fa-solid fa-user-plus"></i>
+    </button> -->
+  </div>
+</app-page-header>
+
+<app-data-table
+  [columns]="columns"
+  [data]="facturations"
+  [loading]="loading"
+  [page]="page"
+  [totalPages]="totalPages"
+  [canEdit]="false"
+  [showViewButton]="true"
+  (pageChange)="changePage($event)"
+  (view)="openPrint($event)"
+  (delete)="delete($event)"></app-data-table>
+
+<app-pagination
+  [page]="page"
+  [totalPages]="totalPages"
+  [total]="total"
+  [limit]="limit"
+  (pageChange)="changePage($event)"
+  (limitChange)="changeLimit($event)"></app-pagination>
+
+<app-facture-print-modal [show]="showPrintModal" [facture]="selectedFacture" (closed)="closePrintModal()" (cashier)="sendToCashier($event)"></app-facture-print-modal>

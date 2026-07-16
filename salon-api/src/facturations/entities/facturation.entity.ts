@@ -14,6 +14,7 @@ import {
 import { Client } from '../../clients/entities/client.entity';
 import { Reservation } from '../../reservations/entities/reservation.entity';
 import { FacturationItem } from './facturation-item.entity';
+import { Vente } from 'src/ventes/entities/vente.entity';
 
 export enum FacturationStatus {
   UNPAID = 'UNPAID',
@@ -31,6 +32,11 @@ export class Facturation {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  @Column({
+    unique: true,
+    length: 20,
+  })
+  numero!: string;
   // ======================
   // RELATIONS
   // ======================
@@ -45,6 +51,9 @@ export class Facturation {
   @OneToOne(() => Reservation, { nullable: false })
   @JoinColumn({ name: 'reservation_id' })
   reservation!: Reservation;
+
+  @OneToOne(() => Vente, (vente) => vente.facturation)
+  vente?: Vente;
 
   // ======================
   // FINANCE

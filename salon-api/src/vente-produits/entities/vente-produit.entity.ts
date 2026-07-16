@@ -1,13 +1,13 @@
+import { Prestation } from 'src/prestations/entities/prestation.entity';
+import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
+import { Vente } from 'src/ventes/entities/vente.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
-  Column,
   ManyToOne,
   JoinColumn,
+  Column,
 } from 'typeorm';
-
-import { Vente } from '../../ventes/entities/vente.entity';
-import { Produit } from '../../produits/entities/produit.entity';
 
 @Entity('vente_produits')
 export class VenteProduit {
@@ -17,12 +17,29 @@ export class VenteProduit {
   @ManyToOne(() => Vente, (vente) => vente.produits, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'vente_id' })
   vente!: Vente;
 
-  @ManyToOne(() => Produit)
-  @JoinColumn({ name: 'produit_id' })
-  produit!: Produit;
+  // Produit vendu (optionnel)
+  @ManyToOne(() => ProduitUnite, {
+    nullable: true,
+  })
+  @JoinColumn({
+    name: 'produit_unite_id',
+  })
+  produitUnite?: ProduitUnite;
+
+  // Prestation vendue (optionnel)
+  @ManyToOne(() => Prestation, {
+    nullable: true,
+  })
+  @JoinColumn({
+    name: 'prestation_id',
+  })
+  prestation?: Prestation;
+
+  // Snapshot affichage facture
+  @Column()
+  label!: string;
 
   @Column()
   quantite!: number;

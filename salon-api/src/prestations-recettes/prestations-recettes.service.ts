@@ -180,7 +180,6 @@ export class PrestationsRecettesService {
 
       results.push(created);
     }
-
     return results;
   }
 }

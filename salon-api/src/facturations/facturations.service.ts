@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, ILike, Repository } from 'typeorm';
 
 import { Facturation, FacturationStatus } from './entities/facturation.entity';
 import { FacturationItem } from './entities/facturation-item.entity';
@@ -63,7 +63,10 @@ export class FacturationsService {
 
       let total = 0;
 
+      const numero = await this.generateNumeroFacture(manager);
+
       const facture = manager.create(Facturation, {
+        numero,
         client: reservation.client,
         reservation,
         total: 0,
@@ -72,29 +75,42 @@ export class FacturationsService {
       });
 
       const savedFacture = await manager.save(Facturation, facture);
-
       const items = reservation.prestations.map((item) => {
         const prixUnitaire = Number(item.prix);
         const quantite = Number(item.quantite);
         const lineTotal = prixUnitaire * quantite;
-
         total += lineTotal;
-
         return manager.create(FacturationItem, {
           facturation: savedFacture,
+          prestation: item.prestation,
           label: item.prestation.nom,
           quantite,
           prix_unitaire: prixUnitaire,
           total: lineTotal,
         });
       });
-
       await manager.save(FacturationItem, items);
-
       savedFacture.total = total;
-
       return manager.save(Facturation, savedFacture);
     });
+  }
+
+  private async generateNumeroFacture(manager: EntityManager): Promise<string> {
+    const now = new Date();
+    const date = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+    const count = await manager
+      .createQueryBuilder(Facturation, 'facture')
+      .where('facture.created_at BETWEEN :start AND :end', {
+        start,
+        end,
+      })
+      .getCount();
+    const sequence = String(count + 1).padStart(4, '0');
+    return `FAC-${date}-${sequence}`;
   }
 
   // =========================
@@ -108,6 +124,7 @@ export class FacturationsService {
         items: true,
         client: true,
         reservation: true,
+        vente: true,
       },
     });
 
@@ -118,22 +135,90 @@ export class FacturationsService {
     return facture;
   }
 
+  // =========================
+  // FIND ONE
+  // =========================
   async findOne(id: number) {
-    return this.dataSource.transaction(async (manager) => {
-      const facture = await manager.findOne(Facturation, {
-        where: { id },
-        relations: {
-          items: true,
-          client: true,
-          reservation: true,
-        },
-      });
-
-      if (!facture) {
-        throw new NotFoundException('Facture introuvable');
-      }
-
-      return facture;
+    const facture = await this.facturationRepo.findOne({
+      where: { id },
+      relations: {
+        client: true,
+        reservation: true,
+        items: true,
+        vente: true,
+      },
     });
+
+    if (!facture) {
+      throw new NotFoundException('Facture introuvable');
+    }
+
+    return {
+      ...facture,
+      genre: facture.client?.genre,
+      nom:
+        (facture.client?.genre || '') +
+        ' ' +
+        (facture.client?.nom || '') +
+        ' ' +
+        facture.client?.prenom,
+      prenom: facture.client?.prenom,
+      date_facture: new Date(facture.created_at).toLocaleDateString('fr-FR'),
+    };
+  }
+
+  // =========================
+  // FIND ALL
+  // =========================
+  async findAll(page = 1, limit = 10, search = '') {
+    const [data, total] = await this.facturationRepo.findAndCount({
+      where: [
+        {
+          client: {
+            nom: ILike(`%${search}%`),
+          },
+        },
+        {
+          client: {
+            prenom: ILike(`%${search}%`),
+          },
+        },
+        {
+          reservation: {
+            numero: ILike(`%${search}%`),
+          },
+        },
+      ],
+      relations: {
+        client: true,
+        reservation: true,
+        items: true,
+        vente: true,
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        id: 'DESC',
+      },
+    });
+
+    return {
+      data: data.map((facture) => ({
+        ...facture,
+        genre: facture.client?.genre,
+        nom:
+          (facture.client?.genre || '') +
+          ' ' +
+          (facture.client?.nom || '') +
+          ' ' +
+          facture.client?.prenom,
+        prenom: facture.client?.prenom,
+        date_facture: new Date(facture.created_at).toLocaleDateString('fr-FR'),
+      })),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

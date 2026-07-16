@@ -43,8 +43,11 @@ export class CheckoutService {
           },
           client: true,
           reservation: true,
+          vente: true,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: {
+          mode: 'pessimistic_write',
+        },
       });
 
       if (!facture) {
@@ -52,6 +55,11 @@ export class CheckoutService {
       }
 
       // 2. CHECK STATUT + LOCK LOGIQUE
+      // 🔥 Protection 1 facture = 1 vente
+      if (facture.vente) {
+        return facture.vente;
+      }
+
       if (facture.isLocked) {
         throw new ConflictException('Facture déjà traitée');
       }
@@ -64,17 +72,17 @@ export class CheckoutService {
         throw new ConflictException('Facture annulée');
       }
 
-      if (!facture.paymentReference) {
-        throw new ConflictException('Payment reference requise');
-      }
+      // if (!facture.paymentReference) {
+      //   throw new ConflictException('Payment reference requise');
+      // }
 
-      const alreadyProcessed = await manager.findOne(Facturation, {
-        where: { paymentReference: facture.paymentReference },
-      });
+      // const alreadyProcessed = await manager.findOne(Facturation, {
+      //   where: { paymentReference: facture.paymentReference },
+      // });
 
-      if (alreadyProcessed?.status === FacturationStatus.PAID) {
-        throw new ConflictException('Transaction déjà traitée (idempotence)');
-      }
+      // if (alreadyProcessed?.status === FacturationStatus.PAID) {
+      //   throw new ConflictException('Transaction déjà traitée (idempotence)');
+      // }
 
       // 3. CHECK CAISSE
       if (!facture.client) {
@@ -93,38 +101,56 @@ export class CheckoutService {
       }
 
       // 4. STOCK + CALCUL
+      // 4. STOCK + CALCUL
       let totalProduits = 0;
-      const itemsToCreate: any[] = [];
-      const units: ProduitUnite[] = [];
+      let totalPrestations = 0;
+
+      const itemsToCreate: Partial<VenteProduit>[] = [];
 
       for (const item of facture.items) {
-        const produitUnite = await manager.findOne(ProduitUnite, {
-          where: { id: item.produitUnite.id },
-          lock: { mode: 'pessimistic_write' },
-        });
-
-        if (!produitUnite) {
-          throw new NotFoundException('Produit introuvable');
-        }
-
-        if (produitUnite.stock < item.quantite) {
-          throw new ConflictException(
-            `Stock insuffisant pour ${produitUnite.nom}`,
-          );
-        }
-
-        units.push(produitUnite);
-
         const lineTotal = Number(item.prix_unitaire) * Number(item.quantite);
 
-        totalProduits += lineTotal;
+        // =========================
+        // PRODUIT
+        // =========================
+        if (item.produitUnite) {
+          const produitUnite = await manager.findOne(ProduitUnite, {
+            where: {
+              id: item.produitUnite.id,
+            },
+            lock: {
+              mode: 'pessimistic_write',
+            },
+          });
 
-        // DECREMENT STOCK
-        produitUnite.stock -= item.quantite;
-        await manager.save(ProduitUnite, produitUnite);
+          if (!produitUnite) {
+            throw new NotFoundException('Produit introuvable');
+          }
+
+          if (produitUnite.stock < item.quantite) {
+            throw new ConflictException(
+              `Stock insuffisant pour ${produitUnite.nom}`,
+            );
+          }
+
+          produitUnite.stock -= item.quantite;
+
+          await manager.save(ProduitUnite, produitUnite);
+
+          totalProduits += lineTotal;
+        }
+
+        // =========================
+        // PRESTATION
+        // =========================
+        if (item.prestation) {
+          totalPrestations += lineTotal;
+        }
 
         itemsToCreate.push({
-          produit: item.produitUnite.produit,
+          prestation: item.prestation ?? undefined,
+          produitUnite: item.produitUnite ?? undefined,
+          label: item.label,
           quantite: item.quantite,
           prix_unitaire: item.prix_unitaire,
           total: lineTotal,
@@ -134,8 +160,9 @@ export class CheckoutService {
       // 5. CREATE VENTE
       const vente = manager.create(Vente, {
         reservation: facture.reservation,
-        total: Number(facture.total) + totalProduits,
-        total_prestations: Number(facture.total),
+        facture,
+        total: Number(facture.total),
+        total_prestations: totalPrestations,
         total_produits: totalProduits,
         remise: 0,
         cashRegister,
@@ -200,68 +227,82 @@ export class CheckoutService {
     try {
       // 1. LOCK VENTE
       const vente = await manager.findOne(Vente, {
-        where: { id: venteId },
+        where: {
+          id: venteId,
+        },
         relations: {
           produits: {
-            produit: true,
+            produitUnite: true,
+            prestation: true,
           },
-          reservation: true,
+          facturation: true,
+          cashRegister: true,
         },
-        lock: { mode: 'pessimistic_write' },
+        lock: {
+          mode: 'pessimistic_write',
+        },
       });
 
       if (!vente) {
         throw new NotFoundException('Vente introuvable');
       }
 
-      // 2. CHECK DEJA CANCEL
+      // 2. CHECK DEJA ANNULEE
       if (vente.isCancelled) {
         throw new ConflictException('Vente déjà annulée');
       }
 
-      // 3. RESTORE STOCK
+      // 3. RESTAURATION STOCK
       for (const item of vente.produits) {
+        if (!item.produitUnite) {
+          continue;
+        }
         const unit = await manager.findOne(ProduitUnite, {
           where: {
-            produit: { id: item.produit.id },
+            id: item.produitUnite.id,
           },
-          lock: { mode: 'pessimistic_write' },
+          lock: {
+            mode: 'pessimistic_write',
+          },
         });
 
         if (!unit) {
           throw new NotFoundException('Produit introuvable');
         }
 
-        unit.stock += item.quantite;
-
+        unit.stock += Number(item.quantite);
         await manager.save(ProduitUnite, unit);
       }
 
-      // 4. CANCEL VENTE
+      // 4. ANNULATION VENTE
+
       vente.isCancelled = true;
       vente.cancelledAt = new Date();
 
       await manager.save(Vente, vente);
 
-      // 5. CANCEL FACTURE (SI EXISTE)
-      if (vente.reservation) {
-        const facture = await manager.findOne(Facturation, {
-          where: { reservation: { id: vente.reservation.id } },
-          lock: { mode: 'pessimistic_write' },
-        });
+      // 5. ANNULATION FACTURE LIEE
+      if (vente.facturation) {
+        vente.facturation.status = FacturationStatus.CANCELLED;
+        vente.facturation.isLocked = true;
 
-        if (facture) {
-          facture.status = FacturationStatus.CANCELLED;
-          await manager.save(Facturation, facture);
-        }
+        await manager.save(Facturation, vente.facturation);
+      }
+      // 6. AJUSTEMENT CAISSE
+
+      if (vente.cashRegister) {
+        vente.cashRegister.totalCash =
+          Number(vente.cashRegister.totalCash) - Number(vente.total);
+
+        await manager.save(CashRegister, vente.cashRegister);
       }
 
-      // 6. COMMIT
+      // 7. COMMIT
       await qr.commitTransaction();
-
       return {
         success: true,
-        message: 'Vente annulée + stock restauré',
+
+        message: 'Vente annulée, stock restauré et caisse ajustée',
       };
     } catch (error) {
       await qr.rollbackTransaction();

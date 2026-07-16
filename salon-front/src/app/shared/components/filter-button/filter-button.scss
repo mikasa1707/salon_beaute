@@ -1,0 +1,13 @@
+.filter-container {
+  position: relative;
+}
+
+.filter-menu {
+  position: absolute;
+  z-index: 1000;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  min-width: 250px;
+  margin-top: 5px;
+}

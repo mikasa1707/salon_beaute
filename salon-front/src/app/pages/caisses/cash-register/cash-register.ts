@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-cash-register',
@@ -6,4 +6,10 @@ import { Component } from '@angular/core';
   templateUrl: './cash-register.html',
   styleUrl: './cash-register.scss',
 })
-export class CashRegister {}
+export class CashRegister implements OnInit {
+  ngOnInit(): void {
+    const facturationId = history.state.facturationId;
+
+    console.log(facturationId)
+  }
+}

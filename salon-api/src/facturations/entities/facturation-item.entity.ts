@@ -8,6 +8,7 @@ import {
 
 import { Facturation } from './facturation.entity';
 import { ProduitUnite } from '../../produits/entities/produit_unites.entity';
+import { Prestation } from 'src/prestations/entities/prestation.entity';
 
 @Entity('facturation_items')
 export class FacturationItem {
@@ -21,9 +22,19 @@ export class FacturationItem {
   facturation!: Facturation;
 
   // 🔥 lien vers unité produit (IMPORTANT)
-  @ManyToOne(() => ProduitUnite)
+  @ManyToOne(() => ProduitUnite, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'produit_unite_id' })
-  produitUnite!: ProduitUnite;
+  produitUnite?: ProduitUnite;
+
+  @ManyToOne(() => Prestation, {
+    nullable: true,
+  })
+  @JoinColumn({
+    name: 'prestation_id',
+  })
+  prestation?: Prestation;
 
   @Column()
   quantite!: number;

@@ -1,0 +1,11 @@
+<div class="keyboard">
+  @for (key of keys; track key) {
+    <button class="btn btn-light" (click)="press(key)">
+      {{ key }}
+    </button>
+  }
+
+  <button class="btn btn-warning" (click)="back()">⌫</button>
+
+  <button class="btn btn-danger" (click)="clear()">C</button>
+</div>

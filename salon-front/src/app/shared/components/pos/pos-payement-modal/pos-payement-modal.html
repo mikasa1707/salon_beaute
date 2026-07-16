@@ -1,0 +1,19 @@
+<app-modal size="lg" [title]="'Paiement'" [show]="show" (closed)="close()">
+  <div class="card">
+    <select class="form-select">
+      <option>Espèce</option>
+
+      <option>Carte</option>
+
+      <option>Mobile Money</option>
+    </select>
+
+    <h3 class="mt-3">
+      {{ total | currency: 'Ar' }}
+    </h3>
+
+    <app-pos-number-pad (valueChange)="total = $event" />
+
+    <button class="btn btn-success w-100 mt-3">Valider paiement</button>
+  </div>
+</app-modal>
