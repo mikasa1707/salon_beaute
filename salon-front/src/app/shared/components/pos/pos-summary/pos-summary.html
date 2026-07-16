@@ -9,7 +9,7 @@
         <span>Sous-total</span>
 
         <strong>
-          {{ total | currency: 'MGA' }}
+          {{ total | currency:'Ar':'symbol':'1.0-0' }}
         </strong>
       </div>
 
@@ -17,7 +17,7 @@
         <span>Remise</span>
 
         <strong>
-          {{ remise | currency: 'MGA' }}
+          {{ remise | currency:'Ar':'symbol':'1.0-0' }}
         </strong>
       </div>
 
@@ -27,11 +27,11 @@
         <span>Total</span>
 
         <strong>
-          {{ total - remise | currency: 'MGA' }}
+          {{ total - remise | currency:'Ar':'symbol':'1.0-0' }}
         </strong>
       </div>
 
-      <button class="btn btn-success w-100" (click)="payment.emit()">
+      <button class="btn btn-success w-100 mt-5" (click)="payment.emit()">
         <i class="fa-solid fa-money-bill"></i>
         Payer
       </button>

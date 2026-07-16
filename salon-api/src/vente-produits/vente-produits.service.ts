@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 
 import { VenteProduit } from './entities/vente-produit.entity';
 import { CreateVenteProduitDto } from './dto/create-vente-produit.dto';
@@ -18,16 +18,60 @@ export class VenteProduitsService {
     return await this.repo.save(_data);
   }
 
-  async findAll() {
-    return await this.repo.find({
-      relations: { vente: true, produit: true },
-    });
+  async findAll(page = 1, limit = 10, search = '', typeProduitId?: number) {
+    const qb = this.repo
+      .createQueryBuilder('vp')
+      .leftJoinAndSelect('vp.vente', 'vente')
+      .leftJoinAndSelect('vp.produitUnite', 'pu')
+      .leftJoinAndSelect('pu.produit', 'produit')
+      .leftJoinAndSelect('produit.typeProduit', 'typeProduit');
+
+    // Recherche
+    if (search) {
+      qb.andWhere(
+        new Brackets((qb) => {
+          qb.where('vp.label LIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('pu.nom LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('pu.nomComplet LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('produit.nom LIKE :search', {
+              search: `%${search}%`,
+            });
+        }),
+      );
+    }
+
+    // Filtre par type
+    if (typeProduitId) {
+      qb.andWhere('typeProduit.id = :typeProduitId', {
+        typeProduitId,
+      });
+    }
+
+    qb.orderBy('vp.id', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number) {
     const _data = await this.repo.findOne({
       where: { id },
-      relations: { vente: true, produit: true },
+      relations: { vente: true, produitUnite: true },
     });
 
     if (!_data) {

@@ -7,6 +7,7 @@ import {
   Patch,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 
 import { VenteProduitsService } from './vente-produits.service';
@@ -40,8 +41,19 @@ export class VenteProduitsController {
     PersonnelRole.COIFFEUR,
     PersonnelRole.ESTHETICIEN,
   )
-  findAll() {
-    return this.service.findAll();
+  @Get()
+  findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('search') search = '',
+    @Query('typeProduitId') typeProduitId?: number,
+  ) {
+    return this.service.findAll(
+      Number(page),
+      Number(limit),
+      search,
+      typeProduitId ? Number(typeProduitId) : undefined,
+    );
   }
 
   @Get(':id')

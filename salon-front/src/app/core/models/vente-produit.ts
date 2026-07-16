@@ -3,9 +3,9 @@ import { ProduitUnite } from './produit-unite';
 
 export interface VenteProduit {
   id: number;
-  label?: string;
+  nomComplet?: string;
   quantite: number;
-  prix_unitaire: number;
+  prix: number;
   total: number;
   produitUnite?: ProduitUnite;
   prestation?: Prestation;

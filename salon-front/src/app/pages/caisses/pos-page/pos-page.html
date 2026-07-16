@@ -39,10 +39,14 @@
     <!-- ===================== -->
 
     <div class="col-lg-4">
-      <div class="sticky-top" style="top: 20px">
-        <app-pos-cart></app-pos-cart>
+      <div class="card pos-sidebar">
+        <div class="pos-cart-container">
+          <app-pos-cart></app-pos-cart>
+        </div>
 
-        <app-pos-summary (payment)="openPayment()"></app-pos-summary>
+        <div class="pos-summary-container">
+          <app-pos-summary (payment)="openPayment()"></app-pos-summary>
+        </div>
       </div>
     </div>
   </div>

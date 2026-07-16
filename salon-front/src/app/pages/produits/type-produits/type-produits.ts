@@ -33,6 +33,7 @@ export class TypeProduits {
   columns: TableColumn[] = [
     { field: 'nom', label: 'TypeProduit', },
     { field: 'nbProduits', label: 'Produits', type: 'badge' },
+    { field: 'color', label: 'Couleur', type: 'color' },
   ];
 
   private searchSubject = new Subject<string>();

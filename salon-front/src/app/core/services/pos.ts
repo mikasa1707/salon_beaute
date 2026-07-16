@@ -32,10 +32,10 @@ export class PosService {
 
     const items: VenteProduit[] = facture.items.map(item => ({
       id: item.id,
-      label: item.label,
+      label: item.nomComplet,
       quantite: Number(item.quantite),
-      prix_unitaire: Number(item.prix_unitaire),
-      total: Number(item.prix_unitaire) * Number(item.quantite),
+      prix: Number(item.prix),
+      total: Number(item.prix) * Number(item.quantite),
       produitUnite: item.produitUnite ?? undefined,
       prestation: item.prestation ?? undefined,
       // 🔒 venant de la facture
@@ -57,12 +57,12 @@ export class PosService {
         return;
       }
       existing.quantite++;
-      existing.total = existing.quantite * existing.prix_unitaire;
+      existing.total = existing.quantite * existing.prix;
     } else {
       current.push({
         ...item,
         quantite: item.quantite ?? 1,
-        total: Number(item.prix_unitaire) * (item.quantite ?? 1),
+        total: Number(item.prix) * (item.quantite ?? 1),
 
         // produit ajouté depuis POS
         locked: false,
@@ -98,7 +98,7 @@ export class PosService {
       }
       if (item.id === id) {
         item.quantite = quantity;
-        item.total = quantity * item.prix_unitaire;
+        item.total = quantity * item.prix;
       }
       return item;
     });

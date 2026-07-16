@@ -12,11 +12,17 @@ export class ProduitUniteApi {
 
   constructor(private http: HttpClient) {}
 
-  findAll(page = 1, limit = 10, search = ''): Observable<any> {
+  findAll(page = 1, limit = 16, search = '', filter?: number | null): Observable<any> {
     let params = new HttpParams().set('page', page).set('limit', limit);
+
     if (search.trim()) {
-      params = params.set('search', search.trim());   
+      params = params.set('search', search.trim());
     }
+
+    if (filter) {
+      params = params.set('typeProduitId', filter);
+    }
+
     return this.http.get<any>(`${this.api}/unites`, { params });
   }
 
@@ -45,7 +51,7 @@ export class ProduitUniteApi {
   findUnites(page = 1, limit = 10, search = ''): Observable<any> {
     let params = new HttpParams().set('page', page).set('limit', limit);
     if (search.trim()) {
-      params = params.set('search', search.trim());   
+      params = params.set('search', search.trim());
     }
     return this.http.get<any>(`${this.api}`, { params });
   }

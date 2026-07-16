@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { PosService } from '../../../../core/services/pos';
@@ -14,11 +14,15 @@ import { VenteProduit } from '../../../../core/models/vente-produit';
 export class PosCartComponent {
   cart: VenteProduit[] = [];
 
-  constructor(private readonly posService: PosService) {}
+  constructor(
+    private readonly posService: PosService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.posService.cart$.subscribe(cart => {
       this.cart = cart;
+      this.cdr.detectChanges();
     });
   }
 
@@ -36,6 +40,7 @@ export class PosCartComponent {
     }
 
     this.posService.updateQuantity(item.id, item.quantite + 1);
+    this.cdr.detectChanges();
   }
 
   decrease(item: VenteProduit) {
@@ -48,5 +53,6 @@ export class PosCartComponent {
     }
 
     this.posService.updateQuantity(item.id, item.quantite - 1);
+    this.cdr.detectChanges();
   }
 }

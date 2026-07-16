@@ -30,6 +30,7 @@ export class TypeProduitForm {
   ) {
     this.form = this.fb.group({
       nom: ['', Validators.required],
+      color: [''],
       actif: [true],
     });
   }
@@ -50,6 +51,11 @@ export class TypeProduitForm {
         type: 'text',
         required: true,
       },
+      {
+        key: 'color',
+        label: 'Couleur',
+        type: 'color',
+      },
     ];
     this.cdr.detectChanges();
   }
@@ -63,6 +69,7 @@ export class TypeProduitForm {
     } else {
       this.form.reset({
         actif: true,
+        color: ''
       });
     }
   }

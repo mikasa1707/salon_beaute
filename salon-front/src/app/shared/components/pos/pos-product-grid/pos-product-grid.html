@@ -1,14 +1,14 @@
 <div class="row g-2">
   @for (product of products; track product.id) {
     <div class="col-6 col-md-3">
-      <button class="btn btn-outline-primary w-100 p-3" (click)="selected.emit(product)">
+      <button class="btn w-100 p-3" [style.background]=""  (click)="selected.emit(product)">
         <strong>
-          {{ product.label }}
+          {{ product.nomComplet }}
         </strong>
 
         <br />
 
-        {{ product.prix_unitaire | currency: 'MGA' }}
+        {{ +product.prix | currency:'Ar':'symbol':'1.0-0' }}
       </button>
     </div>
   }

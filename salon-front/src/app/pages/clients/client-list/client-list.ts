@@ -1,34 +1,25 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar';
-import { PageHeaderComponent } from "../../../shared/components/page-header/page-header";
-import { DataTableComponent } from "../../../shared/components/data-table/data-table";
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
+import { DataTableComponent } from '../../../shared/components/data-table/data-table';
 import { Client } from '../../../core/models/client';
 import { ClientService } from '../../../core/services/client-api';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog';
-import { ModalComponent } from "../../../shared/components/modal/modal";
-import { ClientForm } from "../client-form/client-form";
+import { ModalComponent } from '../../../shared/components/modal/modal';
+import { ClientForm } from '../client-form/client-form';
 import { ToastService } from '../../../core/services/toast';
-import { PaginationComponent } from "../../../shared/components/pagination/pagination";
+import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    SearchBarComponent,
-    PageHeaderComponent,
-    DataTableComponent,
-    ModalComponent,
-    ClientForm,
-    PaginationComponent
-  ],
+  imports: [CommonModule, SearchBarComponent, PageHeaderComponent, DataTableComponent, ModalComponent, ClientForm, PaginationComponent],
   templateUrl: './client-list.html',
   styleUrl: './client-list.scss',
 })
 export class ClientList implements OnInit {
-
   clients: Client[] = [];
   page = 1;
   limit = 10;
@@ -43,21 +34,23 @@ export class ClientList implements OnInit {
     { field: 'nom', label: 'Nom' },
     { field: 'prenom', label: 'Prénom' },
     { field: 'telephone', label: 'Téléphone' },
-    { field: 'email', label: 'Email' }
+    { field: 'email', label: 'Email' },
   ];
 
   private searchSubject = new Subject<string>();
   private searchSubscription!: Subscription;
 
-  constructor(private readonly clientService: ClientService, private cdr: ChangeDetectorRef, private toast: ToastService, private readonly confirm: ConfirmDialogService) { }
+  constructor(
+    private readonly clientService: ClientService,
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService,
+    private readonly confirm: ConfirmDialogService
+  ) {}
 
   ngOnInit(): void {
-    this.searchSubscription = this.searchSubject.pipe(
-      debounceTime(600),
-      distinctUntilChanged()
-    ).subscribe(value => {
+    this.searchSubscription = this.searchSubject.pipe(debounceTime(600), distinctUntilChanged()).subscribe(value => {
       this.searchValue = value;
-      console.log(value)
+      console.log(value);
       this.page = 1;
       this.loadClients(value);
     });
@@ -73,19 +66,19 @@ export class ClientList implements OnInit {
   loadClients(_search: any = '') {
     this.loading = true;
     this.clientService.findAll(this.page, this.limit, _search).subscribe({
-      next: (res: { data: any[]; totalPages: number; total: number; }) => {
-        console.log(res)
+      next: (res: { data: any[]; totalPages: number; total: number }) => {
+        console.log(res);
         this.clients = res.data;
         this.total = res.total;
         this.totalPages = res.totalPages;
         this.loading = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: err => {
         console.error('Erreur lors du chargement des clients:', err);
         this.loading = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
@@ -110,7 +103,7 @@ export class ClientList implements OnInit {
       title: 'Suppression client',
       message: 'Le client sera archivé mais son historique sera conservé.',
       confirmText: 'Archiver',
-      confirmClass: 'btn-danger'
+      confirmClass: 'btn-danger',
     });
 
     if (!ok) return;

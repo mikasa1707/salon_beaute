@@ -1,4 +1,18 @@
 .pos-cart {
-  height: 100%;
+  max-height: calc(6 * 96px); // environ 6 cartes visibles
   overflow-y: auto;
+  padding-right: 4px;
+}
+
+.pos-cart .card {
+  min-height: 88px;
+}
+
+.pos-cart::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pos-cart::-webkit-scrollbar-thumb {
+  background: #ced4da;
+  border-radius: 10px;
 }

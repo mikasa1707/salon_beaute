@@ -6,11 +6,11 @@
       <div class="card-body">
         <div class="d-flex justify-content-between">
           <strong>
-            {{ item.label }}
+            {{ item.nomComplet }}
           </strong>
 
           @if (item.locked) {
-            <span class="badge bg-warning text-dark">
+            <span class="badge bg-warning text-dark p-2">
               <i class="fa-solid fa-lock"></i>
               Facture
             </span>
@@ -37,7 +37,7 @@
           }
 
           <strong>
-            {{ item.total | currency: 'MGA' }}
+            {{ item.total | currency:'Ar':'symbol':'1.0-0' }}
           </strong>
         </div>
       </div>

@@ -8,6 +8,9 @@ export class TypeProduit {
 
   @Column({ unique: true })
   nom!: string;
+  
+  @Column({ unique: true, nullable: true })
+  color!: string;
 
   @OneToMany(() => Produit, (produit) => produit.typeProduit)
   produits!: Produit[];

@@ -139,7 +139,7 @@ export class VentesService {
     for (const item of vente.produits) {
       const unit = await this.uniteRepo.findOne({
         where: {
-          produit: { id: item.produit.id },
+          produit: { id: item.produitUnite?.id },
         },
       });
 

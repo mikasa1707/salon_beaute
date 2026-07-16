@@ -6,7 +6,7 @@ export interface FacturationItem {
   produitUnite?: ProduitUnite;
   prestation?: Prestation;
   quantite: number;
-  prix_unitaire: number;
+  prix: number;
   total: number;
-  label?: string;
+  nomComplet?: string;
 }

@@ -16,7 +16,7 @@
 
         <div class="col text-end">
           <strong>Date :</strong>
-          {{ facture.date_facture }}
+          {{ facture.date }}
         </div>
       </div>
 
@@ -46,7 +46,7 @@
           @for (item of facture.items; track item.id) {
             <tr>
               <td>
-                {{ item.label }}
+                {{ item.nomComplet }}
               </td>
 
               <td class="text-center">
@@ -54,11 +54,11 @@
               </td>
 
               <td class="text-end">
-                {{ item.prix_unitaire | currency: 'Ar' }}
+                {{ item.prix | currency:'Ar':'symbol':'1.0-0' }}
               </td>
 
               <td class="text-end">
-                {{ item.total | currency: 'Ar' }}
+                {{ item.total | currency:'Ar':'symbol':'1.0-0' }}
               </td>
             </tr>
           }
@@ -69,7 +69,7 @@
 
       <h4 class="text-end">
         Total :
-        {{ facture.total | currency: 'Ar' }}
+        {{ facture.total | currency:'Ar':'symbol':'1.0-0' }}
       </h4>
 
       <div class="text-end no-print">

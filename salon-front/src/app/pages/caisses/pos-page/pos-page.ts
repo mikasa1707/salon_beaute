@@ -32,7 +32,7 @@ export class PosPage {
   cart: VenteProduit[] = [];
   produits: VenteProduit[] = [];
   page = 1;
-  limit = 10;
+  limit = 16;
   total = 0;
   totalPages = 0;
   searchValue = '';
@@ -79,11 +79,12 @@ export class PosPage {
   }
 
   loadProduit(_search: any = '', _filter: any = null) {
-    this.produitService.findAll(this.page, this.limit, _search).subscribe({
+    this.produitService.findAll(this.page, this.limit, _search, _filter).subscribe({
       next: (res: { data: any[]; totalPages: number; total: number }) => {
         this.produits = res.data;
         this.total = res.total;
         this.totalPages = res.totalPages;
+        console.log(this.produits)
         this.cdr.detectChanges();
       },
     });

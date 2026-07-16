@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { VenteProduit } from '../../../../core/models/vente-produit';
@@ -10,8 +10,13 @@ import { VenteProduit } from '../../../../core/models/vente-produit';
   templateUrl: './pos-product-grid.html',
   styleUrl: './pos-product-grid.scss',
 })
-export class PosProductGridComponent {
+export class PosProductGridComponent implements OnChanges{
   @Input() products: VenteProduit[] = [];
 
   @Output() selected = new EventEmitter<VenteProduit>();
+
+
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log(this.products)
+  }
 }

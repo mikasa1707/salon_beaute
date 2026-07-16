@@ -67,7 +67,7 @@
                     }
                   } @else if (col.type === 'currency') {
                     <span class="fw-semibold">
-                      {{ getValue(row, col.field) | currency: 'Ar' }}
+                      {{ getValue(row, col.field) | currency: 'Ar':'symbol':'1.0-0' }}
                     </span>
                   } @else if (col.type === 'timemn') {
                     <span class="badge bg-secondary fs-6">{{ getValue(row, col.field) }} mn</span>
