@@ -1,50 +1,42 @@
-<div class="pos-cart">
-  <h5 class="mb-3">Panier</h5>
-
+<div class="pos-cart-items">
   @for (item of cart; track item.id) {
-    <div class="card mb-2">
-      <div class="card-body">
-        <div class="d-flex justify-content-between">
-          <strong>
-            {{ item.nomComplet }}
-          </strong>
+    <div class="cart-line d-flex align-items-center justify-content-between border-bottom py-2">
+      <!-- NOM -->
+      <div class="flex-grow-1 text-truncate">
+        <strong>
+          {{ item.label }}
+        </strong>
 
-          @if (item.locked) {
-            <span class="badge bg-warning text-dark p-2">
-              <i class="fa-solid fa-lock"></i>
-              Facture
+        @if (item.locked) {
+          <i class="fa-solid fa-lock text-warning ms-2" title="Facture"></i>
+        }
+      </div>
+
+      <!-- QUANTITE -->
+      <div class="mx-3">
+        @if (!item.locked) {
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary" (click)="decrease(item)">-</button>
+
+            <span class="btn btn-light px-3">
+              {{ item.quantite }}
             </span>
-          }
-        </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-2">
-          @if (!item.locked) {
-            <div class="btn-group btn-group-sm">
-              <button class="btn btn-outline-secondary" (click)="decrease(item)">-</button>
+            <button class="btn btn-outline-secondary" (click)="increase(item)">+</button>
+          </div>
+        } @else {
+          <span>x{{ item.quantite }}</span>
+        }
+      </div>
 
-              <span class="btn btn-light">
-                {{ item.quantite }}
-              </span>
-
-              <button class="btn btn-outline-secondary" (click)="increase(item)">+</button>
-            </div>
-
-            <button class="btn btn-sm btn-outline-danger" (click)="remove(item)">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          } @else {
-            <span>Qté : {{ item.quantite }}</span>
-          }
-
-          <strong>
-            {{ item.total | currency:'Ar':'symbol':'1.0-0' }}
-          </strong>
-        </div>
+      <!-- PRIX -->
+      <div class="text-end fw-bold" style="min-width: 90px">
+        {{ item.total | currency: 'Ar' : 'symbol' : '1.0-0' }}
       </div>
     </div>
   }
 
   @if (cart.length === 0) {
-    <div class="alert alert-secondary text-center">Panier vide</div>
+    <div class="alert alert-secondary text-center mt-2">Panier vide</div>
   }
 </div>

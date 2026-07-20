@@ -45,11 +45,14 @@ export class ProduitUniteController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
+    @Query('typeProduitId') typeProduitId?: string,
   ) {
-    const pageNumber = page ? +page : 1;
-    const limitNumber = limit ? +limit : 10;
-    const searchString = search || '';
-    return this.produitsService.getAll(pageNumber, limitNumber, searchString);
+    return this.produitsService.getAll(
+      page ? +page : 1,
+      limit ? +limit : 10,
+      search || '',
+      typeProduitId || '',
+    );
   }
 
   @Get(':id/unites')

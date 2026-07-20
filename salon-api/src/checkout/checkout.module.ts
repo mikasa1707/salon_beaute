@@ -8,6 +8,8 @@ import { Reservation } from 'src/reservations/entities/reservation.entity';
 import { VenteProduit } from 'src/vente-produits/entities/vente-produit.entity';
 import { Vente } from 'src/ventes/entities/vente.entity';
 import { AuditLogModule } from 'src/audit-log/audit-log.module';
+import { StockMovement } from 'src/stocks/entities/stock-movements.entity';
+import { StockConsumptionModule } from 'src/stocks/stock-consumption.module';
 
 @Module({
   imports: [
@@ -17,10 +19,13 @@ import { AuditLogModule } from 'src/audit-log/audit-log.module';
       VenteProduit,
       ProduitUnite,
       Reservation,
+      StockMovement,
     ]),
     AuditLogModule,
+    StockConsumptionModule,
   ],
   controllers: [CheckoutController],
   providers: [CheckoutService],
+  exports: [CheckoutService],
 })
 export class CheckoutModule {}

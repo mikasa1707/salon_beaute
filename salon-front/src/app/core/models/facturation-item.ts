@@ -8,5 +8,5 @@ export interface FacturationItem {
   quantite: number;
   prix: number;
   total: number;
-  nomComplet?: string;
+  label?: string;
 }

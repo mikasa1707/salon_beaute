@@ -1,5 +1,5 @@
 .pos-cart {
-  max-height: calc(6 * 96px); // environ 6 cartes visibles
+  max-height: calc(10 * 96px); // environ 6 cartes visibles
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -15,4 +15,24 @@
 .pos-cart::-webkit-scrollbar-thumb {
   background: #ced4da;
   border-radius: 10px;
+}
+
+.pos-cart-items {
+  max-height: calc(10 * 96px);
+  overflow-y: auto;
+}
+
+
+.cart-line {
+  min-height: 48px;
+}
+
+
+.cart-line:hover {
+  background-color: rgba(0,0,0,.03);
+}
+
+
+.text-truncate {
+  max-width: 180px;
 }

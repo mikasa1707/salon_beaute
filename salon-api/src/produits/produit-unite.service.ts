@@ -4,6 +4,7 @@ import { UpdateProduitUniteDto } from './dto/update-produit-unite.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { ProduitUnite } from './entities/produit_unites.entity';
+import { Brackets } from 'typeorm';
 
 @Injectable()
 export class ProduitUniteService {
@@ -17,30 +18,59 @@ export class ProduitUniteService {
     return await this.repo.save(_data);
   }
 
-  async getAll(page = 1, limit = 10, search = '') {
-    const [data, total] = await this.repo.findAndCount({
-      where: [
-        {
-          nom: ILike(`%${search}%`),
-          actif: true,
-        },
-      ],
-      relations: {
-        produit: true,
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-      order: {
-        nom: 'ASC',
-      },
-    });
+  async getAll(page = 1, limit = 10, search = '', typeProduitId = '') {
+    const qb = this.repo
+      .createQueryBuilder('pu')
+      .leftJoinAndSelect('pu.produit', 'produit')
+      .leftJoinAndSelect('produit.typeProduit', 'typeProduit')
+      .where('pu.actif = :actif', { actif: true });
+
+    // Recherche
+    if (search.trim()) {
+      qb.andWhere(
+        new Brackets((qb) => {
+          qb.where('pu.nom LIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('produit.nom LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere("CONCAT(produit.nom, ' ', pu.nom) LIKE :search", {
+              search: `%${search}%`,
+            });
+        }),
+      );
+    }
+
+    // Filtre multi type
+    if (typeProduitId) {
+      const ids = typeProduitId
+        .split(',')
+        .map((id) => Number(id))
+        .filter((id) => !isNaN(id));
+
+      if (ids.length) {
+        qb.andWhere('typeProduit.id IN (:...ids)', { ids });
+      }
+    }
+
+    qb.orderBy('typeProduit.id', 'ASC')
+      .addOrderBy('produit.nom', 'ASC')
+      .addOrderBy('pu.nom', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
     const produits = data.map((produit) => ({
       ...produit,
       stockTotal: this.getTotalStock(produit),
       isLowStock: this.isLowStock(produit),
-      nomComplet: `${produit.produit.nom} ${produit.nom}`,
+      label: `${produit.produit.nom} ${produit.nom}`,
       uniteLabel: `${produit.conversion} ${produit.unite}`,
+      couleur: produit.produit?.typeProduit?.color ?? '#6c757d',
     }));
+
     return {
       data: produits,
       total,

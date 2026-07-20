@@ -60,6 +60,22 @@
                         <i class="fa-solid fa-box me-1"></i>
                         {{ getValue(row, col.field) }}
                       </span>
+                    } @else if (col.field === 'type') {
+                      <span
+                        class="badge"
+                        [class.bg-success]="row.type === 'IN'"
+                        [class.bg-danger]="row.type === 'OUT'"
+                        [class.bg-warning]="row.type === 'ADJUST'"
+                        [class.bg-info]="row.type === 'TRANSFER'">
+                        <i
+                          class="fa-solid me-1"
+                          [class.fa-arrow-down]="row.type === 'IN'"
+                          [class.fa-arrow-up]="row.type === 'OUT'"
+                          [class.fa-sliders]="row.type === 'ADJUST'"
+                          [class.fa-right-left]="row.type === 'TRANSFER'"></i>
+
+                        {{ row.type }}
+                      </span>
                     } @else {
                       <span class="badge bg-primary fs-6 px-3 py-2">
                         {{ getValue(row, col.field) }}
@@ -67,8 +83,19 @@
                     }
                   } @else if (col.type === 'currency') {
                     <span class="fw-semibold">
-                      {{ getValue(row, col.field) | currency: 'Ar':'symbol':'1.0-0' }}
+                      {{ getValue(row, col.field) | currency: 'Ar' : 'symbol' : '1.0-0' }}
                     </span>
+                  } @else if (col.type === 'datehour') {
+                    {{ getValue(row, col.field) | date: 'dd/MM/yyyy HH:mm' : 'Indian/Antananarivo' }}
+                  } @else if (col.type === 'input-number') {
+                    <input
+                      type="number"
+                      min="0.001"
+                      step="0.001"
+                      class="form-control text-end"
+                      style="width: 120px"
+                      [(ngModel)]="row[col.field]"
+                      (ngModelChange)="onCellChange(row, col.field, $event)" />
                   } @else if (col.type === 'timemn') {
                     <span class="badge bg-secondary fs-6">{{ getValue(row, col.field) }} mn</span>
                   } @else if (col.type === 'timehr') {
@@ -119,10 +146,11 @@
                         <i class="fa-solid fa-pen"></i>
                       </button>
                     }
-
-                    <button class="btn btn-outline-danger" (click)="delete.emit(row.id)" title="Supprimer">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
+                    @if (canDelete) {
+                      <button class="btn btn-outline-danger" (click)="delete.emit(row.id)" title="Supprimer">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    }
                   </div>
                 </td>
               }

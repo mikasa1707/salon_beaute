@@ -46,13 +46,13 @@ export class VenteProduitsController {
     @Query('page') page = 1,
     @Query('limit') limit = 10,
     @Query('search') search = '',
-    @Query('typeProduitId') typeProduitId?: number,
+    @Query('typeProduitId') typeProduitId = '',
   ) {
     return this.service.findAll(
-      Number(page),
-      Number(limit),
-      search,
-      typeProduitId ? Number(typeProduitId) : undefined,
+      page ? +page : 1,
+      limit ? +limit : 10,
+      search || '',
+      typeProduitId || '',
     );
   }
 

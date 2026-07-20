@@ -21,7 +21,6 @@ export class ConfirmDialogService {
     dialog$ = this.dialogSubject.asObservable();
 
     confirm(data: ConfirmDialogData): Promise<boolean> {  
-        console.log('CONFIRM OPEN', data);
         return new Promise(resolve => {
             this.dialogSubject.next({
                 data: {

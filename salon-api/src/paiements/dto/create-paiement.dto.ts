@@ -6,12 +6,23 @@ export class CreatePaiementDto {
   vente_id!: number;
 
   @IsEnum(ModePaiement)
-  mode!: ModePaiement;
+  modePaiement!: ModePaiement;
 
   @IsNumber()
   montant!: number;
 
+  @IsNumber()
+  montantrecu!: number;
+
+  @IsNumber()
+  montantrendu!: number;
+
   @IsOptional()
   @IsString()
-  reference?: string;
+  referencePaiement?: string;
+
+  @IsOptional()
+  @IsString()
+  numeroPaiement?: string;
+
 }

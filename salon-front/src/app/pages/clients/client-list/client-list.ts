@@ -75,7 +75,7 @@ export class ClientList implements OnInit {
         this.cdr.detectChanges();
       },
       error: err => {
-        console.error('Erreur lors du chargement des clients:', err);
+        this.toast.error('Erreur lors du chargement des clients:' + err);
         this.loading = false;
         this.cdr.detectChanges();
       },

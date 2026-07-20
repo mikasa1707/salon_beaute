@@ -2,21 +2,16 @@
   <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-3 bg-dark p-1">
     <!-- INFO + LIMIT -->
     <div class="d-flex align-items-center gap-3">
-      <span class="text-muted small">
-        Affichage {{ (page - 1) * limit + 1 }} - {{ Math.min(page * limit, total) }} sur {{ total }}
-      </span>
+      @if (showLimit) {
+        <span class="text-muted small">Affichage {{ (page - 1) * limit + 1 }} - {{ Math.min(page * limit, total) }} sur {{ total }}</span>
 
-      <select
-        #limitSelect
-        class="form-select form-select-sm w-auto"
-        [value]="limit"
-        (change)="changeLimit(limitSelect.value)"
-      >
-        <option value="10">10 / page</option>
-        <option value="25">25 / page</option>
-        <option value="50">50 / page</option>
-        <option value="100">100 / page</option>
-      </select>
+        <select #limitSelect class="form-select form-select-sm w-auto" [value]="limit" (change)="changeLimit(limitSelect.value)">
+          <option value="10">10 / page</option>
+          <option value="25">25 / page</option>
+          <option value="50">50 / page</option>
+          <option value="100">100 / page</option>
+        </select>
+      }
     </div>
 
     <!-- PAGINATION -->

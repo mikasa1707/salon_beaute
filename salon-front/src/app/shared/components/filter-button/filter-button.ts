@@ -1,9 +1,10 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TypeProduit } from '../../../core/models/type-produit';
 
-export interface FilterOption {
-  id: number | string;
-  label: string;
+export interface FilterOption extends TypeProduit{
+  id: number;
+  nom: string;
 }
 
 @Component({

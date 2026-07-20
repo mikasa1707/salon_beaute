@@ -8,6 +8,9 @@ import {
 } from 'typeorm';
 
 import { ProduitUnite } from '../../produits/entities/produit_unites.entity';
+import { Facturation } from 'src/facturations/entities/facturation.entity';
+import { Vente } from 'src/ventes/entities/vente.entity';
+import { Personnel } from 'src/personnels/entities/personnel.entity';
 
 export enum StockMovementType {
   IN = 'IN',
@@ -60,4 +63,30 @@ export class StockMovement {
 
   @CreateDateColumn()
   created_at!: Date;
+
+  @ManyToOne(() => Vente, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({
+    name: 'vente_id',
+  })
+  vente?: Vente;
+
+  @ManyToOne(() => Facturation, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({
+    name: 'facture_id',
+  })
+  facture?: Facturation;
+
+  @ManyToOne(() => Personnel, {
+    nullable: true,
+  })
+  @JoinColumn({
+    name: 'personnel_id',
+  })
+  personnel?: Personnel;
 }

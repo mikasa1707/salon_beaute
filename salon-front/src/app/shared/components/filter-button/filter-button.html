@@ -1,32 +1,33 @@
-<div class="filter-container">
+<div class="filter-container d-flex align-items-center flex-wrap gap-2">
   <button class="btn btn-outline-primary" (click)="toggleMenu()">
     <i class="fa-solid fa-filter"></i>
-
-    {{ label }}
   </button>
 
-  @if (showMenu) {
-    <div class="filter-menu shadow">
-      @for (option of options; track option.id) {
-        <button
-          class="btn btn-sm me-2 mb-2"
-          [class.btn-primary]="selected.some(x => x.id === option.id)"
-          [class.btn-outline-secondary]="!selected.some(x => x.id === option.id)"
-          (click)="select(option)">
-          {{ option.label }}
-        </button>
-      }
-    </div>
-  }
-
   @if (selected.length) {
-    <div class="mt-2">
-      @for (item of selected; track item.id) {
-        <span class="badge bg-primary me-2">
-          {{ item.label }}
-          <button class="btn-close btn-close-white ms-2" (click)="remove(item)"></button>
-        </span>
-      }
-    </div>
+    @for (item of selected; track item.id) {
+      <span class="btn btn-sm btn-primary d-flex align-items-center">
+        {{ item.nom }}
+
+        <button
+          type="button"
+          class="btn-close btn-close-white ms-2"
+          (click)="remove(item)">
+        </button>
+      </span>
+    }
   }
 </div>
+
+@if (showMenu) {
+  <div class="filter-menu shadow mt-2">
+    @for (option of options; track option.id) {
+      <button
+        class="btn btn-sm me-2 mb-2"
+        [class.btn-primary]="selected.some(x => x.id === option.id)"
+        [class.btn-outline-secondary]="!selected.some(x => x.id === option.id)"
+        (click)="select(option)">
+        {{ option.nom }}
+      </button>
+    }
+  </div>
+}

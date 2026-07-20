@@ -1,1 +1,104 @@
-<p>stock-list works!</p>
+<app-page-header title="Stocks" subtitle="Gestion des stocks du salon" icon="fa-solid fa-dolly">
+  <div class="d-flex gap-2 flex-wrap">
+    @if (mode === 'LIST') {
+      <!-- Recherche -->
+      <div class="search-wrapper">
+        <app-search-bar (searchChange)="search($event)"></app-search-bar>
+      </div>
+
+      <!-- Ajouter -->
+
+      <button class="btn btn-success" (click)="startEntry()">
+        <i class="fa fa-plus"></i>
+        Entrée stock
+      </button>
+    }
+
+    @if (mode === 'ENTRY') {
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label>Référence</label>
+
+              <input class="form-control" [(ngModel)]="reference" />
+            </div>
+
+            <div class="col-md-6">
+              <label>Note</label>
+
+              <input class="form-control" [(ngModel)]="note" />
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</app-page-header>
+
+<app-data-table
+  [data]="produitsUnites"
+  [columns]="columns"
+  [loading]="loading"
+  [loading]="loading"
+  [page]="page"
+  [totalPages]="totalPages"
+  [canEdit]="false"
+  [canDelete]="false"
+  [showViewButton]="true"
+  (valueChange)="changeQuantity($event)"
+  (pageChange)="changePage($event)"
+  (view)="viewMovement($event)"></app-data-table>
+
+<app-pagination
+  [page]="page"
+  [totalPages]="totalPages"
+  [total]="total"
+  [limit]="limit"
+  (pageChange)="changePage($event)"
+  (limitChange)="changeLimit($event)"></app-pagination>
+
+@if (mode === 'ENTRY') {
+  <div class="mt-3 d-flex gap-2">
+    <button class="btn btn-secondary" (click)="cancelEntry()">Annuler</button>
+    <button class="btn btn-primary" (click)="save()">
+      <i class="fa fa-check"></i>
+      Continuer
+    </button>
+  </div>
+}
+
+<app-modal [show]="showConfirm" title="Confirmation entrée stock" (closed)="showConfirm = false">
+  <div>
+    <h5>Résumé</h5>
+
+    <ul>
+      @for (item of entryItems; track item.produitUniteId) {
+        <li>Produit unité : {{ item.produitUniteId }} + {{ item.quantite }}</li>
+      }
+    </ul>
+  </div>
+
+  <div footer>
+    <button class="btn btn-success" (click)="confirm()">Valider</button>
+  </div>
+</app-modal>
+
+<app-modal size="lg" [show]="showMovement" title="Mouvement du produit" (closed)="showMovement = false">
+  <app-data-table
+    [data]="stocks"
+    [columns]="columns_movement"
+    [loading]="loading"
+    [page]="pagemove"
+    [totalPages]="totalPages"
+    [canEdit]="false"
+    [canDelete]="false"></app-data-table>
+
+  <app-pagination
+    [page]="pagemove"
+    [totalPages]="totalPagesmove"
+    [total]="totalmove"
+    [limit]="limitmove"
+    (pageChange)="changePage($event)"
+    (limitChange)="changeLimit($event)"></app-pagination>
+</app-modal>

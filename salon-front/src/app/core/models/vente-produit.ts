@@ -3,12 +3,13 @@ import { ProduitUnite } from './produit-unite';
 
 export interface VenteProduit {
   id: number;
-  nomComplet?: string;
+  label?: string;
   quantite: number;
   prix: number;
   total: number;
-  produitUnite?: ProduitUnite;
+  produit?: ProduitUnite;
   prestation?: Prestation;
   locked?:boolean;
+  couleur?: string;
   type?: 'PRODUIT' | 'PRESTATION';
 }

@@ -39,7 +39,7 @@ export class TransfertProduit implements OnInit {
 
   columns: any = [
     {
-      field: 'nomComplet',
+      field: 'label',
       label: 'Produit',
     },
     {

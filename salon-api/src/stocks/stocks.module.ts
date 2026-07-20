@@ -7,8 +7,7 @@ import { Produit } from 'src/produits/entities/produit.entity';
 import { StockMovement } from './entities/stock-movements.entity';
 import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
 import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
-import { StockConsumptionService } from './stock-consumption.service';
-
+import { StockConsumptionModule } from './stock-consumption.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -18,9 +17,10 @@ import { StockConsumptionService } from './stock-consumption.service';
       ProduitUnite,
       PrestationProduit,
     ]),
+    StockConsumptionModule
   ],
   controllers: [StocksController],
-  providers: [StocksService, StockConsumptionService],
-  exports: [StocksService, StockConsumptionService],
+  providers: [StocksService],
+  exports: [StocksService],
 })
 export class StocksModule {}

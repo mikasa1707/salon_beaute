@@ -9,10 +9,10 @@ import { Facturation } from 'src/facturations/entities/facturation.entity';
 import { FacturationItem } from 'src/facturations/entities/facturation-item.entity';
 import { FacturationsService } from 'src/facturations/facturations.service';
 import { ReservationPersonnel } from './entities/reservation-personnel.entity';
-import { StockConsumptionService } from 'src/stocks/stock-consumption.service';
 import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
 import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
 import { StockMovement } from 'src/stocks/entities/stock-movements.entity';
+import { StockConsumptionModule } from 'src/stocks/stock-consumption.module';
 
 @Module({
   imports: [
@@ -27,13 +27,10 @@ import { StockMovement } from 'src/stocks/entities/stock-movements.entity';
       ProduitUnite,
       StockMovement,
     ]),
+    StockConsumptionModule
   ],
   controllers: [ReservationsController],
-  providers: [
-    ReservationsService,
-    FacturationsService,
-    StockConsumptionService,
-  ],
+  providers: [ReservationsService, FacturationsService],
   exports: [ReservationsService],
 })
 export class ReservationsModule {}

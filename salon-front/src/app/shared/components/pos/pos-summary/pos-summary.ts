@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { PosService } from '../../../../core/services/pos';
@@ -11,23 +11,39 @@ import { PosService } from '../../../../core/services/pos';
   styleUrl: './pos-summary.scss',
 })
 export class PosSummaryComponent {
-  @Output() checkout = new EventEmitter<void>();
   @Output() payment = new EventEmitter<void>();
 
   total = 0;
-
+  totalProduits = 0;
+  totalPrestations = 0;
   remise = 0;
 
-  constructor(private readonly posService: PosService) {}
+  constructor(
+    private readonly posService: PosService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
-    this.posService.cart$.subscribe(() => {
-      this.calculate();
+    this.posService.activeTicket$.subscribe(ticket => {
+      console.log(ticket)
+      if (ticket) {
+        this.total = ticket.total;
+        this.totalProduits = ticket.totalProduits;
+        this.totalPrestations = ticket.totalPrestations;
+        this.remise = ticket.remise ?? 0;
+        this.cdr.detectChanges();
+      } else {
+        this.reset();
+      }
     });
   }
 
-  calculate() {
-    this.total = this.posService.getTotal();
+  reset() {
+    this.total = 0;
+    this.totalProduits = 0;
+    this.totalPrestations = 0;
+    this.remise = 0;
+    this.cdr.detectChanges();
   }
 
   payer() {
@@ -35,6 +51,6 @@ export class PosSummaryComponent {
       return;
     }
 
-    this.checkout.emit();
+    this.payment.emit();
   }
 }

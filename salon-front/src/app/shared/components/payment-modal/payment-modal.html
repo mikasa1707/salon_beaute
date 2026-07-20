@@ -1,0 +1,181 @@
+<app-modal size="xl" [show]="show" (closed)="close()" title="Encaissement">
+  <div class="row g-3">
+    <div class="col-md-8">
+      <!-- TOTAL -->
+      <div class="card mb-3">
+        <div class="card-header py-2">
+          <strong>Articles</strong>
+        </div>
+
+        <div class="card-body p-2 payment-items" style="height: 300px; overflow-y: auto">
+          @for (item of items; track item.id) {
+            <div class="d-flex justify-content-between align-items-center border-bottom py-1">
+              <div>
+                @if (item.prestation) {
+                  <i class="fa-solid fa-scissors text-primary me-2"></i>
+                } @else {
+                  <i class="fa-solid fa-box text-success me-2"></i>
+                }
+
+                <span>
+                  {{ item.label }}
+                </span>
+
+                @if (item.quantite > 1) {
+                  <small class="text-muted">x{{ item.quantite }}</small>
+                }
+              </div>
+
+              <strong>
+                {{ item.total | currency: 'Ar' : 'symbol' : '1.0-0' }}
+              </strong>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="card border-0 bg-primary text-white mb-3">
+        <div class="card-body py-3">
+          <div class="row text-center">
+            <div class="col-12">
+              <small>TOTAL</small>
+
+              <div class="fs-4 fw-bold">
+                {{ total | currency: 'Ar' : 'symbol' : '1.0-0' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODE PAIEMENT -->
+      <div class="mb-3">
+        <label class="fw-semibold mb-2">Mode de paiement</label>
+
+        <div class="row g-1">
+          @for (mode of paymentModes; track mode.value) {
+            <div class="col-4 col-md-3 text-center">
+              <div class="text-center">
+                <img
+                  [src]="mode.image"
+                  [alt]="mode.label"
+                  class="payment-method"
+                  [style.background-color]="mode.color"
+                  [class.active]="modePaiement === mode.value"
+                  (click)="selectMode(mode.value)" />
+
+                <div class="fw-semibold mt-1">
+                  {{ mode.label }}
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- FINANCE -->
+      <div class="row g-2">
+        <!-- REMISE -->
+
+        <div class="col-6">
+          <label class="small text-muted">Remise</label>
+
+          <div class="input-group">
+            <input type="number" class="form-control text-end" [(ngModel)]="remise" />
+
+            <span class="input-group-text">Ar</span>
+          </div>
+        </div>
+
+        <!-- ESPECES -->
+
+        @if (modePaiement === 'ESPECES') {
+          <div class="col-6">
+            <label class="small text-muted">Reçu</label>
+
+            <div class="input-group">
+              <input type="number" class="form-control text-end fw-bold" [(ngModel)]="montantRecu" />
+
+              <span class="input-group-text">Ar</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+    <div class="col-md-4">
+      @if (modePaiement === 'ESPECES') {
+        <app-numeric-keyboard
+          [(value)]="montantRecu"
+          [quickValues]="quickAmounts"
+          [showQuickValues]="true"
+          [showExact]="true"
+          [exactValue]="total"
+          [mode]="'numeric'"
+          (exact)="montantRecu = total"></app-numeric-keyboard>
+        <div class="alert mt-3 mb-0 py-2" [class.alert-success]="monnaie >= 0" [class.alert-danger]="montantRecu < total">
+          <div class="d-flex justify-content-between">
+            <span>Monnaie</span>
+            <strong>
+              {{ monnaie | currency: 'Ar' : 'symbol' : '1.0-0' }}
+            </strong>
+          </div>
+        </div>
+      } @else {
+        <div class="row g-2 mt-2">
+          <div class="col-md-12">
+            <label class="form-label small">Référence de transaction</label>
+
+            <input
+              class="form-control"
+              [(ngModel)]="referencePaiement"
+              placeholder="Ex : TX4589215"
+              (focus)="focusKeyboard('reference')"
+              [class.border-primary]="activeField === 'reference'"
+              [class.border-3]="activeField === 'reference'" />
+          </div>
+
+          @if (modePaiement === 'MVOLA' || modePaiement === 'ORANGE_MONEY' || modePaiement === 'AIRTEL_MONEY') {
+            <div class="col-md-12">
+              <label class="form-label small">N° de téléphone</label>
+
+              <input
+                class="form-control"
+                [(ngModel)]="numeroPaiement"
+                placeholder="034 xx xxx xx"
+                (focus)="focusKeyboard('phone')"
+                [class.border-primary]="activeField === 'phone'"
+                [class.border-3]="activeField === 'phone'" />
+            </div>
+          }
+
+          <app-numeric-keyboard
+            [(value)]="keyboardValue"
+            [quickValues]="[]"
+            [showQuickValues]="false"
+            [showExact]="false"
+            [exactValue]="total"
+            [mode]="keyboardMode"
+            (valueChange)="keyboardChange($event)"
+            (exact)="montantRecu = total"></app-numeric-keyboard>
+        </div>
+      }
+    </div>
+    <!-- FOOTER -->
+
+    <div footer>
+      <div class="d-flex gap-2 w-100 mt-2">
+        <button class="btn btn-outline-secondary flex-fill" (click)="close()">Annuler</button>
+        @if (modePaiement === 'ESPECES') {
+          <button class="btn btn-success flex-fill" [disabled]="total <= 0 || (modePaiement === 'ESPECES' && montantRecu < total)" (click)="payer()">
+            <i class="fa-solid fa-cash-register me-2"></i>
+            Encaisser
+          </button>
+        } @else {
+          <button class="btn btn-success flex-fill" [disabled]="referencePaiement === '' || numeroPaiement === ''" (click)="payer()">
+            <i class="fa-solid fa-cash-register me-2"></i>
+            Encaisser
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</app-modal>

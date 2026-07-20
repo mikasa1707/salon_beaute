@@ -11,5 +11,6 @@ export interface ProduitUnite {
   stock: number;
   prix: number;
   stock_minimum: number;
+  couleur: string;
   actif: boolean;
 }

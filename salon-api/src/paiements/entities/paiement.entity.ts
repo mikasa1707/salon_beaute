@@ -43,9 +43,29 @@ export class Paiement {
   montant!: number;
 
   @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+  })
+  montantrecu!: number;
+
+  
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+  })
+  montantrendu!: number;
+
+  @Column({
     nullable: true,
   })
   reference?: string;
+  
+  @Column({
+    nullable: true,
+  })
+  telephone?: string;
 
   @CreateDateColumn()
   date_paiement!: Date;

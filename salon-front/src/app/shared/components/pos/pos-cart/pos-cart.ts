@@ -20,8 +20,8 @@ export class PosCartComponent {
   ) {}
 
   ngOnInit() {
-    this.posService.cart$.subscribe(cart => {
-      this.cart = cart;
+    this.posService.activeTicket$.subscribe(ticket => {
+      this.cart = ticket?.items ?? [];
       this.cdr.detectChanges();
     });
   }

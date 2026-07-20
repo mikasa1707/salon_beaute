@@ -83,8 +83,11 @@ export class FacturationsService {
         return manager.create(FacturationItem, {
           facturation: savedFacture,
           prestation: item.prestation,
+          prestationId: item.prestation.id,
           label: item.prestation.nom,
+          nomComplet: item.prestation.nom,
           quantite,
+          prix: prixUnitaire,
           prix_unitaire: prixUnitaire,
           total: lineTotal,
         });
@@ -144,7 +147,7 @@ export class FacturationsService {
       relations: {
         client: true,
         reservation: true,
-        items: true,
+        items: { prestation: true , produitUnite: true },
         vente: true,
       },
     });
@@ -192,7 +195,7 @@ export class FacturationsService {
       relations: {
         client: true,
         reservation: true,
-        items: true,
+        items: { prestation: true , produitUnite: true },
         vente: true,
       },
       skip: (page - 1) * limit,

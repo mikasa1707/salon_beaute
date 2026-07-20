@@ -1,0 +1,72 @@
+<div class="d-grid gap-2">
+  <!-- ========================= -->
+  <!-- NUMERIC / PHONE KEYBOARD -->
+  <!-- ========================= -->
+
+  @if (mode === 'numeric' || mode === 'phone') {
+    <!-- Boutons rapides uniquement pour espèces -->
+    @if (mode === 'numeric' && quickValues.length) {
+      <div class="row g-2">
+        @for (amount of quickValues; track amount) {
+          <div class="col-4">
+            <button type="button" class="btn btn-outline-primary w-100" (click)="add(amount)">+{{ amount | currency: 'Ar' : 'symbol' : '1.0-0' }}</button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Exact uniquement montant -->
+    @if (mode === 'numeric' && showExact) {
+      <button type="button" class="btn btn-success fw-bold" (click)="useExact()">
+        <i class="fa-solid fa-check me-1"></i>
+
+        Exact
+      </button>
+    <!-- Affichage -->
+    <input class="form-control form-control-lg text-end fw-bold" [value]="value" readonly />
+    }
+
+
+    <!-- Clavier -->
+    <div class="row g-2">
+      @for (key of mode === 'phone' ? phoneKeys : numericKeys; track key) {
+        <div class="col-4">
+          <button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold" (click)="press(key)">
+            @if (key === '⌫') {
+              <i class="fa-solid fa-delete-left"></i>
+            } @else {
+              {{ key }}
+            }
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ========================= -->
+  <!-- TEXT KEYBOARD -->
+  <!-- ========================= -->
+
+  @if (mode === 'text') {
+    @for (row of textKeys; track row) {
+      <div class="d-flex gap-1 mb-2">
+        @for (key of row; track key) {
+          <button type="button" class="btn btn-light border flex-fill" (click)="pressText(key)">
+            @if (key === '⌫') {
+              <i class="fa-solid fa-delete-left"></i>
+            } @else {
+              {{ key }}
+            }
+          </button>
+        }
+      </div>
+    }
+  }
+
+  <!-- Effacer -->
+  <button type="button" class="btn btn-outline-danger" (click)="clear()">
+    <i class="fa-solid fa-trash me-1"></i>
+
+    Effacer
+  </button>
+</div>

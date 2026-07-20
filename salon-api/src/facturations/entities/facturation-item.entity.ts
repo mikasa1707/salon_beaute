@@ -41,7 +41,7 @@ export class FacturationItem {
 
   // snapshot prix au moment de la facture
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  prix_unitaire!: number;
+  prix!: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   total!: number;

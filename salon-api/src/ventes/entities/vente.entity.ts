@@ -68,7 +68,9 @@ export class Vente {
   })
   paiements!: Paiement[];
 
-  @OneToOne(() => Facturation)
+  @OneToOne(() => Facturation, {
+    nullable: true,
+  })
   @JoinColumn({
     name: 'facturation_id',
   })

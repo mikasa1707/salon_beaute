@@ -1,0 +1,17 @@
+<app-page-header title="Stock" subtitle="Gestion du stock actuel" icon="fa-solid fa-dolly"></app-page-header>
+
+<div class="card">
+  <div class="card-body">
+    <div class="d-flex justify-content-between mb-3">
+      <app-search-bar></app-search-bar>
+
+      <button class="btn btn-primary">
+        <i class="fa-solid fa-boxes-stacked me-2"></i>
+
+        Inventaire
+      </button>
+    </div>
+
+    <app-data-table [columns]="columns" [data]="stocks" [loading]="loading"></app-data-table>
+  </div>
+</div>

@@ -32,6 +32,7 @@ import { APP_GUARD } from '@nestjs/core/constants';
 import { PrestationProduitsModule } from './prestations_produits/prestations-produits.module';
 import { PrestationsRecettesModule } from './prestations-recettes/prestations-recettes.module';
 import { UnitesMesureModule } from './unites-mesure/unites-mesure.module';
+import { StockConsumptionModule } from './stocks/stock-consumption.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { UnitesMesureModule } from './unites-mesure/unites-mesure.module';
     PrestationProduitsModule,
     PrestationsRecettesModule,
     UnitesMesureModule,
+    StockConsumptionModule,
   ],
 
   controllers: [AppController],

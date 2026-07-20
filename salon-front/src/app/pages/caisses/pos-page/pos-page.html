@@ -1,6 +1,13 @@
 <div class="container-fluid">
   <!-- HEADER -->
-  <app-page-header title="Caisse" subtitle="Point de vente" icon="fa-solid fa-cash-register"></app-page-header>
+  <app-page-header title="Caisse" subtitle="Point de vente" icon="fa-solid fa-cash-register">
+    <div class="d-flex gap-2 flex-wrap">
+      <!-- Recherche -->
+      <div class="search-wrapper">
+        <app-search-bar (searchChange)="search($event)"></app-search-bar>
+      </div>
+    </div>
+  </app-page-header>
 
   <div class="row g-3">
     <!-- ===================== -->
@@ -11,9 +18,12 @@
       <div class="card h-100">
         <div class="card-header">
           <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Produits</h5>
+            <app-pos-ticket-bar></app-pos-ticket-bar>
+          </div>
+        </div>
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
             <app-filter-button label="Type produit" [options]="typesProduit" [multiple]="true" (filterChange)="filterType($event)"></app-filter-button>
-            <app-search-bar (searchChange)="search($event)"></app-search-bar>
           </div>
         </div>
 
@@ -28,6 +38,7 @@
             [totalPages]="totalPages"
             [total]="total"
             [limit]="limit"
+            [showLimit]="false"
             (pageChange)="changePage($event)"
             (limitChange)="changeLimit($event)"></app-pagination>
         </div>
@@ -51,3 +62,5 @@
     </div>
   </div>
 </div>
+
+<app-payment-modal [show]="paymentVisible" [ticket]="posService.activeTicket!" (confirm)="confirmPayment($event)"></app-payment-modal>

@@ -18,7 +18,7 @@ export class VenteProduitsService {
     return await this.repo.save(_data);
   }
 
-  async findAll(page = 1, limit = 10, search = '', typeProduitId?: number) {
+  async findAll(page = 1, limit = 10, search = '', typeProduitId= '') {
     const qb = this.repo
       .createQueryBuilder('vp')
       .leftJoinAndSelect('vp.vente', 'vente')
@@ -36,7 +36,7 @@ export class VenteProduitsService {
             .orWhere('pu.nom LIKE :search', {
               search: `%${search}%`,
             })
-            .orWhere('pu.nomComplet LIKE :search', {
+            .orWhere('pu.label LIKE :search', {
               search: `%${search}%`,
             })
             .orWhere('produit.nom LIKE :search', {
@@ -48,9 +48,16 @@ export class VenteProduitsService {
 
     // Filtre par type
     if (typeProduitId) {
-      qb.andWhere('typeProduit.id = :typeProduitId', {
-        typeProduitId,
-      });
+      const ids = typeProduitId
+        .split(',')
+        .map((id) => Number(id))
+        .filter((id) => !isNaN(id));
+
+      if (ids.length) {
+        qb.andWhere('typeProduit.id IN (:...ids)', {
+          ids,
+        });
+      }
     }
 
     qb.orderBy('vp.id', 'DESC')

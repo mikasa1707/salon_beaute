@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableColumn } from '../../../core/models/table-column';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './data-table.html',
   styleUrl: './data-table.scss',
 })
@@ -15,6 +16,7 @@ export class DataTableComponent {
   @Input() loading = false;
   @Input() sortable = true;
   @Input() canEdit = true;
+  @Input() canDelete = true;
 
   sortField = '';
   sortDirection: 'asc' | 'desc' = 'asc';
@@ -37,6 +39,7 @@ export class DataTableComponent {
   @Output() pageChange = new EventEmitter<number>();
   @Output() recipe = new EventEmitter<any>();
   @Output() selectedChange = new EventEmitter<any[]>();
+  @Output() valueChange = new EventEmitter<any>();
 
   changePage(newPage: number) {
     // Vérification de sécurité avant d'émettre
@@ -105,5 +108,15 @@ export class DataTableComponent {
 
   isSelected(row: any) {
     return this.selected.some(x => x.id === row.id);
+  }
+
+  onCellChange(row: any, field: string, value: any) {
+    row[field] = Number(value);
+
+    this.valueChange.emit({
+      row,
+      field,
+      value: row[field],
+    });
   }
 }

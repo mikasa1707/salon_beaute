@@ -1,0 +1,40 @@
+<div class="d-flex align-items-center gap-3 overflow-auto py-2">
+  <!-- Nouveau ticket -->
+  <button class="btn btn-success btn-sm flex-shrink-0" (click)="newTicket()" title="Nouveau ticket">
+    <i class="fa-solid fa-cart-plus"></i>
+  </button>
+  @for (ticket of tickets; track ticket.id) {
+    <div class="btn-group flex-shrink-0" role="group">
+      <div class="position-relative d-inline-block">
+        <button
+          type="button"
+          class="btn btn-sm p-2"
+          [class.btn-primary]="ticket.id === activeId"
+          [class.btn-outline-primary]="ticket.id !== activeId"
+          (click)="select(ticket)">
+          <div class="fw-semibold lh-1">
+            @if (ticket.id === activeId) {
+              <i class="fa-solid fa-circle me-1" style="font-size: 6px"></i>
+            }
+
+            {{ ticket.label }}
+          </div>
+
+          <small class="d-block opacity-75">
+            {{ ticket.items.length }}
+            •
+            {{ ticket.total | currency: 'Ar' : 'symbol' : '1.0-0' }}
+          </small>
+        </button>
+
+        <span
+          class="position-absolute top-0 end-0 p-1 bg-danger border border-danger rounded-circle"
+          role="button"
+          style="cursor: pointer"
+          (click)="remove(ticket); $event.stopPropagation()">
+          <i class="visually-hidden"></i>
+        </span>
+      </div>
+    </div>
+  }
+</div>

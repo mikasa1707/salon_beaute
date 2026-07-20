@@ -9,7 +9,5 @@ import { Component, OnInit } from '@angular/core';
 export class CashRegister implements OnInit {
   ngOnInit(): void {
     const facturationId = history.state.facturationId;
-
-    console.log(facturationId)
   }
 }

@@ -15,6 +15,7 @@ export class PaginationComponent {
   @Input() totalPages = 1;
   @Input() total = 0;
   @Input() limit = 10;
+  @Input() showLimit = true;
 
   @Output() pageChange = new EventEmitter<number>();
   @Output() limitChange = new EventEmitter<number>();

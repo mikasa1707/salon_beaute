@@ -12,6 +12,12 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { PosProductGridComponent } from '../../../shared/components/pos/pos-product-grid/pos-product-grid';
 import { PosSummaryComponent } from '../../../shared/components/pos/pos-summary/pos-summary';
 import { FilterButtonComponent } from '../../../shared/components/filter-button/filter-button';
+import { TypeProduit } from '../../../core/models/type-produit';
+import { TypeProduitApi } from '../../../core/services/type-produit-api';
+import { PosTicketBar } from '../../../shared/components/pos/pos-ticket-bar/pos-ticket-bar';
+import { PaymentResult, PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal';
+import { CheckoutApi } from '../../../core/services/checkout-api';
+import { Toast, ToastService } from '../../../core/services/toast';
 
 @Component({
   selector: 'app-pos-page',
@@ -24,6 +30,8 @@ import { FilterButtonComponent } from '../../../shared/components/filter-button/
     PosProductGridComponent,
     PosSummaryComponent,
     FilterButtonComponent,
+    PosTicketBar,
+    PaymentModalComponent,
   ],
   templateUrl: './pos-page.html',
   styleUrl: './pos-page.scss',
@@ -41,25 +49,21 @@ export class PosPage {
 
   factureId: number = 0;
 
-  typesProduit = [
-    {
-      id: 1,
-      label: 'Shampoing',
-    },
-    {
-      id: 2,
-      label: 'Soin',
-    },
-  ];
+  typesProduit: TypeProduit[] = [];
 
   private searchSubject = new Subject<string>();
   private searchSubscription!: Subscription;
 
+  paymentVisible = false;
+
   constructor(
     private readonly factureService: FacturationApiService,
     private readonly produitService: ProduitUniteApi,
-    private readonly posService: PosService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly typeProduitService: TypeProduitApi,
+    public readonly posService: PosService,
+    private readonly checkoutService: CheckoutApi,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -69,9 +73,8 @@ export class PosPage {
       this.page = 1;
       this.loadProduit(value);
     });
-    this.posService.cart$.subscribe(cart => {
-      this.cart = cart;
-      console.log(cart);
+    this.posService.activeTicket$.subscribe(ticket => {
+      this.cart = ticket?.items ?? [];
       this.cdr.detectChanges();
     });
     this.loadProduit();
@@ -84,7 +87,12 @@ export class PosPage {
         this.produits = res.data;
         this.total = res.total;
         this.totalPages = res.totalPages;
-        console.log(this.produits)
+        this.typeProduitService.findAll(1, 1000).subscribe({
+          next: (res: { data: any[]; totalPages: number; total: number }) => {
+            this.typesProduit = res.data;
+            this.cdr.detectChanges();
+          },
+        });
         this.cdr.detectChanges();
       },
     });
@@ -99,9 +107,20 @@ export class PosPage {
 
     if (state?.facturationId) {
       this.factureId = state.facturationId;
+      const existing = this.posService.findTicketByFacture(this.factureId);
 
+      if (existing) {
+        this.posService.setActive(existing.id);
+        history.replaceState({}, '');
+        return;
+      }
       this.loadFacture(this.factureId);
+      history.replaceState({}, '');
     }
+  }
+
+  findTicketByFacture(tickets: any, id: number) {
+    return tickets.find((t: { facture: { id: number } }) => t.facture?.id === id);
   }
 
   // =====================================
@@ -114,13 +133,12 @@ export class PosPage {
     this.factureService.findOne(id).subscribe({
       next: facture => {
         this.posService.loadFacture(facture);
-
         this.loading = false;
+        this.cdr.detectChanges();
       },
 
       error: err => {
         console.error('Erreur chargement facture', err);
-
         this.loading = false;
       },
     });
@@ -143,19 +161,66 @@ export class PosPage {
   }
 
   addToCart(product: VenteProduit) {
+    console.log(product);
     this.posService.addItem(product);
-  }
-
-  openPayment() {
-    console.log('Ouverture paiement');
+    this.cdr.detectChanges();
   }
 
   filterType(filters: any[]) {
     console.log(filters);
-
+    this.page = 1;
     this.loadProduit(
       '',
       filters.map(x => x.id)
     );
+  }
+
+  openPayment() {
+    console.log(this.posService.activeTicket);
+    if (!this.posService.activeTicket) {
+      return;
+    }
+    if (this.posService.activeTicket.items.length === 0) {
+      return;
+    }
+    this.paymentVisible = true;
+  }
+
+  confirmPayment(result: PaymentResult) {
+    const ticket = this.posService.activeTicket;
+
+    if (!ticket) {
+      console.error('Aucun ticket actif');
+      return;
+    }
+
+    const payload = {
+      ticketId: ticket.id,
+      factureId: ticket.facturation?.id || undefined,
+      items: ticket.items,
+      total: ticket.total,
+      remise: ticket.remise,
+      paiement: {
+        modePaiement: result.modePaiement,
+        montant: ticket.total,
+        montantrecu: result.montantRecu,
+        montantrendu: result.monnaie || 0,
+        referencePaiement: result.referencePaiement,
+        numeroPaiement: result.numeroPaiement,
+      },
+    };
+
+    this.checkoutService.checkoutPos(payload).subscribe({
+      next: vente => {
+        this.toastService.success('Paiement effectuee - Vente OK');
+        // supprimer le ticket payé
+        this.posService.removeTicket(ticket.id);
+        this.paymentVisible = false;
+      },
+
+      error: err => {
+        this.toastService.warning('Erreur Paiement');
+      },
+    });
   }
 }

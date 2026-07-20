@@ -14,12 +14,22 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { PersonnelRole } from '../personnels/entities/personnel.entity';
 import type { RequestWithUser } from 'src/auth/interfaces/request-with-user.interface';
+import { CheckoutPosDto } from './dto/checkout-pos.dto';
 
 @Controller('checkout')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CheckoutController {
   constructor(private readonly checkoutService: CheckoutService) {}
 
+  @Post('pos')
+  @Roles(PersonnelRole.RECEPTION, PersonnelRole.ADMIN)
+  checkoutPos(@Body() dto: CheckoutPosDto, @Req() req: RequestWithUser) {
+    return this.checkoutService.checkoutPos(
+      dto,
+      req.user.userId,
+      req.user.email,
+    );
+  }
   // =========================
   // 💰 CHECKOUT FACTURE
   // =========================
