@@ -47,6 +47,16 @@ export class InventaireDetail implements OnChanges {
       field: 'ecart',
       label: 'Écart',
       type: 'badge',
+      badgeClass: row => {
+        const ecart = Number(row.ecart);
+        if (ecart > 0) {
+          return 'bg-danger';
+        }
+        if (ecart < 0) {
+          return 'bg-danger';
+        }
+        return 'bg-primary';
+      },
     },
   ];
 

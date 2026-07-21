@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn } from 'typeorm';
 import { Reservation } from '../../reservations/entities/reservation.entity';
 
 export enum ClientGenre {
@@ -13,7 +13,8 @@ export class Client {
   id!: number;
 
   @Column({
-    nullable: true, length: 100
+    nullable: true,
+    length: 100,
   })
   nom!: string;
 
@@ -27,7 +28,7 @@ export class Client {
   email!: string;
 
   @Column({
-    default: true
+    default: true,
   })
   actif!: boolean;
 
@@ -40,4 +41,7 @@ export class Client {
     default: ClientGenre.MADAME,
   })
   genre!: ClientGenre;
+
+  @CreateDateColumn()
+  created_at!: Date;
 }

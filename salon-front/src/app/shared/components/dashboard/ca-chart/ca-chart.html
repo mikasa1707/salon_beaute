@@ -1,0 +1,14 @@
+<div class="card shadow-sm">
+  <div class="card-header">Evolution CA 7 jours</div>
+
+  <div class="card-body">
+    <canvas
+      baseChart
+      [datasets]="lineChartData.datasets"
+      [labels]="lineChartData.labels"
+      [options]="{
+        responsive: true,
+      }"
+      [type]="'line'"></canvas>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+<div class="card shadow-sm">
+  @if (data?.ouverte) {
+    <div class="card-header bg-success">Caisse Ouverte</div>
+    <div class="card-body bg-success">
+      <h3 class="mt-3">{{ data.solde | currency: 'Ar' : 'symbol' : '1.0-0' }}</h3>
+    </div>
+  } @else {
+    <span class="card-header bg-danger">Caisse Fermée</span>
+    <div class="card-body bg-danger">
+      <h3 class="mt-3">0 Ar</h3>
+    </div>
+  }
+</div>

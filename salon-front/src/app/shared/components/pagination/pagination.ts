@@ -4,10 +4,8 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-pagination',
   standalone: true,
-  imports: [
-    CommonModule
-  ],
-  templateUrl: './pagination.html'
+  imports: [CommonModule],
+  templateUrl: './pagination.html',
 })
 export class PaginationComponent {
   Math = Math;
@@ -20,35 +18,62 @@ export class PaginationComponent {
   @Output() pageChange = new EventEmitter<number>();
   @Output() limitChange = new EventEmitter<number>();
 
-  constructor(private cdr: ChangeDetectorRef) { }
+  constructor(private cdr: ChangeDetectorRef) {}
 
-  // ngOnChanges() {
-  //   this.pages = this.generatePages();
-  //   this.cdr.detectChanges();
-  // }
+  pages: (number | string)[] = [];
 
-  get pages(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  ngOnChanges() {
+    this.generatePages();
   }
 
   generatePages() {
-    const pages = [];
-    const start = Math.max(1, this.page - 2);
-    const end = Math.min(this.totalPages, this.page + 2);
+    const total = this.totalPages;
+    const current = this.page;
 
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-    this.cdr.detectChanges();
-    return pages;
-  }
-
-  changePage(page: number) {
-    if (page < 1 || page > this.totalPages) {
+    if (total <= 6) {
+      this.pages = Array.from({ length: total }, (_, i) => i + 1);
       return;
     }
-    this.pageChange.emit(page);
-    this.cdr.detectChanges();
+
+    const result: (number | string)[] = [];
+
+    // Toujours première page
+    result.push(1);
+
+    // Zone autour de la page courante
+    let start = Math.max(2, current - 1);
+    let end = Math.min(total - 1, current + 1);
+
+    // Ajouter ...
+    if (start > 2) {
+      result.push('...');
+    }
+
+    for (let i = start; i <= end; i++) {
+      result.push(i);
+    }
+
+    // Ajouter ...
+    if (end < total - 1) {
+      result.push('...');
+    }
+
+    // Toujours dernière page
+    result.push(total);
+
+    this.pages = result;
+  }
+
+  changePage(value: number | string) {
+    if (typeof value === 'string') {
+      return;
+    }
+
+    if (value < 1 || value > this.totalPages) {
+      return;
+    }
+
+    this.pageChange.emit(value);
   }
 
   changeLimit(value: string) {

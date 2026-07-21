@@ -1,0 +1,42 @@
+<div class="card shadow-sm h-100">
+  <div class="card-header">
+    <i class="fa-solid fa-scissors me-2"></i>
+
+    Prestation phare année
+  </div>
+
+  <table class="table table-sm mb-0">
+    <thead>
+      <tr>
+        <th>Prestation</th>
+
+        <th class="text-end">Nombre</th>
+
+        <th class="text-end">CA</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (item of data; track item.nom) {
+        <tr>
+          <td>
+            <i class="fa-solid fa-fire text-danger"></i>
+
+            {{ item.nom }}
+          </td>
+
+          <td class="text-end">
+            {{ item.nombre }}
+          </td>
+
+          <td class="text-end fw-bold">{{ item.ca | number }} Ar</td>
+        </tr>
+
+      } @empty {
+        <tr>
+          <td colspan="3" class="text-center text-muted">Aucune prestation</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

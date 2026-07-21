@@ -1,450 +1,177 @@
 import { Injectable } from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, MoreThanOrEqual } from 'typeorm';
 
-import {
-  Reservation,
-  ReservationStatut,
-} from '../reservations/entities/reservation.entity';
+import { Repository, Between, LessThanOrEqual } from 'typeorm';
 
-import { Facturation } from '../facturations/entities/facturation.entity';
-import { Produit } from 'src/produits/entities/produit.entity';
-import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
 import { Vente } from 'src/ventes/entities/vente.entity';
+import { Reservation } from 'src/reservations/entities/reservation.entity';
+import { Client } from 'src/clients/entities/client.entity';
+import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
+import { StockMovement } from 'src/stocks/entities/stock-movements.entity';
+import { CashRegister } from 'src/cash-register/entities/cash_registers.entity';
 
-type StaffStats = {
-  personnel: any;
-  total_revenue: number;
-  reservations_count: number;
-};
-
-type PrestaStats = {
-  prestation: any;
-  count: number;
-  revenue: number;
-};
+import { DashboardFilterDto } from './dto/dashboard-filter.dto';
 
 @Injectable()
 export class DashboardService {
   constructor(
+    @InjectRepository(Vente)
+    private venteRepo: Repository<Vente>,
+
     @InjectRepository(Reservation)
-    private readonly reservationRepo: Repository<Reservation>,
+    private reservationRepo: Repository<Reservation>,
 
-    @InjectRepository(Facturation)
-    private readonly facturationRepo: Repository<Facturation>,
-
-    @InjectRepository(Produit)
-    private readonly produitRepo: Repository<Produit>,
+    @InjectRepository(Client)
+    private clientRepo: Repository<Client>,
 
     @InjectRepository(ProduitUnite)
-    private readonly uniteRepo: Repository<ProduitUnite>,
+    private produitUniteRepo: Repository<ProduitUnite>,
 
-    @InjectRepository(Vente)
-    private readonly venteRepo: Repository<Vente>,
+    @InjectRepository(StockMovement)
+    private mouvementRepo: Repository<StockMovement>,
+
+    @InjectRepository(CashRegister)
+    private caisseRepo: Repository<CashRegister>,
   ) {}
 
-  private getDayRange(date: Date) {
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-
-    const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
-
-    return { start, end };
-  }
-
-  // =========================
-  // CA
-  // =========================
-
-  async getDailyRevenue(date: Date) {
-    const { start, end } = this.getDayRange(date);
-
-    const factures = await this.facturationRepo.find({
-      where: {
-        created_at: Between(start, end),
-      },
-    });
-
-    const total = factures.reduce((sum, f) => sum + Number(f.total), 0);
-
-    return {
-      date,
-      total_revenue: total,
-      count: factures.length,
-    };
-  }
-
-  // =========================
-  // RESERVATIONS
-  // =========================
-
-  async getReservationStats(date: Date) {
-    const { start, end } = this.getDayRange(date);
-
-    const reservations = await this.reservationRepo.find({
-      where: {
-        date_debut: Between(start, end),
-      },
-    });
-
-    return {
-      total: reservations.length,
-
-      en_attente: reservations.filter(
-        (r) => r.statut === ReservationStatut.EN_ATTENTE,
-      ).length,
-
-      confirmees: reservations.filter(
-        (r) => r.statut === ReservationStatut.CONFIRMEE,
-      ).length,
-
-      arrivees: reservations.filter(
-        (r) => r.statut === ReservationStatut.ARRIVEE,
-      ).length,
-
-      en_cours: reservations.filter(
-        (r) => r.statut === ReservationStatut.EN_COURS,
-      ).length,
-
-      terminees: reservations.filter(
-        (r) => r.statut === ReservationStatut.TERMINEE,
-      ).length,
-
-      annulees: reservations.filter(
-        (r) => r.statut === ReservationStatut.ANNULEE,
-      ).length,
-    };
-  }
-
-  // =========================
-  // PERFORMANCE PERSONNEL
-  // =========================
-
-  async getStaffPerformance(date: Date) {
-    const { start, end } = this.getDayRange(date);
-
-    const reservations = await this.reservationRepo.find({
-      where: {
-        date_debut: Between(start, end),
-        statut: ReservationStatut.TERMINEE,
-      },
-
-      relations: {
-        personnels: true,
-      },
-    });
-
-    const map = new Map<number, StaffStats>();
-
-    for (const reservation of reservations) {
-      const revenue = Number(reservation.total_prix ?? 0);
-
-      for (const personnel of reservation.personnels) {
-        if (!map.has(personnel.id)) {
-          map.set(personnel.id, {
-            personnel,
-            total_revenue: 0,
-            reservations_count: 0,
-          });
-        }
-
-        const data = map.get(personnel.id);
-
-        if (data) {
-          data.total_revenue += revenue;
-          data.reservations_count++;
-        }
-      }
-    }
-
-    return Array.from(map.values()).sort(
-      (a, b) => b.total_revenue - a.total_revenue,
-    );
-  }
-
-  // =========================
-  // TOP PRESTATIONS
-  // =========================
-
-  async getTopPrestations(date: Date) {
-    const { start, end } = this.getDayRange(date);
-
-    const reservations = await this.reservationRepo.find({
-      where: {
-        date_debut: Between(start, end),
-        statut: ReservationStatut.TERMINEE,
-      },
-
-      relations: {
-        prestations: {
-          prestation: true,
-        },
-      },
-    });
-
-    const map = new Map<number, PrestaStats>();
-
-    for (const reservation of reservations) {
-      for (const item of reservation.prestations) {
-        const prestation = item.prestation;
-
-        if (!map.has(prestation.id)) {
-          map.set(prestation.id, {
-            prestation,
-            count: 0,
-            revenue: 0,
-          });
-        }
-
-        const data = map.get(prestation.id);
-
-        if (data) {
-          data.count += item.quantite;
-
-          data.revenue += Number(item.prix) * item.quantite;
-        }
-      }
-    }
-
-    return Array.from(map.values()).sort((a, b) => b.revenue - a.revenue);
-  }
-
-  // =========================
-  // DASHBOARD GLOBAL
-  // =========================
-
-  async getDashboard(date: Date) {
-    const [
-      revenue,
-      reservations,
-      staff,
-      prestations,
-      today,
-      tomorrow,
-      stockAlerts,
-    ] = await Promise.all([
-      this.getDailyRevenue(date),
-
-      this.getReservationStats(date),
-
-      this.getStaffPerformance(date),
-
-      this.getTopPrestations(date),
-
-      this.getTodayReservations(date),
-
-      this.getTomorrowReservations(date),
-
-      this.getStockAlerts(),
-    ]);
-
-    return {
-      date,
-
-      revenue,
-
-      reservations,
-
-      staff,
-
-      top_prestations: prestations,
-
-      ops: {
-        today_reservations: {
-          count: today.length,
-          data: today,
-        },
-
-        tomorrow_reservations: {
-          count: tomorrow.length,
-          data: tomorrow,
-        },
-
-        stock_alerts: stockAlerts,
-      },
-    };
-  }
-
-  // =========================
-  // STOCK ALERT
-  // =========================
-
-  async getStockAlerts() {
-    const produits = await this.produitRepo.find({
-      relations: {
-        unites: true,
-      },
-    });
-
-    return produits
-
-      .map((p) => {
-        const stock = p.unites.reduce((sum, u) => sum + u.stock, 0);
-
-        return {
-          produit: p,
-
-          total_stock: stock,
-
-          stock_minimum: p.stock_minimum,
-
-          is_alert: stock <= p.stock_minimum,
-        };
-      })
-
-      .filter((p) => p.is_alert);
-  }
-
-  async getTodayReservations(date: Date) {
-    const { start, end } = this.getDayRange(date);
-
-    return this.reservationRepo.find({
-      where: {
-        date_debut: Between(start, end),
-      },
-
-      relations: {
-        client: true,
-
-        personnels: true,
-
-        prestations: {
-          prestation: true,
-        },
-      },
-
-      order: {
-        date_debut: 'ASC',
-      },
-    });
-  }
-
-  async getTomorrowReservations(date: Date) {
-    const tomorrow = new Date(date);
-
+  async getDashboard(dto: DashboardFilterDto) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const { start, end } = this.getDayRange(tomorrow);
+    // =========================
+    // KPI
+    // =========================
 
-    return this.reservationRepo.find({
+    const ventes = await this.venteRepo.find({
       where: {
-        date_debut: Between(start, end),
+        created_at: Between(today, tomorrow),
       },
+    });
 
-      relations: {
-        client: true,
+    const caJour = ventes.reduce((sum, v) => sum + Number(v.total), 0);
 
-        personnels: true,
+    const reservations = await this.reservationRepo.count({
+      where: {
+        date_debut: Between(today, tomorrow),
+      },
+    });
 
-        prestations: {
-          prestation: true,
+    const clients = await this.clientRepo.count({
+      where: {
+        created_at: Between(today, tomorrow),
+      },
+    });
+
+    const panierMoyen = ventes.length ? caJour / ventes.length : 0;
+
+    // =========================
+    // EVOLUTION CA 7 jours
+    // =========================
+
+    const caEvolution: any[] = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const debut = new Date();
+      debut.setDate(debut.getDate() - i);
+      debut.setHours(0, 0, 0, 0);
+      const fin = new Date(debut);
+      fin.setDate(fin.getDate() + 1);
+      const ventesJour = await this.venteRepo.find({
+        where: {
+          created_at: Between(debut, fin),
         },
-      },
+      });
 
-      order: {
-        date_debut: 'ASC',
-      },
-    });
-  }
+      caEvolution.push({
+        date: debut.toISOString().substring(5, 10),
+        total: ventesJour.reduce((s, v) => s + Number(v.total), 0),
+      });
+    }
 
-  // =========================
-  // STOCK OVERVIEW
-  // =========================
+    // =========================
+    // STOCK ALERT
+    // =========================
 
-  async getStockOverview() {
-    const produits = await this.produitRepo.find({
-      relations: {
-        unites: true,
-        marque: true,
-        typeProduit: true,
-      },
-    });
-
-    return produits.map((p) => {
-      const totalStock = p.unites.reduce((sum, u) => sum + u.stock, 0);
-
-      return {
-        id: p.id,
-
-        nom: p.nom,
-
-        marque: p.marque?.nom,
-
-        type: p.typeProduit?.nom,
-
-        stock_minimum: p.stock_minimum,
-
-        total_stock: totalStock,
-
-        is_low_stock: totalStock <= p.stock_minimum,
-
-        unites: p.unites.map((u) => ({
-          id: u.id,
-
-          nom: u.nom,
-
-          stock: u.stock,
-
-          prix: u.prix,
-        })),
-      };
-    });
-  }
-
-  async getStockUnitDashboard() {
-    const unites = await this.uniteRepo.find({
+    const stockAlerts = await this.produitUniteRepo.find({
       relations: {
         produit: true,
       },
-    });
-
-    const data = unites.map((u) => ({
-      produit: u.produit.nom,
-
-      unite: u.nom,
-
-      stock: u.stock,
-
-      stock_minimum: u.stock_minimum,
-
-      alert: u.stock <= u.stock_minimum,
-    }));
-
-    return {
-      total_unites: unites.length,
-
-      alert_count: data.filter((x) => x.alert).length,
-
-      unites: data,
-    };
-  }
-
-  async getDailyDashboard() {
-    const today = new Date();
-
-    today.setHours(0, 0, 0, 0);
-
-    const ventes = await this.venteRepo.find({
-      relations: {
-        cashRegister: true,
-      },
 
       where: {
-        cashRegister: {
-          openedAt: MoreThanOrEqual(today),
-        },
+        actif: true,
       },
     });
 
-    const totalCA = ventes.reduce((sum, v) => sum + Number(v.total), 0);
+    const alerts = stockAlerts
+      .filter((x) => Number(x.stock) <= Number(x.stock_minimum))
+      .map((x) => ({
+        id: x.id,
 
+        produit: x.produit.nom,
+
+        unite: x.nom,
+
+        stock: Number(x.stock),
+
+        minimum: Number(x.stock_minimum),
+      }));
+
+    // =========================
+    // MOUVEMENTS
+    // =========================
+
+    const mouvements = await this.mouvementRepo.find({
+      relations: {
+        produitUnite: {
+          produit: true,
+        },
+      },
+
+      take: 10,
+
+      order: {
+        created_at: 'DESC',
+      },
+    });
+
+    // =========================
+    // CAISSE
+    // =========================
+
+    const caisse = await this.caisseRepo.findOne({
+      where: {
+        status: 'OPEN',
+      },
+
+      order: {
+        id: 'DESC',
+      },
+    });
     return {
-      totalCA,
+      kpi: {
+        caJour,
+        ventes: ventes.length,
+        reservations,
+        clients,
+        panierMoyen,
+      },
 
-      nombreVentes: ventes.length,
-
-      ticketMoyen: ventes.length ? totalCA / ventes.length : 0,
+      caEvolution,
+      prestations: [],
+      personnels: [],
+      stockAlerts: alerts,
+      mouvements,
+      caisse: {
+        ouverte: !!caisse,
+        solde: Number(
+          +(caisse?.totalCash || 0) +
+            +(caisse?.openingBalance || 0) -
+            +(caisse?.cashout || 0) || 0,
+        ),
+      },
     };
   }
 }

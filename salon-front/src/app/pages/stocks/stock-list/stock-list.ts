@@ -35,6 +35,7 @@ export class StockList implements OnInit, OnDestroy {
   mode: StockMode = StockMode.LIST;
   stocks: StockMovement[] = [];
   produitsUnites: ProduitUniteStock[] = [];
+  selectedProduit: ProduitUniteStock | null = null;;
   loading = false;
   showMovement = false;
   // ============================
@@ -210,6 +211,18 @@ export class StockList implements OnInit, OnDestroy {
     this.loadProduits(this.searchValue);
   }
 
+  changePagemove(page: number) {
+    this.page = page;
+
+    this.viewMovement(this.selectedProduit);
+  }
+
+  changeLimitmove(limit: number) {
+    this.limit = limit;
+    this.page = 1;
+    this.viewMovement(this.selectedProduit);
+  }
+
   // ============================
   // SAVE
   // ============================
@@ -255,11 +268,12 @@ export class StockList implements OnInit, OnDestroy {
   }
 
   viewMovement(produit: any) {
+    this.selectedProduit = produit;
     this.stockApi.findAllByproduit(this.pagemove, this.limitmove, '', produit.id).subscribe({
       next: res => {
         this.stocks = res.data;
-        this.total = res.totalmove;
-        this.totalPages = res.totalPagesmove;
+        this.total = res.total;
+        this.totalPagesmove = res.totalPages;
         this.showMovement = true;
         this.cdr.detectChanges();
       },

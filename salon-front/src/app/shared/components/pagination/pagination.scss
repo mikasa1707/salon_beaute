@@ -1,0 +1,22 @@
+.pagination {
+  .page-link {
+    min-width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 6px;
+
+    margin: 0 2px;
+  }
+
+  .active .page-link {
+    font-weight: 600;
+  }
+
+  .disabled .page-link {
+    opacity: 0.5;
+  }
+}

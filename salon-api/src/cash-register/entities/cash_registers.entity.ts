@@ -28,6 +28,9 @@ export class CashRegister {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   totalMobileMoney!: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  cashout!: number;
+
   @Column({ default: 'OPEN' })
   status!: 'OPEN' | 'CLOSED';
 

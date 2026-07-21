@@ -1,0 +1,31 @@
+<div class="card shadow-sm">
+  <div class="card-header text-danger">
+    <i class="fa fa-warning"></i>
+
+    Stock faible
+  </div>
+
+  <div class="list-group list-group-flush">
+    @for (item of items; track item.id) {
+      <div class="list-group-item d-flex justify-content-between">
+        <div>
+          <strong>
+            {{ item.produit }}
+          </strong>
+
+          <br />
+
+          <small>
+            {{ item.unite }}
+          </small>
+        </div>
+
+        <span class="badge bg-danger">{{ item.stock }} / {{ item.minimum }}</span>
+      </div>
+    }
+
+    @if (items.length === 0) {
+      <div class="p-3 text-center text-muted">Aucune alerte</div>
+    }
+  </div>
+</div>

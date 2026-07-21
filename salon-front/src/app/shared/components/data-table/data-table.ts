@@ -17,6 +17,7 @@ export class DataTableComponent {
   @Input() sortable = true;
   @Input() canEdit = true;
   @Input() canDelete = true;
+  @Input() canAction = true;
 
   sortField = '';
   sortDirection: 'asc' | 'desc' = 'asc';

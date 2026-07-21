@@ -90,15 +90,16 @@
     [columns]="columns_movement"
     [loading]="loading"
     [page]="pagemove"
-    [totalPages]="totalPages"
+    [totalPages]="totalPagesmove"
     [canEdit]="false"
-    [canDelete]="false"></app-data-table>
+    [canDelete]="false"
+    [canAction]="false"></app-data-table>
 
   <app-pagination
     [page]="pagemove"
     [totalPages]="totalPagesmove"
     [total]="totalmove"
     [limit]="limitmove"
-    (pageChange)="changePage($event)"
-    (limitChange)="changeLimit($event)"></app-pagination>
+    (pageChange)="changePagemove($event)"
+    (limitChange)="changeLimitmove($event)"></app-pagination>
 </app-modal>

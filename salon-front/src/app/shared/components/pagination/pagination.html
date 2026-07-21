@@ -3,7 +3,7 @@
     <!-- INFO + LIMIT -->
     <div class="d-flex align-items-center gap-3">
       @if (showLimit) {
-        <span class="text-muted small">Affichage {{ (page - 1) * limit + 1 }} - {{ Math.min(page * limit, total) }} sur {{ total }}</span>
+        <span class="text-light small">Affichage {{ (page - 1) * limit + 1 }} - {{ Math.min(page * limit, total) }} sur {{ total }}</span>
 
         <select #limitSelect class="form-select form-select-sm w-auto" [value]="limit" (change)="changeLimit(limitSelect.value)">
           <option value="10">10 / page</option>
@@ -15,24 +15,34 @@
     </div>
 
     <!-- PAGINATION -->
-    <nav>
-      <ul class="pagination pagination-sm mb-0">
+    <nav aria-label="Pagination">
+      <ul class="pagination pagination-sm justify-content-center mb-0">
         <!-- PREVIOUS -->
         <li class="page-item" [class.disabled]="page === 1">
-          <button class="page-link" (click)="changePage(page - 1)">&laquo;</button>
+          <button class="page-link rounded-start" (click)="changePage(page - 1)">
+            <i class="fa fa-chevron-left"></i>
+          </button>
         </li>
 
-        @for (p of pages; track p) {
-          <li class="page-item" [class.active]="p === page">
-            <button class="page-link" (click)="changePage(p)">
-              {{ p }}
-            </button>
-          </li>
+        @for (p of pages; track $index) {
+          @if (p === '...') {
+            <li class="page-item disabled">
+              <span class="page-link">...</span>
+            </li>
+          } @else {
+            <li class="page-item" [class.active]="p === page">
+              <button class="page-link" (click)="changePage(p)">
+                {{ p }}
+              </button>
+            </li>
+          }
         }
 
         <!-- NEXT -->
         <li class="page-item" [class.disabled]="page === totalPages">
-          <button class="page-link" (click)="changePage(page + 1)">&raquo;</button>
+          <button class="page-link rounded-end" (click)="changePage(page + 1)">
+            <i class="fa fa-chevron-right"></i>
+          </button>
         </li>
       </ul>
     </nav>

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, Brackets } from 'typeorm';
 
 import { Inventaire } from './entities/inventaire.entity';
 import { InventaireLigne } from './entities/inventaire.entity';
@@ -97,17 +97,23 @@ export class InventairesService {
       .leftJoinAndSelect('inventaire.lignes', 'ligne')
       .leftJoinAndSelect('ligne.produitUnite', 'produitUnite')
       .leftJoinAndSelect('produitUnite.produit', 'produit')
+
+      // uniquement les actifs
+      .where('inventaire.actif = :actif', {
+        actif: true,
+      })
+
       .orderBy('inventaire.created_at', 'DESC');
 
     if (search.trim()) {
       qb.andWhere(
-        `
-      inventaire.numero LIKE :search
-      OR inventaire.reference LIKE :search
-      OR inventaire.note LIKE :search
-      OR produit.nom LIKE :search
-      OR produitUnite.code LIKE :search AND inventaire.actif = true
-      `,
+        new Brackets((qb) => {
+          qb.where('inventaire.numero LIKE :search')
+            .orWhere('inventaire.reference LIKE :search')
+            .orWhere('inventaire.note LIKE :search')
+            .orWhere('produit.nom LIKE :search')
+            .orWhere('produitUnite.code LIKE :search');
+        }),
         {
           search: `%${search}%`,
         },
@@ -121,20 +127,22 @@ export class InventairesService {
 
     const inventaires = data.map((inventaire) => {
       const lignes = inventaire.lignes ?? [];
-      const nbEcarts = lignes.filter(
+
+      const nbLignesEcart = lignes.filter(
         (ligne) => Number(ligne.ecart) !== 0,
       ).length;
+
       const totalEcart = lignes.reduce(
-        (sum, ligne) => sum + Number(ligne.ecart),
+        (sum, ligne) => sum + Number(ligne.ecart ?? 0),
         0,
       );
 
       return {
         ...inventaire,
         nbLignes: lignes.length,
-        nbLignesEcart: nbEcarts,
+        nbLignesEcart,
         totalEcart,
-        hasEcart: lignes.some((ligne) => Number(ligne.ecart) !== 0),
+        hasEcart: nbLignesEcart > 0,
         statut: inventaire.valide ? 'VALIDE' : 'EN_COURS',
       };
     });
@@ -152,6 +160,7 @@ export class InventairesService {
     const data = await this.repo.findOne({
       where: {
         id,
+        actif: true,
       },
 
       relations: {
@@ -167,14 +176,34 @@ export class InventairesService {
       throw new NotFoundException('Inventaire introuvable');
     }
 
+    const lignes = data.lignes ?? [];
+
+    const totalEcart = lignes.reduce(
+      (sum, ligne) => sum + Number(ligne.ecart ?? 0),
+      0,
+    );
+
+    const nbLignesEcart = lignes.filter(
+      (ligne) => Number(ligne.ecart ?? 0) !== 0,
+    ).length;
+
+    const surplus = lignes.filter(
+      (ligne) => Number(ligne.ecart ?? 0) > 0,
+    ).length;
+
+    const manque = lignes.filter(
+      (ligne) => Number(ligne.ecart ?? 0) < 0,
+    ).length;
+
     return {
       ...data,
-
-      nbLignes: data.lignes?.length ?? 0,
-      totalEcart:
-        data.lignes?.reduce((sum, ligne) => sum + Number(ligne.ecart), 0) ?? 0,
-      hasEcart:
-        data.lignes?.some((ligne) => Number(ligne.ecart) !== 0) ?? false,
+      nbLignes: lignes.length,
+      nbLignesEcart,
+      totalEcart,
+      hasEcart: nbLignesEcart > 0,
+      surplus,
+      manque,
+      statut: data.valide ? 'VALIDE' : 'EN_COURS',
     };
   }
 

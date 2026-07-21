@@ -1,0 +1,42 @@
+<div class="card shadow-sm">
+  <div class="card-header">
+    <i class="fa-solid fa-clock-rotate-left me-2"></i>
+
+    Derniers mouvements
+  </div>
+
+  <div class="list-group list-group-flush">
+    @for (item of data; track item.id) {
+      <div class="list-group-item py-2">
+        <div class="d-flex align-items-center justify-content-between gap-2">
+          <!-- Produit -->
+          <div class="text-truncate flex-grow-1">
+            <span class="fw-semibold">
+              {{ item.produitUnite.produit.nom }}
+            </span>
+
+            <span class="fw-semibold">
+              {{ item.produitUnite.nom }}
+            </span>
+
+            <span class="ms-2">
+              {{ item.created_at | date: 'dd/MM HH:mm' }}
+            </span>
+          </div>
+
+          <!-- Quantité -->
+          <div class="fw-semibold">
+            {{ item.quantite | number: '1.0-0' }}
+          </div>
+
+          <!-- Type -->
+          <span class="badge text-nowrap" [class]="'bg-' + getTypeClass(item.type)">
+            {{ item.type }}
+          </span>
+        </div>
+      </div>
+    } @empty {
+      <div class="text-center text-muted p-3">Aucun mouvement</div>
+    }
+  </div>
+</div>

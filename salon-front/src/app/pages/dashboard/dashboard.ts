@@ -1,46 +1,42 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface PrestationStat {
-  nom: string;
-  quantite: number;
-  caGenere: number;
-}
-
-interface EmployeStat {
-  nom: string;
-  role: string;
-  prestationsCount: number;
-  ChiffreAffaire: number;
-}
+import { DashboardApi } from '../../core/services/dashboard';
+import { KpiCard } from '../../shared/components/dashboard/kpi-card/kpi-card';
+import { CaChart } from '../../shared/components/dashboard/ca-chart/ca-chart';
+import { StockAlert } from '../../shared/components/dashboard/stock-alert/stock-alert';
+import { CaisseCard } from '../../shared/components/dashboard/caisse-card/caisse-card';
+import { MouvementList } from '../../shared/components/dashboard/mouvement-list/mouvement-list';
+import { TopPersonnel } from '../../shared/components/dashboard/top-personnel/top-personnel';
+import { TopProduit } from '../../shared/components/dashboard/top-produit/top-produit';
+import { TopPrestation } from '../../shared/components/dashboard/top-services/top-services';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-dashboard-page',
+
   standalone: true,
-  imports: [CommonModule],
+
+  imports: [CommonModule, KpiCard, CaChart, StockAlert, CaisseCard, TopPersonnel, TopProduit, TopPrestation, MouvementList],
+
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss'
 })
 export class Dashboard implements OnInit {
-  // KPIs Principaux
-  chiffreAffairesDuJour = 1240.50; 
-  reservationsDuJourCount = 14;
-  produitsStockFaible = 3;
+  dashboard: any;
 
-  // Listes Top
-  topPrestations: PrestationStat[] = [
-    { nom: 'Coupe + Ombré Hair / Balayage', quantite: 24, caGenere: 2160 },
-    { nom: 'Coupe Homme + Barbe', quantite: 42, caGenere: 1470 },
-    { nom: 'Soin Botox Capillaire', quantite: 12, caGenere: 1080 }
-  ];
+  constructor(
+    private api: DashboardApi,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  topEmployes: EmployeStat[] = [
-    { nom: 'Sarah Martin', role: 'Coloriste Expert', prestationsCount: 58, ChiffreAffaire: 3200 },
-    { nom: 'Thomas Dubois', role: 'Barbier / Visagiste', prestationsCount: 49, ChiffreAffaire: 2100 },
-    { nom: 'Elodie Petit', role: 'Coiffeuse Polyvalente', prestationsCount: 34, ChiffreAffaire: 1650 }
-  ];
+  ngOnInit() {
+    this.load();
+  }
 
-  constructor() {}
-
-  ngOnInit(): void {}
+  load() {
+    this.api.get().subscribe({
+      next: data => {
+        this.dashboard = data;
+        this.cdr.detectChanges();
+      },
+    });
+  }
 }
