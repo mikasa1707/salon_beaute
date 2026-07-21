@@ -55,4 +55,10 @@ export class ProduitUniteApi {
     }
     return this.http.get<any>(`${this.api}`, { params });
   }
+
+  findAllByType(typeProduitId: number, page = 1, limit = 10, search = '') {
+    return this.http.get<any[]>(`${this.api}/by-type/${typeProduitId}`, {
+      params: { page, limit, search },
+    })
+  }
 }

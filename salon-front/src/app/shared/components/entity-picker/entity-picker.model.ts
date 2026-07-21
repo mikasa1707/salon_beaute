@@ -15,4 +15,6 @@ export interface EntityPickerConfig<T = any> {
 //   tableColumns?: Column[];
   selectorLabel?: string;
   columns: TableColumn[];
+  labelField?: string;
+  excludeIds?: number[];
 }

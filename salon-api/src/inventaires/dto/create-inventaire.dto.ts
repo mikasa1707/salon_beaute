@@ -1,12 +1,17 @@
-import { IsNumber } from 'class-validator';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 
 export class CreateInventaireDto {
-  @IsNumber()
-  produit_id!: number;
+  @IsOptional()
+  @IsString()
+  reference?: string;
 
-  @IsNumber()
-  quantite_theorique!: number;
+  @IsOptional()
+  @IsString()
+  note?: string;
 
-  @IsNumber()
-  quantite_reelle!: number;
+  @IsArray()
+  lignes!: {
+    produitUniteId: number;
+    stockReel: number;
+  }[];
 }

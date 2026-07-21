@@ -3,74 +3,49 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
+  Query,
   Delete,
-  UseGuards,
+  Patch,
 } from '@nestjs/common';
+
 import { InventairesService } from './inventaires.service';
 import { CreateInventaireDto } from './dto/create-inventaire.dto';
-import { UpdateInventaireDto } from './dto/update-inventaire.dto';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { PersonnelRole } from 'src/personnels/entities/personnel.entity';
 
 @Controller('inventaires')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class InventairesController {
-  constructor(private readonly inventairesService: InventairesService) {}
-
-  @Post()
-  @Roles(
-    PersonnelRole.RECEPTION,
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-  )
-  create(@Body() createInventaireDto: CreateInventaireDto) {
-    return this.inventairesService.create(createInventaireDto);
-  }
+  constructor(private readonly service: InventairesService) {}
 
   @Get()
-  @Roles(
-    PersonnelRole.RECEPTION,
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-  )
-  findAll() {
-    return this.inventairesService.findAll();
+  findAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
+  ) {
+    return this.service.findAll(
+      Number(page) || 1,
+      Number(limit) || 10,
+      search || '',
+    );
   }
 
   @Get(':id')
-  @Roles(
-    PersonnelRole.RECEPTION,
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-  )
-  findOne(@Param('id') id: string) {
-    return this.inventairesService.findOne(+id);
+  findOne(@Param('id') id: number) {
+    return this.service.findOne(Number(id));
   }
 
-  @Patch(':id')
-  @Roles(
-    PersonnelRole.RECEPTION,
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-  )
-  update(
-    @Param('id') id: string,
-    @Body() updateInventaireDto: UpdateInventaireDto,
-  ) {
-    return this.inventairesService.update(+id, updateInventaireDto);
+  @Post()
+  create(@Body() dto: CreateInventaireDto) {
+    return this.service.create(dto);
+  }
+
+  @Patch(':id/validate')
+  validate(@Param('id') id: number) {
+    return this.service.validate(Number(id));
   }
 
   @Delete(':id')
-  @Roles(
-    PersonnelRole.RECEPTION,
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-  )
-  remove(@Param('id') id: string) {
-    return this.inventairesService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.service.deactivate(Number(id));
   }
 }

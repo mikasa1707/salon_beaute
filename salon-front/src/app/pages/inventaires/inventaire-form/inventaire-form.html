@@ -1,1 +1,80 @@
-<p>inventaire-form works!</p>
+<app-page-header title="Inventaires" subtitle="Gestion des inventaires du salon" icon="fa-solid fa-clipboard-list">
+  <div class="d-flex gap-2">
+    @if (showPicker) {
+      <app-entity-picker [config]="pickerConfig" [selected]="[]" (selectedChange)="selectedProduits($event)"></app-entity-picker>
+    }
+  </div>
+</app-page-header>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <div class="row g-2 mb-3">
+      <div class="col-md-4">
+        <input class="form-control form-control-sm" placeholder="Référence" [(ngModel)]="reference" />
+      </div>
+
+      <div class="col-md-8">
+        <input class="form-control form-control-sm" placeholder="Note" [(ngModel)]="note" />
+      </div>
+    </div>
+
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Produit</th>
+
+          <th>Unité</th>
+
+          <th>Stock</th>
+
+          <th>Réel</th>
+
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (ligne of lignes; track ligne.produitUniteId) {
+          <tr>
+            <td>
+              {{ ligne.produitNom }}
+            </td>
+
+            <td>
+              <span class="badge bg-secondary">
+                {{ ligne.unite }}
+              </span>
+            </td>
+
+            <td>
+              {{ ligne.stockTheorique }}
+            </td>
+
+            <td width="130">
+              <input type="number" class="form-control form-control-sm" [(ngModel)]="ligne.stockReel" />
+            </td>
+
+            <td>
+              <button class="btn btn-sm btn-outline-danger" (click)="remove($index)">
+                <i class="fa fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+
+        } @empty {
+          <tr>
+            <td colspan="5" class="text-center text-muted">Aucun produit ajouté</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-footer text-end">
+    <button class="btn btn-success" [disabled]="!lignes.length" (click)="save()">
+      <i class="fa fa-check"></i>
+
+      Enregistrer
+    </button>
+  </div>
+</div>

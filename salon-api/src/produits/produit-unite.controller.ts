@@ -106,4 +106,19 @@ export class ProduitUniteController {
   remove(@Param('id') id: string) {
     return this.produitsService.remove(+id);
   }
+
+  @Get('by-type/:typeProduitId')
+  findAllByType(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('typeProduitId') typeProduitId?: number,
+  ) {
+    return this.produitsService.findAllByType(
+      typeProduitId || 0,
+      page ? +page : 1,
+      limit ? +limit : 10,
+      search || '',
+    );
+  }
 }

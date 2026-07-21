@@ -1,1 +1,22 @@
-<p>inventaire-list works!</p>
+@if (showForm) {
+  <app-inventaire-form [showPicker]="showForm" (close)="showForm = false" (saved)="load()"></app-inventaire-form>
+} @else {
+  <app-page-header title="Inventaires" subtitle="Gestion des inventaires du salon" icon="fa-solid fa-clipboard-list">
+    <div class="d-flex gap-2 flex-wrap">
+      <!-- Recherche -->
+      <div class="search-wrapper">
+        <app-search-bar (searchChange)="search($event)"></app-search-bar>
+      </div>
+
+      <!-- Ajouter -->
+      <button class="btn btn-primary" (click)="newInventaire()">
+        <i class="fa fa-plus"></i>
+        <i class="fa-solid fa-clipboard-list"></i>
+      </button>
+    </div>
+  </app-page-header>
+
+  <app-data-table [columns]="columns" [data]="inventaires" [loading]="loading"></app-data-table>
+
+  <app-pagination [page]="page" [totalPages]="totalPages" (pageChange)="changePage($event)"></app-pagination>
+}

@@ -77,12 +77,13 @@ export class StocksController {
   }
 
   @Post('entry')
-  @Roles(
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-  )
+  @Roles(PersonnelRole.ADMIN, PersonnelRole.RESPONSABLE)
   entry(@Body() dto: CreateStockEntryDto, @Req() req: RequestWithUser) {
-    return this.stocksMoveService.createEntry(dto, req.user.userId, req.user.email);
+    return this.stocksMoveService.createEntry(
+      dto,
+      req.user.userId,
+      req.user.email,
+    );
   }
 
   @Get(':id')

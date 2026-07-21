@@ -186,4 +186,63 @@ export class ProduitUniteService {
       })
       .filter((u) => u.is_low_stock);
   }
+
+  async findAllByType(
+    typeProduitId: number,
+    page = 1,
+    limit = 10,
+    search = '',
+  ) {
+    const qb = this.repo
+      .createQueryBuilder('pu')
+      .leftJoinAndSelect('pu.produit', 'produit')
+      .leftJoinAndSelect('produit.typeProduit', 'typeProduit')
+      .where('pu.actif = :actif', {
+        actif: true,
+      });
+
+    qb.andWhere('typeProduit.id = :typeProduitId', {
+      typeProduitId,
+    });
+
+    if (search.trim()) {
+      qb.andWhere(
+        new Brackets((qb) => {
+          qb.where('pu.nom LIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('produit.nom LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('pu.code LIKE :search', {
+              search: `%${search}%`,
+            });
+        }),
+      );
+    }
+
+    qb.orderBy('produit.nom', 'ASC')
+      .addOrderBy('pu.nom', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    const produits = data.map((produit) => ({
+      ...produit,
+
+      label: `${produit.produit.nom} ${produit.nom}`,
+      uniteLabel: `${produit.conversion} ${produit.unite}`,
+      stockTotal: this.getTotalStock(produit),
+      isLowStock: this.isLowStock(produit),
+    }));
+
+    return {
+      data: produits,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
 }

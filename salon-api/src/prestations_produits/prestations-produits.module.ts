@@ -18,7 +18,7 @@ import { StockConsumptionModule } from 'src/stocks/stock-consumption.module';
       Prestation,
       PrestationRecette,
     ]),
-    StockConsumptionModule
+    StockConsumptionModule,
   ],
   controllers: [PrestationProduitsController],
   providers: [PrestationProduitsService],

@@ -1,52 +1,283 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateInventaireDto } from './dto/create-inventaire.dto';
-import { UpdateInventaireDto } from './dto/update-inventaire.dto';
-import { Inventaire } from './entities/inventaire.entity';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
+
+import { Inventaire } from './entities/inventaire.entity';
+import { InventaireLigne } from './entities/inventaire.entity';
+
+import { ProduitUnite } from '../produits/entities/produit_unites.entity';
+import { CreateInventaireDto } from './dto/create-inventaire.dto';
+import {
+  StockMovement,
+  StockMovementType,
+} from 'src/stocks/entities/stock-movements.entity';
+
+// import {
+//   StockMovement,
+//   StockMovementType,
+// } from '../stocks/entities/stock-movements.entity';
 
 @Injectable()
 export class InventairesService {
   constructor(
     @InjectRepository(Inventaire)
     private readonly repo: Repository<Inventaire>,
+
+    @InjectRepository(InventaireLigne)
+    private readonly ligneRepo: Repository<InventaireLigne>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
-  async create(createDto: CreateInventaireDto) {
-    const _data = this.repo.create(createDto);
-    return await this.repo.save(_data);
+  async create(dto: CreateInventaireDto) {
+    const qr = this.dataSource.createQueryRunner();
+
+    await qr.connect();
+    await qr.startTransaction();
+
+    const numero = `INV-${new Date()
+      .toISOString()
+      .slice(0, 10)
+      .replace(/-/g, '')}-${Date.now()}`;
+
+    try {
+      const manager = qr.manager;
+
+      const inventaire = manager.create(Inventaire, {
+        numero: numero,
+        reference: dto.reference,
+        note: dto.note,
+      });
+
+      const saved = await manager.save(Inventaire, inventaire);
+
+      for (const item of dto.lignes) {
+        const unite = await manager.findOne(ProduitUnite, {
+          where: {
+            id: item.produitUniteId,
+          },
+          lock: {
+            mode: 'pessimistic_write',
+          },
+        });
+
+        if (!unite) throw new NotFoundException('Produit unité introuvable');
+
+        await manager.save(InventaireLigne, {
+          inventaire: saved,
+          produitUnite: unite,
+          stockTheorique: unite.stock,
+          stockReel: item.stockReel,
+          ecart: Number(item.stockReel) - Number(unite.stock),
+        });
+      }
+
+      await qr.commitTransaction();
+
+      return saved;
+    } catch (e) {
+      await qr.rollbackTransaction();
+      throw e;
+    } finally {
+      await qr.release();
+    }
   }
 
-  async findAll() {
-    return await this.repo.find();
+  async findAll(page = 1, limit = 10, search = '') {
+    const qb = this.repo
+      .createQueryBuilder('inventaire')
+      .leftJoinAndSelect('inventaire.lignes', 'ligne')
+      .leftJoinAndSelect('ligne.produitUnite', 'produitUnite')
+      .leftJoinAndSelect('produitUnite.produit', 'produit')
+      .orderBy('inventaire.created_at', 'DESC');
+
+    if (search.trim()) {
+      qb.andWhere(
+        `
+      inventaire.numero LIKE :search
+      OR inventaire.reference LIKE :search
+      OR inventaire.note LIKE :search
+      OR produit.nom LIKE :search
+      OR produitUnite.code LIKE :search
+      `,
+        {
+          search: `%${search}%`,
+        },
+      );
+    }
+
+    const [data, total] = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    const inventaires = data.map((inventaire) => {
+      const lignes = inventaire.lignes ?? [];
+      const nbEcarts = lignes.filter(
+        (ligne) => Number(ligne.ecart) !== 0,
+      ).length;
+      const totalEcart = lignes.reduce(
+        (sum, ligne) => sum + Number(ligne.ecart),
+        0,
+      );
+
+      return {
+        ...inventaire,
+        nbLignes: lignes.length,
+        nbLignesEcart: nbEcarts,
+        totalEcart,
+        hasEcart: lignes.some((ligne) => Number(ligne.ecart) !== 0),
+        statut: inventaire.valide ? 'VALIDE' : 'EN_COURS',
+      };
+    });
+
+    return {
+      data: inventaires,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number) {
-    const _data = await this.repo.findOne({
-      where: { id },
+    const data = await this.repo.findOne({
+      where: {
+        id,
+      },
+
+      relations: {
+        lignes: {
+          produitUnite: {
+            produit: true,
+          },
+        },
+      },
     });
 
-    if (!_data) {
-      throw new NotFoundException(`Marque ${id} introuvable`);
+    if (!data) {
+      throw new NotFoundException('Inventaire introuvable');
     }
-    return _data;
+
+    return {
+      ...data,
+
+      nbLignes: data.lignes?.length ?? 0,
+      totalEcart:
+        data.lignes?.reduce((sum, ligne) => sum + Number(ligne.ecart), 0) ?? 0,
+      hasEcart:
+        data.lignes?.some((ligne) => Number(ligne.ecart) !== 0) ?? false,
+    };
   }
 
-  async update(id: number, updateDto: UpdateInventaireDto) {
-    const _data = await this.repo.preload({
-      id,
-      ...updateDto,
+  async validate(id: number) {
+    const qr = this.dataSource.createQueryRunner();
+
+    await qr.connect();
+    await qr.startTransaction();
+    const manager = qr.manager;
+
+    try {
+      const inventaire = await manager.findOne(Inventaire, {
+        where: {
+          id,
+        },
+
+        relations: {
+          lignes: {
+            produitUnite: true,
+          },
+        },
+
+        lock: {
+          mode: 'pessimistic_write',
+        },
+      });
+
+      if (!inventaire) {
+        throw new NotFoundException('Inventaire introuvable');
+      }
+
+      if (inventaire.valide) {
+        throw new BadRequestException('Inventaire déjà validé');
+      }
+
+      for (const ligne of inventaire.lignes) {
+        const unite = await manager.findOne(ProduitUnite, {
+          where: {
+            id: ligne.produitUnite.id,
+          },
+
+          lock: {
+            mode: 'pessimistic_write',
+          },
+        });
+
+        if (!unite) {
+          throw new NotFoundException('Produit unité introuvable');
+        }
+
+        const ancienStock = Number(unite.stock);
+        const nouveauStock = Number(ligne.stockReel);
+        const ecart = nouveauStock - ancienStock;
+
+        if (ecart !== 0) {
+          unite.stock = nouveauStock;
+
+          await manager.save(ProduitUnite, unite);
+
+          await manager.save(StockMovement, {
+            produitUnite: unite,
+            type: StockMovementType.ADJUST,
+            quantite: Math.abs(ecart),
+            reference: inventaire.numero,
+            note: `Ajustement inventaire ${inventaire.numero}`,
+          });
+        }
+      }
+
+      inventaire.valide = true;
+
+      await manager.save(Inventaire, inventaire);
+
+      await qr.commitTransaction();
+
+      return {
+        success: true,
+        message: 'Inventaire validé',
+      };
+    } catch (error) {
+      await qr.rollbackTransaction();
+
+      throw error;
+    } finally {
+      await qr.release();
+    }
+  }
+
+  async deactivate(id: number) {
+    const inventaire = await this.repo.findOne({
+      where: {
+        id,
+      },
     });
 
-    if (!_data) {
-      throw new NotFoundException(`Marque ${id} introuvable`);
+    if (!inventaire) {
+      throw new NotFoundException('Inventaire introuvable');
     }
 
-    return await this.repo.save(_data);
-  }
+    if (inventaire.valide) {
+      throw new BadRequestException(
+        'Impossible de désactiver un inventaire validé',
+      );
+    }
 
-  async remove(id: number) {
-    const _data = await this.findOne(id);
-    return await this.repo.remove(_data);
+    inventaire.actif = false;
+    return this.repo.save(inventaire);
   }
 }

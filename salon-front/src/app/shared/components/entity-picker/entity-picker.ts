@@ -27,6 +27,7 @@ export class EntityPicker implements OnChanges {
   limit = 10;
   total = 0;
   search = '';
+  excludeIds?: number[];
 
   constructor(private cdr: ChangeDetectorRef) {}
 
@@ -56,7 +57,11 @@ export class EntityPicker implements OnChanges {
     this.loading = true;
     this.config.service.findAll(this.page, this.limit, this.search).subscribe({
       next: (res: any) => {
-        this.items = res.data;
+        const selectedIds = this.config.excludeIds ?? [];
+
+        this.items = res.data.filter((x: any) => !selectedIds.includes(x.id));
+        // this.items = res.data;
+        console.log(selectedIds)
         this.totalPages = res.totalPages;
         this.loading = false;
         this.cdr.detectChanges();
