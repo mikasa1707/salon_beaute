@@ -10,17 +10,14 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 import { ToastService } from '../../../core/services/toast';
-import { InventaireForm } from "../inventaire-form/inventaire-form";
+import { InventaireForm } from '../inventaire-form/inventaire-form';
+import { InventaireDetail } from '../inventaire-detail/inventaire-detail';
 
 @Component({
   selector: 'app-inventaire-list',
-
   standalone: true,
-
-  imports: [CommonModule, FormsModule, DataTableComponent, PageHeaderComponent, SearchBarComponent, PaginationComponent, InventaireForm],
-
+  imports: [CommonModule, FormsModule, DataTableComponent, PageHeaderComponent, SearchBarComponent, PaginationComponent, InventaireForm, InventaireDetail],
   templateUrl: './inventaire-list.html',
-
   styleUrl: './inventaire-list.scss',
 })
 export class InventaireList implements OnInit {
@@ -33,6 +30,12 @@ export class InventaireList implements OnInit {
   searchValue = '';
 
   showForm = false;
+  showDetails = false;
+
+  selectedInventaire: any = null;
+  inventaireToDelete: any = null;
+
+  showDeleteConfirm = false;
 
   private searchSubject = new Subject<string>();
   private sub!: Subscription;
@@ -42,8 +45,29 @@ export class InventaireList implements OnInit {
     { field: 'reference', label: 'Référence' },
     { field: 'created_at', label: 'Date', type: 'datehour' },
     { field: 'nbLignes', label: 'Lignes', type: 'badge' },
-    { field: 'nbLignesEcart', label: 'Ecart', type: 'badge' },
-    { field: 'statut', label: 'Statut', type: 'badge' },
+    {
+      field: 'nbLignesEcart',
+      label: 'Ecart',
+      type: 'badge',
+      badgeClass: row => {
+        const ecart = Number(row.nbLignesEcart);
+        if (ecart > 0) {
+          return 'bg-danger';
+        }
+        if (ecart <= 0) {
+          return 'bg-primary';
+        }
+        return 'bg-primary';
+      },
+    },
+    {
+      field: 'statut',
+      label: 'Statut',
+      type: 'badge',
+      badgeClass: row => {
+        return row.valide ? 'bg-success' : 'bg-primary';
+      },
+    },
   ];
 
   constructor(
@@ -80,7 +104,6 @@ export class InventaireList implements OnInit {
 
       error: () => {
         this.toast.error('Erreur chargement inventaires');
-
         this.loading = false;
       },
     });
@@ -106,6 +129,11 @@ export class InventaireList implements OnInit {
   }
 
   deactivate(row: Inventaire) {
+    console.log(row)
+    if (row.valide) {
+      this.toast.info('L \'inventaire ne peut pas etre supprimer car deja valider');
+      return;
+    }
     this.api.deactivate(row.id).subscribe({
       next: () => {
         this.toast.success('Inventaire désactivé');
@@ -121,5 +149,55 @@ export class InventaireList implements OnInit {
 
   newInventaire() {
     this.showForm = true;
+  }
+
+  view(row: any) {
+    this.api.findOne(row.id).subscribe(res => {
+      this.selectedInventaire = res;
+      this.showDetails = true;
+
+      this.cdr.detectChanges();
+    });
+  }
+
+  closeDetails() {
+    this.showDetails = false;
+    this.selectedInventaire = null;
+    this.cdr.detectChanges();
+  }
+
+  openEdit(row: any) {
+    if (row.valide) {
+      this.toast.warning('Impossible de modifier un inventaire validé');
+      return;
+    }
+
+    this.selectedInventaire = row;
+    this.showForm = true;
+  }
+
+  delete(row: any) {
+    if (row.valide) {
+      this.toast.warning('Impossible d’archiver un inventaire validé');
+      return;
+    }
+
+    this.inventaireToDelete = row;
+    this.showDeleteConfirm = true;
+  }
+
+  confirmDelete() {
+    if (!this.inventaireToDelete) {
+      return;
+    }
+
+    this.api.remove(this.inventaireToDelete.id).subscribe(() => {
+      this.toast.success('Inventaire archivé');
+
+      this.showDeleteConfirm = false;
+      this.inventaireToDelete = null;
+
+      this.load();
+    });
   }
 }

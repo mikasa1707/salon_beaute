@@ -13,11 +13,8 @@ import { ProduitUnite } from '../produits/entities/produit_unites.entity';
   imports: [
     TypeOrmModule.forFeature([Inventaire, InventaireLigne, ProduitUnite]),
   ],
-
   controllers: [InventairesController],
-
   providers: [InventairesService],
-
   exports: [InventairesService],
 })
 export class InventairesModule {}

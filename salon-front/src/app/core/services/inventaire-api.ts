@@ -44,4 +44,8 @@ export class InventaireApi {
   deactivate(id: number) {
     return this.http.patch(`${this.url}/${id}/deactivate`, {});
   }
+
+  update(id: number, dto: any) {
+    return this.http.patch(`${this.url}/${id}`, dto);
+  }
 }

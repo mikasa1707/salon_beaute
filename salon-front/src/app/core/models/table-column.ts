@@ -7,4 +7,6 @@ export interface TableColumn {
     label: string;
     value: any;
   }[];
+  badgeClass?: (row: any) => string;
+  show?: (row:any)=>boolean;
 }

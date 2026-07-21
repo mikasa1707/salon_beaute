@@ -12,13 +12,9 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 
 interface InventaireLigne {
   produitUniteId: number;
-
   produitNom: string;
-
   unite: string;
-
   stockTheorique: number;
-
   stockReel: number;
 }
 
@@ -32,16 +28,13 @@ interface InventaireLigne {
   templateUrl: './inventaire-form.html',
 })
 export class InventaireForm implements OnInit {
-  @Input()
-  showPicker = false;
+  @Input() showPicker = false;
+  @Input() inventaire: any | null = null;
 
-  @Output()
-  close = new EventEmitter<void>();
+  @Output() close = new EventEmitter<void>();
+  @Output() saved = new EventEmitter<void>();
 
-  @Output()
-  saved = new EventEmitter<void>();
-
-  reference = 'INVENTAIRE-'+ Date.now();
+  reference = 'INVENTAIRE-' + Date.now();
   note = '';
 
   /**
@@ -70,6 +63,9 @@ export class InventaireForm implements OnInit {
       multiple: true,
       labelField: 'label',
     };
+    if (this.inventaire) {
+      this.loadInventaire();
+    }
   }
 
   /**
@@ -128,9 +124,35 @@ export class InventaireForm implements OnInit {
       })),
     };
 
-    this.api.create(dto).subscribe(() => {
-      this.saved.emit();
-      this.close.emit();
-    });
+    if (this.inventaire) {
+      this.api.update(this.inventaire.id, dto).subscribe(() => {
+        this.saved.emit();
+        this.close.emit();
+      });
+    } else {
+      this.api.create(dto).subscribe(() => {
+        this.saved.emit();
+        this.close.emit();
+      });
+    }
+  }
+
+  loadInventaire() {
+    this.reference = this.inventaire.reference;
+    this.note = this.inventaire.note;
+
+    this.lignesCache = {};
+
+    for (const ligne of this.inventaire.lignes) {
+      this.lignesCache[ligne.produitUnite.id] = {
+        produitUniteId: ligne.produitUnite.id,
+        produitNom: ligne.produitUnite.produit.nom,
+        unite: ligne.produitUnite.nom,
+        stockTheorique: ligne.stockTheorique,
+        stockReel: ligne.stockReel,
+      };
+    }
+
+    this.refreshLignes();
   }
 }

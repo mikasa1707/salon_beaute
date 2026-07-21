@@ -77,7 +77,7 @@
                         {{ row.type }}
                       </span>
                     } @else {
-                      <span class="badge bg-primary fs-6 px-3 py-2">
+                      <span class="badge fs-6 px-3 py-2" [ngClass]="col.badgeClass ? col.badgeClass(row) : 'bg-primary'">
                         {{ getValue(row, col.field) }}
                       </span>
                     }
@@ -147,7 +147,7 @@
                       </button>
                     }
                     @if (canDelete) {
-                      <button class="btn btn-outline-danger" (click)="delete.emit(row.id)" title="Supprimer">
+                      <button class="btn btn-outline-danger" (click)="delete.emit(row)" title="Supprimer">
                         <i class="fa-solid fa-trash"></i>
                       </button>
                     }

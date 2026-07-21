@@ -1,5 +1,5 @@
 @if (showForm) {
-  <app-inventaire-form [showPicker]="showForm" (close)="showForm = false" (saved)="load()"></app-inventaire-form>
+  <app-inventaire-form [showPicker]="showForm" (close)="showForm = false" (saved)="load()" [inventaire]="selectedInventaire"></app-inventaire-form>
 } @else {
   <app-page-header title="Inventaires" subtitle="Gestion des inventaires du salon" icon="fa-solid fa-clipboard-list">
     <div class="d-flex gap-2 flex-wrap">
@@ -16,7 +16,21 @@
     </div>
   </app-page-header>
 
-  <app-data-table [columns]="columns" [data]="inventaires" [loading]="loading"></app-data-table>
+  <app-data-table
+    [columns]="columns"
+    [data]="inventaires"
+    [loading]="loading"
+    [page]="page"
+    [totalPages]="totalPages"
+    [showViewButton]="true"
+    (pageChange)="changePage($event)"
+    (view)="view($event)"
+    (edit)="openEdit($event)"
+    (delete)="deactivate($event)"></app-data-table>
 
   <app-pagination [page]="page" [totalPages]="totalPages" (pageChange)="changePage($event)"></app-pagination>
+}
+
+@if (showDetails) {
+  <app-inventaire-detail [inventaire]="selectedInventaire" (close)="closeDetails()" (validated)="load()"></app-inventaire-detail>
 }

@@ -7,6 +7,7 @@ import {
   Query,
   Delete,
   Patch,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { InventairesService } from './inventaires.service';
@@ -34,6 +35,14 @@ export class InventairesController {
     return this.service.findOne(Number(id));
   }
 
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreateInventaireDto,
+  ) {
+    return this.service.update(id, dto);
+  }
+
   @Post()
   create(@Body() dto: CreateInventaireDto) {
     return this.service.create(dto);
@@ -44,7 +53,7 @@ export class InventairesController {
     return this.service.validate(Number(id));
   }
 
-  @Delete(':id')
+  @Patch(':id/deactivate')
   remove(@Param('id') id: number) {
     return this.service.deactivate(Number(id));
   }

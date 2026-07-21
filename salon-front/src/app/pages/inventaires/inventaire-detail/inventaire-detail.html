@@ -1,0 +1,92 @@
+<app-modal size="xl" [show]="true" title="Détail inventaire" (closed)="closeModal()">
+  <app-page-header title="Inventaire" subtitle="{{ inventaire.reference }}" icon="fa-solid fa-boxes-stacked"></app-page-header>
+
+  <!-- Résumé -->
+
+  <div class="row g-2 mb-3">
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h4>
+            {{ stats.total }}
+          </h4>
+
+          <small>Produits</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h4 class="text-warning">
+            {{ stats.ecarts }}
+          </h4>
+
+          <small>Écarts</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h4 class="text-danger">
+            {{ stats.perte }}
+          </h4>
+
+          <small>Pertes</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h4 class="text-success">
+            {{ stats.surplus }}
+          </h4>
+
+          <small>Surplus</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <span class="me-3">
+      <b>Référence :</b>
+      {{ inventaire.reference }}
+    </span>
+
+    <span class="me-3">
+      <b>Date :</b>
+      {{ inventaire.created_at | date: 'dd/MM/yyyy HH:mm' }}
+    </span>
+
+    @if (inventaire.valide) {
+      <span class="badge bg-success">Validé</span>
+    } @else {
+      <span class="badge bg-warning">En cours</span>
+    }
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [data]="lignesPage"
+    [loading]="false"
+    [page]="page"
+    [totalPages]="totalPages"
+    (pageChange)="changePage($event)"></app-data-table>
+
+  <app-pagination [page]="page" [totalPages]="totalPages" (pageChange)="changePage($event)"></app-pagination>
+
+  <div class="text-end mt-3">
+    @if (!inventaire.valide) {
+      <button class="btn btn-success" (click)="validate()">
+        <i class="fa-solid fa-check me-1"></i>
+        Valider inventaire
+      </button>
+    }
+  </div>
+</app-modal>

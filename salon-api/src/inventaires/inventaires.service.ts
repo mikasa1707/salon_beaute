@@ -31,6 +31,9 @@ export class InventairesService {
     @InjectRepository(InventaireLigne)
     private readonly ligneRepo: Repository<InventaireLigne>,
 
+    @InjectRepository(ProduitUnite)
+    private readonly uniteRepo: Repository<ProduitUnite>,
+
     private readonly dataSource: DataSource,
   ) {}
 
@@ -103,7 +106,7 @@ export class InventairesService {
       OR inventaire.reference LIKE :search
       OR inventaire.note LIKE :search
       OR produit.nom LIKE :search
-      OR produitUnite.code LIKE :search
+      OR produitUnite.code LIKE :search AND inventaire.actif = true
       `,
         {
           search: `%${search}%`,
@@ -279,5 +282,127 @@ export class InventairesService {
 
     inventaire.actif = false;
     return this.repo.save(inventaire);
+  }
+
+  async update(id: number, dto: CreateInventaireDto) {
+    const qr = this.dataSource.createQueryRunner();
+
+    await qr.connect();
+    await qr.startTransaction();
+
+    const manager = qr.manager;
+
+    try {
+      const inventaire = await manager.findOne(Inventaire, {
+        where: { id },
+        relations: {
+          lignes: {
+            produitUnite: true,
+          },
+        },
+        lock: {
+          mode: 'pessimistic_write',
+        },
+      });
+
+      if (!inventaire) {
+        throw new NotFoundException('Inventaire introuvable');
+      }
+
+      if (inventaire.valide) {
+        throw new BadRequestException(
+          'Impossible de modifier un inventaire validé',
+        );
+      }
+
+      inventaire.reference = dto.reference;
+      inventaire.note = dto.note;
+
+      const anciennesLignes = inventaire.lignes;
+      const nouvellesLignes = dto.lignes;
+
+      // Index des anciennes lignes
+      const anciennesMap = new Map(
+        anciennesLignes.map((l) => [l.produitUnite.id, l]),
+      );
+
+      // ==========================
+      // AJOUT / MODIFICATION
+      // ==========================
+
+      for (const item of nouvellesLignes) {
+        const unite = await manager.findOne(ProduitUnite, {
+          where: {
+            id: item.produitUniteId,
+          },
+        });
+
+        if (!unite) {
+          throw new NotFoundException(
+            `Produit unité ${item.produitUniteId} introuvable`,
+          );
+        }
+
+        const stockReel = Number(item.stockReel);
+        const stockTheo = Number(unite.stock);
+        const ecart = stockReel - stockTheo;
+
+        const ligneExistante = anciennesMap.get(item.produitUniteId);
+
+        if (ligneExistante) {
+          ligneExistante.stockTheorique = stockTheo;
+          ligneExistante.stockReel = stockReel;
+          ligneExistante.ecart = ecart;
+
+          await manager.save(InventaireLigne, ligneExistante);
+
+          anciennesMap.delete(item.produitUniteId);
+        } else {
+          const ligne = manager.create(InventaireLigne, {
+            inventaire,
+            produitUnite: unite,
+            stockTheorique: stockTheo,
+            stockReel,
+            ecart,
+          });
+
+          await manager.save(InventaireLigne, ligne);
+        }
+      }
+
+      // ==========================
+      // SUPPRESSION
+      // ==========================
+
+      for (const ligne of anciennesMap.values()) {
+        await manager.remove(InventaireLigne, ligne);
+      }
+
+      // ==========================
+      // RECALCUL
+      // ==========================
+
+      // inventaire.nbProduits = nouvellesLignes.length;
+      // inventaire.nbEcarts = await manager.count(InventaireLigne, {
+      //   where: {
+      //     inventaire: {
+      //       id: inventaire.id,
+      //     },
+      //   },
+      // });
+
+      await manager.save(Inventaire, inventaire);
+      await qr.commitTransaction();
+
+      return {
+        success: true,
+        message: 'Inventaire mis à jour',
+      };
+    } catch (error) {
+      await qr.rollbackTransaction();
+      throw error;
+    } finally {
+      await qr.release();
+    }
   }
 }
