@@ -41,7 +41,7 @@ export class StockList implements OnInit, OnDestroy {
   // STOCK ENTRY
   // ============================
 
-  reference = '';
+  reference = 'ENTREE-'+ Date.now();
   note = '';
   showConfirm = false;
 

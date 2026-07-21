@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
+import { DataSource, ILike, Repository } from 'typeorm';
 
 import { PrestationProduit } from './entities/prestations-produits.entity';
 import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
@@ -15,7 +15,6 @@ import { TransferPrestationProduitDto } from './dto/transfer-prestation-produit.
 import { UpdatePrestationProduitDto } from './dto/update-prestation-produit.dto';
 import { StockMovement, StockMovementType } from 'src/stocks/entities/stock-movements.entity';
 import { StockConsumptionService } from 'src/stocks/stock-consumption.service';
-import { DataSource } from 'typeorm/browser';
 
 @Injectable()
 export class PrestationProduitsService {

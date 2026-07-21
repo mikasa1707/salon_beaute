@@ -135,20 +135,31 @@ export class StockConsumptionService {
     });
   }
 
-  async findAll(page = 1, limit = 10, search = '') {
+  async findAll(dto: StockMovementFilterDto) {
+    const { page = 1, limit = 10, search = '', produitUniteId } = dto;
+
     const qb = this.repo
       .createQueryBuilder('movement')
       .leftJoinAndSelect('movement.produitUnite', 'unite')
       .leftJoinAndSelect('unite.produit', 'produit')
       .orderBy('movement.created_at', 'DESC');
 
+    // Filtre produit unité
+    if (produitUniteId) {
+      qb.andWhere('unite.id = :produitUniteId', {
+        produitUniteId,
+      });
+    }
+
+    // Recherche
     if (search.trim()) {
       qb.andWhere(
         `
-      produit.nom LIKE :search
-      OR unite.nom LIKE :search
-      OR unite.code LIKE :search
-      OR movement.reference LIKE :search
+        produit.nom LIKE :search
+        OR unite.nom LIKE :search
+        OR unite.code LIKE :search
+        OR movement.reference LIKE :search
+        OR movement.note LIKE :search
       `,
         {
           search: `%${search}%`,
@@ -161,19 +172,19 @@ export class StockConsumptionService {
       .take(limit)
       .getManyAndCount();
 
-    const mouvements = data.map((movement) => ({
-      ...movement,
-      hasLowStockUnit:
-        Number(movement.produitUnite?.stock ?? 0) <=
-        Number(movement.produitUnite?.stock_minimum ?? 0),
-      stockActuel: Number(movement.produitUnite?.stock ?? 0),
-      produitNom: movement.produitUnite?.produit?.nom,
-      uniteNom: movement.produitUnite?.nom,
-      code: movement.produitUnite?.code,
-    }));
-
     return {
-      data: mouvements,
+      data: data.map((movement) => ({
+        ...movement,
+
+        produitNom: movement.produitUnite?.produit?.nom ?? '',
+        uniteNom: movement.produitUnite?.nom ?? '',
+        code: movement.produitUnite?.code ?? '',
+        stockActuel: Number(movement.produitUnite?.stock ?? 0),
+        hasLowStockUnit:
+          Number(movement.produitUnite?.stock ?? 0) <=
+          Number(movement.produitUnite?.stock_minimum ?? 0),
+      })),
+
       total,
       page,
       limit,

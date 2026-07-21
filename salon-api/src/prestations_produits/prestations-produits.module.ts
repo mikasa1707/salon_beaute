@@ -7,6 +7,7 @@ import { Prestation } from 'src/prestations/entities/prestation.entity';
 import { PrestationProduitsController } from './prestations-produits.controller';
 import { PrestationProduitsService } from './prestations_produits.service';
 import { PrestationRecette } from 'src/prestations-recettes/entities/prestations-recette.entity';
+import { StockConsumptionModule } from 'src/stocks/stock-consumption.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PrestationRecette } from 'src/prestations-recettes/entities/prestations
       Prestation,
       PrestationRecette,
     ]),
+    StockConsumptionModule
   ],
   controllers: [PrestationProduitsController],
   providers: [PrestationProduitsService],
