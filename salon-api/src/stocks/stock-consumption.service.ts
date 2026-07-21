@@ -18,6 +18,7 @@ import { StockMovementFilterDto } from './dto/stock-movement-filter.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateStockEntryDto } from './dto/create-stock-entry.dto';
 import { AuditLogService } from 'src/audit-log/audit-log.service';
+import { TransferPrestationProduitDto } from 'src/prestations_produits/dto/transfer-prestation-produit.dto';
 
 @Injectable()
 export class StockConsumptionService {
@@ -263,6 +264,70 @@ export class StockConsumptionService {
       await qr.rollbackTransaction();
 
       throw e;
+    } finally {
+      await qr.release();
+    }
+  }
+
+  async transfer(dto: TransferPrestationProduitDto) {
+    const qr = this.dataSource.createQueryRunner();
+
+    await qr.connect();
+    await qr.startTransaction();
+
+    const manager = qr.manager;
+
+    try {
+      const unite = await manager.findOne(ProduitUnite, {
+        where: {
+          id: dto.produitUniteId,
+        },
+        relations: {
+          produit: true,
+        },
+        lock: {
+          mode: 'pessimistic_write',
+        },
+      });
+
+      if (!unite) {
+        throw new NotFoundException('Produit unité introuvable');
+      }
+
+      if (unite.stock < dto.quantite) {
+        throw new ConflictException(`Stock insuffisant ${unite.nom}`);
+      }
+
+      // =====================
+      // DIMINUTION STOCK
+      // =====================
+
+      unite.stock -= dto.quantite;
+
+      await manager.save(ProduitUnite, unite);
+
+      // =====================
+      // STOCK MOVEMENT
+      // =====================
+      // console.log(StockMovementType, unite)
+
+      // await manager.save(StockMovement, {
+      //   produitUnite: unite,
+      //   type: StockMovementType.TRANSFERT,
+      //   quantite: dto.quantite,
+      //   reference: `TRANSFERT-${Date.now()}`,
+      //   note: 'Transfert',
+      // });
+
+      await qr.commitTransaction();
+
+      return {
+        success: true,
+        message: 'Transfert stock effectué',
+      };
+    } catch (error) {
+      await qr.rollbackTransaction();
+      throw error;
     } finally {
       await qr.release();
     }

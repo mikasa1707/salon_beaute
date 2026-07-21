@@ -9,11 +9,13 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { DataTableComponent } from '../../../shared/components/data-table/data-table';
 import { ToastService } from '../../../core/services/toast';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog';
+import { PaginationComponent } from "../../../shared/components/pagination/pagination";
+import { TableColumn } from '../../../core/models/table-column';
 
 @Component({
   selector: 'app-transfert-produit',
   standalone: true,
-  imports: [CommonModule, FormsModule, EntityPicker, PageHeaderComponent, DataTableComponent],
+  imports: [CommonModule, FormsModule, EntityPicker, PageHeaderComponent, DataTableComponent, PaginationComponent],
   templateUrl: './transfert-produit.html',
 })
 export class TransfertProduit implements OnInit {
@@ -23,21 +25,22 @@ export class TransfertProduit implements OnInit {
   quantite = 1;
   selectedUniteList: any[] = [];
   unitePickerConfig!: EntityPickerConfig;
+  loading = false;
 
   page = 1;
-  limit = 5;
+  limit = 10;
   total = 0;
   totalPages = 0;
 
   pagePP = 1;
-  limitPP = 5;
+  limitPP = 10;
   totalPP = 0;
   totalPagesPP = 0;
 
   showModal = false;
   selected?: any;
 
-  columns: any = [
+  columns: TableColumn[] = [
     {
       field: 'label',
       label: 'Produit',
@@ -53,7 +56,7 @@ export class TransfertProduit implements OnInit {
     },
   ];
 
-  columnsPP: any = [
+  columnsPP: TableColumn[] = [
     {
       field: 'produit.nom',
       label: 'Produits',

@@ -15,7 +15,8 @@ import { Personnel } from 'src/personnels/entities/personnel.entity';
 export enum StockMovementType {
   IN = 'IN',
   OUT = 'OUT',
-  ADJUST = 'ADJUST',
+  ADJUST = 'ADJUST', 
+  TRANSFERT = 'TRANSFERT',
 }
 
 @Entity('stock_movements')

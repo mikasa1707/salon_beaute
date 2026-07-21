@@ -13,6 +13,9 @@ import { Produit } from 'src/produits/entities/produit.entity';
 import { PrestationRecette } from '../prestations-recettes/entities/prestations-recette.entity';
 import { TransferPrestationProduitDto } from './dto/transfer-prestation-produit.dto';
 import { UpdatePrestationProduitDto } from './dto/update-prestation-produit.dto';
+import { StockMovement, StockMovementType } from 'src/stocks/entities/stock-movements.entity';
+import { StockConsumptionService } from 'src/stocks/stock-consumption.service';
+import { DataSource } from 'typeorm/browser';
 
 @Injectable()
 export class PrestationProduitsService {
@@ -25,8 +28,12 @@ export class PrestationProduitsService {
 
     @InjectRepository(Produit)
     private readonly produitRepo: Repository<Produit>,
+
     @InjectRepository(PrestationRecette)
     private readonly recetteRepo: Repository<PrestationRecette>,
+
+    private readonly stockConsumptionService: StockConsumptionService,
+    private dataSource: DataSource,
   ) {}
 
   /**
@@ -121,59 +128,102 @@ export class PrestationProduitsService {
    *
    */
   async transfer(dto: TransferPrestationProduitDto) {
-    const unite = await this.uniteRepo.findOne({
-      where: {
-        id: dto.produitUniteId,
-      },
-      relations: {
-        produit: true,
-      },
-    });
+    const qr = this.dataSource.createQueryRunner();
 
-    if (!unite) {
-      throw new NotFoundException('Produit unité introuvable');
-    }
+    await qr.connect();
+    await qr.startTransaction();
 
-    if (unite.stock < dto.quantite) {
-      throw new BadRequestException('Stock insuffisant');
-    }
+    const manager = qr.manager;
 
-    // Décrément stock physique
-    unite.stock -= dto.quantite;
-    await this.uniteRepo.save(unite);
-
-    // Conversion vers unité consommable
-    const quantiteConvertie = dto.quantite * Number(unite.conversion);
-
-    // Cherche une ligne existante
-    const existant = await this.repo.findOne({
-      where: {
-        produit: {
-          id: unite.produit.id,
+    try {
+      const unite = await manager.findOne(ProduitUnite, {
+        where: {
+          id: dto.produitUniteId,
         },
-        unite: {
-          id: unite.id,
+        relations: {
+          produit: true,
         },
-      },
-    });
+        lock: {
+          mode: 'pessimistic_write',
+        },
+      });
 
-    if (existant) {
-      existant.quantite = Number(existant.quantite) + quantiteConvertie;
-      return this.repo.save(existant);
+      if (!unite) {
+        throw new NotFoundException('Produit unité introuvable');
+      }
+
+      if (unite.stock < dto.quantite) {
+        throw new BadRequestException('Stock insuffisant');
+      }
+
+      // ===================================
+      // STOCK PHYSIQUE + STOCK MOVEMENT
+      // ===================================
+
+      // await this.stockConsumptionService.transfer(dto);
+
+      // ===================================
+      // CONVERSION EN UNITE CONSOMMATION
+      // ===================================
+
+      const quantiteConvertie = dto.quantite * Number(unite.conversion);
+
+      // Recherche stock prestation existant
+
+      const existant = await manager.findOne(PrestationProduit, {
+        where: {
+          produit: {
+            id: unite.produit.id,
+          },
+          unite: {
+            id: unite.id,
+          },
+        },
+        lock: {
+          mode: 'pessimistic_write',
+        },
+      });
+
+      if (existant) {
+        existant.quantite = Number(existant.quantite) + quantiteConvertie;
+
+        await manager.save(PrestationProduit, existant);
+      } else {
+        const data = manager.create(PrestationProduit, {
+          produit: {
+            id: unite.produit.id,
+          },
+
+          unite: {
+            id: unite.id,
+          },
+
+          quantite: quantiteConvertie,
+        });
+
+        await manager.save(PrestationProduit, data);
+      }
+
+      await manager.save(StockMovement, {
+        produitUnite: unite,
+        type: StockMovementType.TRANSFERT,
+        quantite: dto.quantite,
+        reference: `TRANSFERT-${Date.now()}`,
+        note: 'Transfert pour prestation',
+      });
+
+      await qr.commitTransaction();
+
+      return {
+        success: true,
+        message: 'Transfert effectué',
+      };
+    } catch (error) {
+      await qr.rollbackTransaction();
+      throw error;
+    } finally {
+      await qr.release();
     }
-
-    // Création nouvelle ligne
-    const data = this.repo.create({
-      produit: {
-        id: unite.produit.id,
-      },
-      unite: {
-        id: unite.id,
-      },
-      quantite: quantiteConvertie,
-    });
-
-    return this.repo.save(data);
   }
   /**
    * Récupérer recette d'une prestation
