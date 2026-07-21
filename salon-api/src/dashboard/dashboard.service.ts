@@ -12,6 +12,9 @@ import { StockMovement } from 'src/stocks/entities/stock-movements.entity';
 import { CashRegister } from 'src/cash-register/entities/cash_registers.entity';
 
 import { DashboardFilterDto } from './dto/dashboard-filter.dto';
+import { Personnel } from 'src/personnels/entities/personnel.entity';
+import { Prestation } from 'src/prestations/entities/prestation.entity';
+import { VenteProduit } from 'src/vente-produits/entities/vente-produit.entity';
 
 @Injectable()
 export class DashboardService {
@@ -33,6 +36,15 @@ export class DashboardService {
 
     @InjectRepository(CashRegister)
     private caisseRepo: Repository<CashRegister>,
+
+    @InjectRepository(Personnel)
+    private personnelRepo: Repository<Personnel>,
+
+    @InjectRepository(Prestation)
+    private prestationRepo: Repository<Prestation>,
+
+    @InjectRepository(VenteProduit)
+    private venteProduitRepo: Repository<VenteProduit>,
   ) {}
 
   async getDashboard(dto: DashboardFilterDto) {
@@ -66,6 +78,74 @@ export class DashboardService {
     });
 
     const panierMoyen = ventes.length ? caJour / ventes.length : 0;
+
+    // =========================
+    // TOP PERSONNEL MOIS
+    // =========================
+
+    const debutMois = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const topPersonnel = await this.reservationRepo
+      .createQueryBuilder('reservation')
+      .leftJoin('reservation.personnels', 'reservationPersonnel')
+      .leftJoin('reservationPersonnel.personnel', 'personnel')
+      .select('personnel.id', 'id')
+      .addSelect('personnel.nom', 'nom')
+      .addSelect('personnel.prenom', 'prenom')
+      .addSelect('COUNT(reservation.id)', 'total')
+      .where('reservation.date_debut BETWEEN :debut AND :fin', {
+        debut: debutMois,
+        fin: tomorrow,
+      })
+      .groupBy('personnel.id')
+      .orderBy('total', 'DESC')
+      .limit(3)
+      .getRawMany();
+
+    // =========================
+    // PRODUIT PHARE ANNEE
+    // =========================
+
+    const debutAnnee = new Date(today.getFullYear(), 0, 1);
+
+    const topProduit = await this.venteProduitRepo
+      .createQueryBuilder('vp')
+      .leftJoin('vp.vente', 'vente')
+      .leftJoin('vp.produitUnite', 'pu')
+      .leftJoin('pu.produit', 'produit')
+      .select('produit.id', 'id')
+      .addSelect('produit.nom', 'nom')
+      .addSelect('SUM(vp.quantite)', 'quantite')
+      .addSelect('SUM(vp.total)', 'ca')
+      .where('vente.created_at BETWEEN :debut AND :fin', {
+        debut: debutAnnee,
+        fin: Date.now(),
+      })
+
+      .groupBy('produit.id')
+      .orderBy('quantite', 'DESC')
+      .limit(1)
+      .getRawOne();
+
+    // =========================
+    // PRESTATION PHARE
+    // =========================
+
+    const topPrestation = await this.reservationRepo
+      .createQueryBuilder('reservation')
+      .leftJoin('reservation.prestations', 'rp')
+      .leftJoin('rp.prestation', 'prestation')
+      .select('prestation.id', 'id')
+      .addSelect('prestation.nom', 'nom')
+      .addSelect('COUNT(reservation.id)', 'total')
+      .where('reservation.date_debut BETWEEN :debutAnnee AND :fin', {
+        debutAnnee,
+        fin: tomorrow,
+      })
+      .groupBy('prestation.id')
+      .orderBy('total', 'DESC')
+      .limit(1)
+      .getRawOne();
 
     // =========================
     // EVOLUTION CA 7 jours
@@ -160,10 +240,19 @@ export class DashboardService {
       },
 
       caEvolution,
-      prestations: [],
-      personnels: [],
+
+      personnels: topPersonnel,
+
+      prestations: {
+        top: topPrestation,
+      },
+
+      topProduit,
+
       stockAlerts: alerts,
+
       mouvements,
+
       caisse: {
         ouverte: !!caisse,
         solde: Number(

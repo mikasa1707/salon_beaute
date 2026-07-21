@@ -12,6 +12,8 @@ import { Personnel } from 'src/personnels/entities/personnel.entity';
 import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
 import { StockMovement } from 'src/stocks/entities/stock-movements.entity';
 import { CashRegister } from 'src/cash-register/entities/cash_registers.entity';
+import { Prestation } from 'src/prestations/entities/prestation.entity';
+import { VenteProduit } from 'src/vente-produits/entities/vente-produit.entity';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { CashRegister } from 'src/cash-register/entities/cash_registers.entity';
       ProduitUnite,
       StockMovement,
       CashRegister,
+      Prestation,
+      VenteProduit
     ]),
   ],
 
