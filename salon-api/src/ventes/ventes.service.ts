@@ -38,10 +38,11 @@ export class VentesService {
       .leftJoinAndSelect('vente.facturation', 'facturation')
       .leftJoinAndSelect('facturation.reservation', 'reservation')
       .leftJoinAndSelect('reservation.client', 'client')
-      .leftJoinAndSelect('vente.lignes', 'ligne')
+      .leftJoinAndSelect('vente.produits', 'ligne')
       .leftJoinAndSelect('ligne.produitUnite', 'produitUnite')
       .leftJoinAndSelect('ligne.prestation', 'prestation')
       .leftJoinAndSelect('vente.paiements', 'paiement')
+
       .orderBy('vente.created_at', 'DESC');
 
     if (search.trim()) {
@@ -57,29 +58,37 @@ export class VentesService {
       );
     }
 
-    const [data, total] = await qb
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
+    const all = await qb.getMany();
+
+    const mapped = all.map((v) => {
+      const montantPaye =
+        v.paiements?.reduce((sum, p) => sum + Number(p.montant), 0) ?? 0;
+
+      const total = Number(v.total);
+
+      return {
+        ...v,
+        client: v.facturation?.reservation?.client ?? null,
+        montantPaye,
+        reste: total - montantPaye,
+        statutPaiement:
+          montantPaye >= total
+            ? 'PAYE'
+            : montantPaye > 0
+              ? 'PARTIEL'
+              : 'NON_PAYE',
+      };
+    });
+
+    const filtered = statutPaiement
+      ? mapped.filter((v) => v.statutPaiement === statutPaiement)
+      : mapped;
+
+    const total = filtered.length;
+    const data = filtered.slice((page - 1) * limit, page * limit);
+
     return {
-      data: data.map((v) => {
-        const montantPaye =
-          v.paiements?.reduce((sum, p) => sum + Number(p.montant), 0) ?? 0;
-
-        return {
-          ...v,
-          client: v.facturation?.reservation?.client ?? null,
-          montantPaye,
-          reste: Number(v.total) - montantPaye,
-          statutPaiement:
-            montantPaye >= Number(v.total)
-              ? 'PAYE'
-              : montantPaye > 0
-                ? 'PARTIEL'
-                : 'NON_PAYE',
-        };
-      }),
-
+      data,
       total,
       page,
       limit,

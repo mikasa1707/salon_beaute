@@ -10,7 +10,7 @@ import {
 import { VentesService } from './ventes.service';
 
 @Controller('ventes')
-export class VenteController {
+export class VentesController {
   constructor(private readonly service: VentesService) {}
 
   @Get()

@@ -1,4 +1,16 @@
-<app-page-header title="Historique des ventes" icon="fa fa-cart-shopping"></app-page-header>
+<app-page-header title="Historique des ventes" subtitle="Gestion des ventes du salon" icon="fa-solid fa-cart-shopping">
+  <div class="d-flex gap-2 flex-wrap">
+    <!-- Recherche -->
+    <div class="search-wrapper">
+      <app-search-bar (searchChange)="search($event)"></app-search-bar>
+    </div>
+
+    <!-- Ajouter -->
+    <button class="btn btn-primary d-flex align-items-center gap-2 px-3" type="button" (click)="openCaisse()">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </div>
+</app-page-header>
 
 <div class="card shadow-sm">
   <div class="card-body">
@@ -45,6 +57,14 @@
       (pageChange)="changePage($event)"
       (view)="view($event)"
       (delete)="cancel($event)"></app-data-table>
+
+    <app-pagination
+      [page]="page"
+      [totalPages]="totalPages"
+      [total]="total"
+      [limit]="limit"
+      (pageChange)="changePage($event)"
+      (limitChange)="changeLimit($event)"></app-pagination>
   </div>
 </div>
 

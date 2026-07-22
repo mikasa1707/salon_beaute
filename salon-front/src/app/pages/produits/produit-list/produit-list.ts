@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Produit } from '../../../core/models/produit';
 import { TableColumn } from '../../../core/models/table-column';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
@@ -20,7 +20,7 @@ import { ProduitUnites } from "../produit-unites/produit-unites";
   templateUrl: './produit-list.html',
   styleUrl: './produit-list.scss',
 })
-export class ProduitList {
+export class ProduitList implements OnInit, OnDestroy {
   produits: Produit[] = [];
   page = 1;
   limit = 10;

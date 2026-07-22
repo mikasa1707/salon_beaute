@@ -8,11 +8,15 @@ import { VenteDetails } from '../vente-details/vente-details';
 import { VentesApi } from '../../../core/services/vente-api';
 import { Vente } from '../../../core/models/vente';
 import { TableColumn } from '../../../core/models/table-column';
+import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar';
+import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
+import { Router } from '@angular/router';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 
 @Component({
   selector: 'app-vente-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataTableComponent, PageHeaderComponent, VenteDetails],
+  imports: [CommonModule, FormsModule, DataTableComponent, PageHeaderComponent, VenteDetails, SearchBarComponent, PaginationComponent],
   templateUrl: './vente-list.html',
 })
 export class VenteList implements OnInit {
@@ -20,8 +24,10 @@ export class VenteList implements OnInit {
   loading = false;
   page = 1;
   limit = 10;
+  total = 0;
   totalPages = 0;
-  search = '';
+  searchValue = '';
+
   statutPaiement = '';
   selected: any = null;
   showDetail = false;
@@ -78,25 +84,40 @@ export class VenteList implements OnInit {
     {
       field: 'created_at',
       label: 'Date',
-
-      type: 'date',
+      type: 'datehour',
     },
   ];
 
+  private searchSubject = new Subject<string>();
+  private searchSubscription!: Subscription;
+
   constructor(
     private api: VentesApi,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit() {
+    this.searchSubscription = this.searchSubject.pipe(debounceTime(600), distinctUntilChanged()).subscribe(value => {
+      this.searchValue = value;
+      this.page = 1;
+      this.load(value);
+    });
     this.load();
   }
 
-  load() {
+  ngOnDestroy(): void {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
+  }
+
+  load(_search = '') {
     this.loading = true;
-    this.api.findAll(this.page, this.limit, this.search, this.statutPaiement).subscribe({
+    this.api.findAll(this.page, this.limit, _search, this.statutPaiement).subscribe({
       next: res => {
         this.ventes = res.data;
+        this.total = res.total;
         this.totalPages = res.totalPages;
         this.loading = false;
         this.cdr.detectChanges();
@@ -108,9 +129,20 @@ export class VenteList implements OnInit {
     });
   }
 
+  search(value: string) {
+    const text = value.toLowerCase().trim();
+    this.searchSubject.next(text);
+  }
+
   changePage(p: number) {
     this.page = p;
 
+    this.load();
+  }
+
+  changeLimit(newLimit: number) {
+    this.limit = newLimit;
+    this.page = 1; // 💡 Sécurité : On revient à la page 1 si la taille d'affichage change
     this.load();
   }
 
@@ -146,5 +178,9 @@ export class VenteList implements OnInit {
     this.api.cancel(item.id).subscribe(() => {
       this.load();
     });
+  }
+
+  openCaisse() {
+    this.router.navigateByUrl('/caisse');
   }
 }
