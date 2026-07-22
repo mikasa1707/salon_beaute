@@ -49,7 +49,11 @@ export class PersonnelsService {
         nom: 'ASC',
       },
     });
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const personnel = data.map((personnel) => ({
+      ...personnel,
+      nomComplet: `${personnel.nom} ${personnel.prenom}`,
+    }))
+    return { data: personnel, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: number) {

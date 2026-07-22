@@ -15,6 +15,9 @@ import { CashRegister } from 'src/cash-register/entities/cash_registers.entity';
 import { Personnel } from 'src/personnels/entities/personnel.entity';
 import { Prestation } from 'src/prestations/entities/prestation.entity';
 import { VenteProduit } from 'src/vente-produits/entities/vente-produit.entity';
+
+import { MoreThanOrEqual, LessThanOrEqual, In } from 'typeorm';
+import { ReservationStatut } from 'src/reservations/entities/reservation.entity';
 import {
   CaEvolutionDto,
   DashboardResponseDto,
@@ -277,6 +280,14 @@ export class DashboardService {
         id: 'DESC',
       },
     });
+
+    // =========================
+    // RESERVATION
+    // =========================
+
+    const currentReservations = await this.getCurrentReservations();
+    const upcomingReservations = await this.getUpcomingReservations();
+
     return {
       kpi: {
         caJour,
@@ -287,17 +298,11 @@ export class DashboardService {
       },
 
       caEvolution,
-
       personnels: topPersonnel,
-
       prestations: topPrestation ?? null,
-
       topProduit: topProduit ?? null,
-
       stockAlerts: alerts,
-
       mouvements,
-
       caisse: {
         ouverte: !!caisse,
         solde:
@@ -305,6 +310,101 @@ export class DashboardService {
           Number(caisse?.openingBalance ?? 0) -
           Number(caisse?.cashout ?? 0),
       },
+      currentReservations,
+      upcomingReservations,
     };
+  }
+
+  async getCurrentReservations() {
+    const now = new Date();
+
+    const reservations = await this.reservationRepo.find({
+      relations: {
+        client: true,
+        personnels: {
+          personnel: true,
+        },
+        prestations: {
+          prestation: true,
+        },
+      },
+      where: {
+        statut: In([
+          ReservationStatut.CONFIRMEE,
+          ReservationStatut.ARRIVEE,
+          ReservationStatut.EN_COURS,
+        ]),
+        date_debut: LessThanOrEqual(now),
+        date_fin_prevue: MoreThanOrEqual(now),
+      },
+      order: {
+        date_debut: 'ASC',
+      },
+    });
+
+    return reservations.map((r) => ({
+      id: r.id,
+      statut: r.statut,
+      date: r.date_debut.toISOString().substring(0, 10),
+      heureDebut: r.date_debut.toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      client:
+        `${r.client.nom ?? ''} ${r.client.prenom ?? ''}`.trim() ||
+        `Client #${r.client.id}`,
+      personnel: r.personnels.map((x) => x.personnel.nom).join(', '),
+      prestations: r.prestations.map((x) => x.prestation.nom),
+    }));
+  }
+
+  async getUpcomingReservations() {
+    const now = new Date();
+
+    const end = new Date();
+    end.setDate(end.getDate() + 7);
+
+    const reservations = await this.reservationRepo.find({
+      relations: {
+        client: true,
+        personnels: {
+          personnel: true,
+        },
+        prestations: {
+          prestation: true,
+        },
+      },
+      where: {
+        statut: In([
+          ReservationStatut.EN_ATTENTE,
+          ReservationStatut.CONFIRMEE,
+          ReservationStatut.ARRIVEE,
+        ]),
+        date_debut: Between(now, end),
+      },
+      order: {
+        date_debut: 'ASC',
+      },
+    });
+
+    return reservations.map((r) => ({
+      id: r.id,
+      statut: r.statut,
+      date: r.date_debut.toISOString().substring(0, 10),
+      heureDebut: r.date_debut.toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      client:
+        `${r.client.nom ?? ''} ${r.client.prenom ?? ''}`.trim() ||
+        `Client #${r.client.id}`,
+      personnel: r.personnels
+        .filter((x) => x.personnel)
+        .map((x) => `${x.personnel.nom} ${x.personnel.prenom ?? ''}`.trim())
+        .join(', '),
+      prestations: r.prestations
+        .filter((x) => x.prestation)
+        .map((x) => x.prestation.nom),
+    }));
   }
 }

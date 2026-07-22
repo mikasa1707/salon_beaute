@@ -1,1 +1,53 @@
-<p>vente-list works!</p>
+<app-page-header title="Historique des ventes" icon="fa fa-cart-shopping"></app-page-header>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <div class="row mb-3">
+      <div class="col-md-12 text-end">
+        <div class="btn-group">
+          <button class="btn" [class.btn-primary]="statutPaiement == ''" [class.btn-outline-primary]="statutPaiement != ''" (click)="filterPaiement('')">
+            Tous
+          </button>
+
+          <button
+            class="btn"
+            [class.btn-success]="statutPaiement == 'PAYE'"
+            [class.btn-outline-success]="statutPaiement != 'PAYE'"
+            (click)="filterPaiement('PAYE')">
+            Payées
+          </button>
+
+          <button
+            class="btn"
+            [class.btn-warning]="statutPaiement == 'PARTIEL'"
+            [class.btn-outline-warning]="statutPaiement != 'PARTIEL'"
+            (click)="filterPaiement('PARTIEL')">
+            Partiel
+          </button>
+
+          <button
+            class="btn"
+            [class.btn-danger]="statutPaiement == 'NON_PAYE'"
+            [class.btn-outline-danger]="statutPaiement != 'NON_PAYE'"
+            (click)="filterPaiement('NON_PAYE')">
+            Non payées
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <app-data-table
+      [columns]="columns"
+      [data]="ventes"
+      [loading]="loading"
+      [page]="page"
+      [totalPages]="totalPages"
+      (pageChange)="changePage($event)"
+      (view)="view($event)"
+      (delete)="cancel($event)"></app-data-table>
+  </div>
+</div>
+
+<!-- @if (showDetail) {
+  <app-vente-details [vente]="selected" (closed)="closeDetail()"></app-vente-details>
+} -->

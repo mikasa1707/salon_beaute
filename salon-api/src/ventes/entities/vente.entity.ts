@@ -58,6 +58,15 @@ export class Vente {
   })
   total!: number;
 
+  
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
+  montantPaye!: number;
+
   @OneToMany(() => VenteProduit, (vp) => vp.vente, {
     cascade: true,
   })

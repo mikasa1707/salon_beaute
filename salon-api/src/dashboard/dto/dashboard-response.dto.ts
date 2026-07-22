@@ -33,11 +33,8 @@ export interface DashboardResponseDto {
   };
 
   caEvolution: CaEvolutionDto[];
-
   personnels: TopPersonnelDto[];
-
   prestations: TopPrestationDto[] | null;
-
   topProduit: TopProduitDto[] | null;
 
   stockAlerts: any[];
@@ -47,4 +44,7 @@ export interface DashboardResponseDto {
     ouverte: boolean;
     solde: number;
   };
+
+  currentReservations: any[];
+  upcomingReservations: any[];
 }

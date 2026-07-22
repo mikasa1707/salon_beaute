@@ -53,7 +53,7 @@ export class PersonnelForm implements OnChanges, OnInit {
     private cdr: ChangeDetectorRef,
   ) {
     this.form = this.fb.group({
-      nom: ['', Validators.required],
+      nom: [''],
       prenom: ['', Validators.required],
       telephone: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
@@ -116,7 +116,6 @@ export class PersonnelForm implements OnChanges, OnInit {
         key: 'nom',
         label: 'Nom',
         type: 'text',
-        required: true,
       },
       {
         key: 'prenom',

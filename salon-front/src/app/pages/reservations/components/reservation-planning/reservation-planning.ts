@@ -171,4 +171,8 @@ export class ReservationPlanning implements OnInit {
     this.changeReservationStatus(this.selectedReservation.id, ReservationStatut.TERMINEE, event);
     this.showConsumptionModal = false;
   }
+
+  goto() {
+    this.router.navigateByUrl('/reservations/new');
+  }
 }

@@ -1,5 +1,6 @@
 import { VenteProduit } from './vente-produit';
 import { Facturation } from './facturation';
+import { Reservation } from './reservation';
 
 export interface Vente {
   id: number;
@@ -20,4 +21,16 @@ export interface Vente {
   // Relations
   produits: VenteProduit[];
   facture?: Facturation;
+  reservation?: {
+    client?: {
+      id: number;
+      nom?: string;
+      prenom?: string;
+      telephone?: string;
+    };
+  };
+  paiements?: any[];
+  statutPaiement: StatutPaiement;
 }
+
+export type StatutPaiement = 'PAYE' | 'PARTIEL' | 'NON_PAYE';

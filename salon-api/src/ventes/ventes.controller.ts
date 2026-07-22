@@ -1,80 +1,51 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
   Param,
+  Query,
   Patch,
-  Delete,
-  UseGuards,
+  Body,
+  Post,
 } from '@nestjs/common';
-
 import { VentesService } from './ventes.service';
-import { CreateVenteDto } from './dto/create-vente.dto';
-import { UpdateVenteDto } from './dto/update-vente.dto';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { PersonnelRole } from 'src/personnels/entities/personnel.entity';
 
 @Controller('ventes')
-@UseGuards(JwtAuthGuard, RolesGuard)
-export class VentesController {
-  constructor(private readonly ventesService: VentesService) {}
-
-  @Post()
-  @Roles(
-    PersonnelRole.RECEPTION,
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-    PersonnelRole.COIFFEUR,
-    PersonnelRole.ESTHETICIEN,
-  )
-  create(@Body() dto: CreateVenteDto) {
-    return this.ventesService.create(dto);
-  }
+export class VenteController {
+  constructor(private readonly service: VentesService) {}
 
   @Get()
-  @Roles(
-    PersonnelRole.RECEPTION,
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-    PersonnelRole.COIFFEUR,
-    PersonnelRole.ESTHETICIEN,
-  )
-  findAll() {
-    return this.ventesService.findAll();
+  findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('search') search = '',
+    @Query('statutPaiement') statutPaiement = '',
+  ) {
+    return this.service.findAll(
+      Number(page),
+      Number(limit),
+      search,
+      statutPaiement,
+    );
   }
 
   @Get(':id')
-  @Roles(
-    PersonnelRole.RECEPTION,
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-    PersonnelRole.COIFFEUR,
-    PersonnelRole.ESTHETICIEN,
-  )
-  findOne(@Param('id') id: string) {
-    return this.ventesService.findOne(+id);
+  findOne(@Param('id') id: number) {
+    return this.service.findOne(+id);
   }
 
-  @Patch(':id')
-  @Roles(
-    PersonnelRole.RECEPTION,
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-  )
-  update(@Param('id') id: string, @Body() dto: UpdateVenteDto) {
-    return this.ventesService.update(+id, dto);
+  @Patch(':id/annuler')
+  cancel(@Param('id') id: number) {
+    return this.service.cancelVente(+id);
   }
 
-  @Delete(':id')
-  @Roles(
-    PersonnelRole.RECEPTION,
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-  )
-  remove(@Param('id') id: string) {
-    return this.ventesService.remove(+id);
+  @Patch(':id/paiement')
+  updatePaiement(
+    @Param('id') id: number,
+    @Body()
+    dto: {
+      montant: number;
+    },
+  ) {
+    return this.service.updatePaiement(+id, dto.montant);
   }
 }

@@ -3,7 +3,11 @@
 
   <div class="row g-3 mb-4">
     <div class="col-md-3">
-      <app-kpi-card title="CA aujourd'hui" [value]="dashboard?.kpi.caJour | currency: 'Ar' : 'symbol' : '1.0-0'" icon="fa fa-money-bill" color="secondary"></app-kpi-card>
+      <app-kpi-card
+        title="CA aujourd'hui"
+        [value]="dashboard?.kpi.caJour | currency: 'Ar' : 'symbol' : '1.0-0'"
+        icon="fa fa-money-bill"
+        color="secondary"></app-kpi-card>
     </div>
 
     <div class="col-md-2">
@@ -17,10 +21,20 @@
     <div class="col-md-2">
       <app-kpi-card title="Clients" [value]="dashboard?.kpi.clients" icon="fa fa-users" color="info"></app-kpi-card>
     </div>
-    
+
     <div class="col-md-3">
-      <app-kpi-card title="Caisse" [value]="dashboard?.caisse.solde | currency: 'Ar' : 'symbol' : '1.0-0'" icon="fa fa-cash-register" [color]="dashboard?.caisse.ouverte ? 'success' : 'danger'"></app-kpi-card>
+      <app-kpi-card
+        title="Caisse"
+        [value]="dashboard?.caisse.solde | currency: 'Ar' : 'symbol' : '1.0-0'"
+        icon="fa fa-cash-register"
+        [color]="dashboard?.caisse.ouverte ? 'success' : 'danger'"></app-kpi-card>
     </div>
+  </div>
+
+  <div class="row g-3">
+    <app-reservation-table title="Réservations en cours" [reservations]="dashboard?.currentReservations ?? []" />
+
+    <app-reservation-table title="Prochains rendez-vous (7 jours)" [reservations]="dashboard?.upcomingReservations ?? []" />
   </div>
 
   <div class="row g-3">
@@ -30,11 +44,11 @@
 
     <div class="col-lg-4">
       <!-- <app-caisse-card [data]="dashboard?.caisse"></app-caisse-card> -->
-      <app-stock-alert [items]="dashboard.stockAlerts" (viewAll)="openStockAlertModal()"></app-stock-alert>
+      <app-stock-alert [items]="dashboard?.stockAlerts ?? []" (viewAll)="openStockAlertModal()"></app-stock-alert>
 
       <app-stock-alert-modal
         [show]="showStockAlertModal"
-        [items]="dashboard.stockAlerts"
+        [items]="dashboard?.stockAlerts ?? []"
         (closed)="closeStockAlertModal()"
         (openStock)="goStock($event)"></app-stock-alert-modal>
     </div>

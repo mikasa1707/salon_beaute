@@ -33,7 +33,11 @@ export class ClientsService {
         nom: 'ASC',
       },
     });
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const clients = data.map((client) => ({
+      ...client,
+      nomComplet: `${client.nom} ${client.prenom}`,
+    }))
+    return { data: clients, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: number) {

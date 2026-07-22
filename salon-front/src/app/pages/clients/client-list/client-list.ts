@@ -31,8 +31,8 @@ export class ClientList implements OnInit {
   selected?: Client;
 
   columns = [
-    { field: 'nom', label: 'Nom' },
-    { field: 'prenom', label: 'Prénom' },
+    { field: 'genre', label: '' },
+    { field: 'nomComplet', label: 'Nom Prénom' },
     { field: 'telephone', label: 'Téléphone' },
     { field: 'email', label: 'Email' },
   ];

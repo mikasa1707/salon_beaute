@@ -30,19 +30,104 @@ export class VentesService {
     return await this.repo.save(_data);
   }
 
-  async findAll() {
-    return await this.repo.find();
+  async findAll(page = 1, limit = 10, search = '', statutPaiement = '') {
+    const qb = this.repo
+
+      .createQueryBuilder('vente')
+
+      .leftJoinAndSelect('vente.facturation', 'facturation')
+      .leftJoinAndSelect('facturation.reservation', 'reservation')
+      .leftJoinAndSelect('reservation.client', 'client')
+      .leftJoinAndSelect('vente.lignes', 'ligne')
+      .leftJoinAndSelect('ligne.produitUnite', 'produitUnite')
+      .leftJoinAndSelect('ligne.prestation', 'prestation')
+      .leftJoinAndSelect('vente.paiements', 'paiement')
+      .orderBy('vente.created_at', 'DESC');
+
+    if (search.trim()) {
+      qb.andWhere(
+        `
+      vente.numero LIKE :search
+      OR client.nom LIKE :search
+      OR client.prenom LIKE :search
+      `,
+        {
+          search: `%${search}%`,
+        },
+      );
+    }
+
+    const [data, total] = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+    return {
+      data: data.map((v) => {
+        const montantPaye =
+          v.paiements?.reduce((sum, p) => sum + Number(p.montant), 0) ?? 0;
+
+        return {
+          ...v,
+          client: v.facturation?.reservation?.client ?? null,
+          montantPaye,
+          reste: Number(v.total) - montantPaye,
+          statutPaiement:
+            montantPaye >= Number(v.total)
+              ? 'PAYE'
+              : montantPaye > 0
+                ? 'PARTIEL'
+                : 'NON_PAYE',
+        };
+      }),
+
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number) {
-    const _data = await this.repo.findOne({
-      where: { id },
+    const vente = await this.repo.findOne({
+      where: {
+        id,
+      },
+      relations: {
+        facturation: {
+          reservation: {
+            client: true,
+          },
+        },
+        produits: {
+          produitUnite: {
+            produit: true,
+          },
+          prestation: true,
+        },
+
+        paiements: true,
+      },
     });
 
-    if (!_data) {
-      throw new NotFoundException(`Vente ${id} introuvable`);
+    if (!vente) {
+      throw new NotFoundException('Vente introuvable');
     }
-    return _data;
+
+    const montantPaye =
+      vente.paiements?.reduce((sum, p) => sum + Number(p.montant), 0) ?? 0;
+
+    return {
+      ...vente,
+      client: vente.facturation?.reservation?.client ?? null,
+      montantPaye,
+      reste: Number(vente.total) - montantPaye,
+      statutPaiement:
+        montantPaye >= Number(vente.total)
+          ? 'PAYE'
+          : montantPaye > 0
+            ? 'PARTIEL'
+            : 'NON_PAYE',
+    };
   }
 
   async update(id: number, updateDto: UpdateVenteDto) {
@@ -62,71 +147,6 @@ export class VentesService {
     const _data = await this.findOne(id);
     return await this.repo.remove(_data);
   }
-
-  // async convertFactureToVente(factureId: number) {
-  //   const facture = await this.factureRepo.findOne({
-  //     where: { id: factureId },
-  //     relations: { items: { produitUnite: true }, client: true },
-  //   });
-
-  //   if (!facture) throw new NotFoundException();
-
-  //   if (facture.status === FacturationStatus.CANCELLED) {
-  //     throw new ConflictException('Facture annulée');
-  //   }
-
-  //   if (facture.status === FacturationStatus.PAID) {
-  //     throw new ConflictException('Déjà convertie');
-  //   }
-
-  //   const vente = this.repo.create({
-  //     reservation: facture.reservation,
-  //     total: facture.total,
-  //     total_produits: 0,
-  //     total_prestations: facture.total,
-  //     remise: 0,
-  //   });
-
-  //   const savedVente = await this.repo.save(vente);
-
-  //   let totalProduits = 0;
-
-  //   for (const item of facture.items) {
-  //     const produitUnite = item.produitUnite;
-
-  //     const totalLine = item.prix_unitaire * item.quantite;
-  //     totalProduits += totalLine;
-
-  //     // 🔥 STOCK DECREMENT
-  //     if (produitUnite.stock < item.quantite) {
-  //       throw new ConflictException(
-  //         `Stock insuffisant pour ${produitUnite.nom}`,
-  //       );
-  //     }
-
-  //     produitUnite.stock -= item.quantite;
-  //     await this.uniteRepo.save(produitUnite);
-
-  //     // 💰 VenteProduit
-  //     await this.venteProduitRepo.save({
-  //       vente: savedVente,
-  //       produit: produitUnite.produit,
-  //       quantite: item.quantite,
-  //       prix_unitaire: item.prix_unitaire,
-  //       total: totalLine,
-  //     });
-  //   }
-
-  //   savedVente.total_produits = totalProduits;
-  //   savedVente.total = totalProduits + facture.total;
-
-  //   await this.repo.save(savedVente);
-
-  //   facture.status = FacturationStatus.PAID;
-  //   await this.factureRepo.save(facture);
-
-  //   return savedVente;
-  // }
 
   async cancelVente(venteId: number) {
     const vente = await this.repo.findOne({
@@ -149,6 +169,24 @@ export class VentesService {
     }
 
     // vente.statut = 'CANCELLED';
+    return this.repo.save(vente);
+  }
+
+  async updatePaiement(id: number, montant: number) {
+    const vente = await this.repo.findOneBy({
+      id,
+    });
+
+    if (!vente) {
+      throw new NotFoundException('Vente introuvable');
+    }
+
+    vente.montantPaye = Number(vente.montantPaye) + Number(montant);
+
+    if (vente.montantPaye > vente.total) {
+      vente.montantPaye = vente.total;
+    }
+
     return this.repo.save(vente);
   }
 }

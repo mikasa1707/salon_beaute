@@ -11,14 +11,12 @@ import { TopProduit } from '../../shared/components/dashboard/top-produit/top-pr
 import { TopPrestation } from '../../shared/components/dashboard/top-services/top-services';
 import { StockAlertModal } from '../../shared/components/dashboard/stock-alert-modal/stock-alert-modal';
 import { Router } from '@angular/router';
+import { ReservationTableComponent } from "../../shared/components/dashboard/reservation-table/reservation-table";
 
 @Component({
   selector: 'app-dashboard-page',
-
   standalone: true,
-
-  imports: [CommonModule, KpiCard, CaChart, StockAlert, TopPersonnel, TopProduit, TopPrestation, MouvementList, StockAlertModal],
-
+  imports: [CommonModule, KpiCard, CaChart, StockAlert, TopPersonnel, TopProduit, TopPrestation, MouvementList, StockAlertModal, ReservationTableComponent],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {

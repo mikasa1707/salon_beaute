@@ -41,8 +41,7 @@ export class PersonnelList implements OnInit {
   selected?: Personnel;
 
   columns: TableColumn[] = [
-    { field: 'nom', label: 'Nom' },
-    { field: 'prenom', label: 'Prénom' },
+    { field: 'nomComplet', label: 'Nom Prénom' },
     { field: 'telephone', label: 'Téléphone' },
     { field: 'email', label: 'Email' },
     { field: 'role', label: 'Rôle' },
