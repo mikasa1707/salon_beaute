@@ -24,4 +24,7 @@ import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
   providers: [VentesService],
   exports: [VentesService],
 })
-export class VentesModule {}
+export class VentesModule {
+
+  
+}

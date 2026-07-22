@@ -69,6 +69,7 @@ export class VentesService {
       return {
         ...v,
         client: v.facturation?.reservation?.client ?? null,
+        nomComplet: v.facturation?.reservation?.client.prenom ? `${v.facturation?.reservation?.client.genre} ${v.facturation?.reservation?.client.prenom} ${v.facturation?.reservation?.client.nom}` : '',
         montantPaye,
         reste: total - montantPaye,
         statutPaiement:

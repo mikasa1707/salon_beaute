@@ -39,7 +39,7 @@ export class VenteList implements OnInit {
     },
 
     {
-      field: 'client',
+      field: 'nomComplet',
       label: 'Client',
     },
 
