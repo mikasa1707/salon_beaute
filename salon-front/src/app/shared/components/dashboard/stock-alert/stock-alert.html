@@ -1,31 +1,48 @@
-<div class="card shadow-sm">
-  <div class="card-header text-danger">
-    <i class="fa fa-warning"></i>
+<div class="card shadow-sm h-100">
+  <div class="card-header d-flex justify-content-between align-items-center bg-danger">
+    <span class="text-light fw-semibold">
+      <i class="fa-solid fa-triangle-exclamation me-2"></i>
+      Stock faible
+    </span>
 
-    Stock faible
+    @if (items.length > 0) {
+      <span class="badge bg-outline-danger">
+        {{ items.length }}
+      </span>
+    }
   </div>
 
   <div class="list-group list-group-flush">
-    @for (item of items; track item.id) {
-      <div class="list-group-item d-flex justify-content-between">
-        <div>
-          <strong>
+    @for (item of displayedItems; track item.id) {
+      <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div class="overflow-hidden">
+          <div class="fw-semibold text-truncate">
             {{ item.produit }}
-          </strong>
+          </div>
 
-          <br />
-
-          <small>
+          <small class="text-muted">
             {{ item.unite }}
           </small>
         </div>
 
-        <span class="badge bg-danger">{{ item.stock }} / {{ item.minimum }}</span>
+        <span class="badge bg-danger rounded-pill">{{ item.stock }} / {{ item.minimum }}</span>
       </div>
     }
 
     @if (items.length === 0) {
-      <div class="p-3 text-center text-muted">Aucune alerte</div>
+      <div class="py-4 text-center text-muted">
+        <i class="fa-solid fa-circle-check fa-lg mb-2 text-success"></i>
+        <div>Aucune alerte de stock</div>
+      </div>
     }
   </div>
+
+  @if (remaining > 0) {
+    <div class="card-footer bg-white text-center">
+      <button class="btn btn-sm btn-outline-primary" (click)="showAll()">
+        Voir les {{ remaining }} autres
+        <i class="fa-solid fa-arrow-right ms-1"></i>
+      </button>
+    </div>
+  }
 </div>

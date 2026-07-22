@@ -1,0 +1,11 @@
+<app-modal size="xl" [show]="show" title="Produits en alerte de stock" (closed)="close()">
+  <app-data-table [columns]="columns" [data]="items" [loading]="false" [canAction]="false">
+    <ng-template #actions let-row>
+      <button class="btn btn-sm btn-outline-primary" (click)="go(row)">
+        <i class="fa-solid fa-boxes-stacked me-1"></i>
+
+        Accéder
+      </button>
+    </ng-template>
+  </app-data-table>
+</app-modal>
