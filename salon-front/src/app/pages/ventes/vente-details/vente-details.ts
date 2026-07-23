@@ -27,7 +27,7 @@ export class VenteDetails implements OnChanges {
 
   produitColumns: TableColumn[] = [
     {
-      field: 'produitUnite.produit.nom',
+      field: 'label',
       label: 'Produit',
     },
 
@@ -42,7 +42,7 @@ export class VenteDetails implements OnChanges {
     },
 
     {
-      field: 'prix',
+      field: 'prix_unitaire',
       label: 'Prix',
       type: 'currency',
     },
@@ -56,7 +56,7 @@ export class VenteDetails implements OnChanges {
 
   prestationColumns: TableColumn[] = [
     {
-      field: 'prestation.nom',
+      field: 'label',
       label: 'Prestation',
     },
 
@@ -66,7 +66,7 @@ export class VenteDetails implements OnChanges {
     },
 
     {
-      field: 'prix',
+      field: 'prix_unitaire',
       label: 'Prix',
       type: 'currency',
     },
@@ -115,13 +115,10 @@ export class VenteDetails implements OnChanges {
 
   prepareDetails() {
     const lignes = this.vente?.produits ?? [];
-
-    this.produits = lignes.filter(x => x.produit);
-
-    this.prestations = lignes.filter(x => x.prestation);
-
+    this.produits = lignes.filter((x: { produitUnite: any; }) => x.produitUnite);
+    this.prestations = lignes.filter((x: { prestation: any; }) => x.prestation);
+    console.log(this.prestations)
     this.paiements = this.vente?.paiements ?? [];
-
     this.cdr.detectChanges();
   }
 

@@ -104,25 +104,27 @@
   </div>
 
   <div class="row mt-3">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header">Produits</div>
-
-        <div class="card-body">
-          <app-data-table [data]="produits" [columns]="produitColumns"></app-data-table>
+    @if (produits.length > 0) {
+      <div [class]="(produits.length > 0 && prestations.length > 0) ? 'col-md-6' : 'col-md-12'">
+        <div class="card">
+          <div class="card-header">Produits</div>
+          <div class="card-body">
+            <app-data-table [data]="produits" [columns]="produitColumns"></app-data-table>
+          </div>
         </div>
       </div>
-    </div>
+    }
 
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header">Prestations</div>
-
-        <div class="card-body">
-          <app-data-table [data]="prestations" [columns]="prestationColumns"></app-data-table>
+    @if (prestations.length > 0) {
+      <div [class]="(produits.length > 0 && prestations.length > 0) ? 'col-md-6' : 'col-md-12'">
+        <div class="card">
+          <div class="card-header">Prestations</div>
+          <div class="card-body">
+            <app-data-table [data]="prestations" [columns]="prestationColumns"></app-data-table>
+          </div>
         </div>
       </div>
-    </div>
+    }
   </div>
 
   <div class="card mt-3">

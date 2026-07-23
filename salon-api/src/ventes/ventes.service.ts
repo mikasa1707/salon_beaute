@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 import { Vente } from './entities/vente.entity';
 import { CreateVenteDto } from './dto/create-vente.dto';
@@ -8,6 +8,7 @@ import { UpdateVenteDto } from './dto/update-vente.dto';
 import { Facturation } from 'src/facturations/entities/facturation.entity';
 import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
 import { VenteProduit } from 'src/vente-produits/entities/vente-produit.entity';
+import { StockMovement, StockMovementType } from 'src/stocks/entities/stock-movements.entity';
 
 @Injectable()
 export class VentesService {
@@ -23,6 +24,8 @@ export class VentesService {
 
     @InjectRepository(VenteProduit)
     private readonly venteProduitRepo: Repository<VenteProduit>,
+
+    private dataSource: DataSource,
   ) {}
 
   async create(createDto: CreateVenteDto) {
@@ -61,9 +64,9 @@ export class VentesService {
     const all = await qb.getMany();
 
     const mapped = all.map((v) => {
-      const montantPaye =
-        v.paiements?.reduce((sum, p) => sum + Number(p.montant), 0) ?? 0;
-
+      // const montantPaye =
+      //   v.paiements?.reduce((sum, p) => sum + Number(p.montant), 0) ?? 0;
+      const montantPaye = v.montantPaye;
       const total = Number(v.total);
 
       return {
@@ -74,11 +77,11 @@ export class VentesService {
           ? `${v.facturation?.reservation?.client.genre} ${v.facturation?.reservation?.client.prenom} ${v.facturation?.reservation?.client.nom}`
           : 'Cllient au comptoir ' + this.generateClientCode(v.id),
         montantPaye,
-        reste: total - montantPaye,
+        reste: +total - +montantPaye,
         statutPaiement:
-          montantPaye >= total
+          +montantPaye >= +total
             ? 'PAYE'
-            : montantPaye > 0
+            : +montantPaye > 0
               ? 'PARTIEL'
               : 'NON_PAYE',
       };
@@ -177,27 +180,76 @@ export class VentesService {
   }
 
   async cancelVente(venteId: number) {
-    const vente = await this.repo.findOne({
-      where: { id: venteId },
-      relations: { produits: true },
-    });
+    const qr = this.dataSource.createQueryRunner();
 
-    if (!vente) throw new NotFoundException();
+    await qr.connect();
+    await qr.startTransaction();
 
-    for (const item of vente.produits) {
-      const unit = await this.uniteRepo.findOne({
-        where: {
-          produit: { id: item.produitUnite?.id },
+    try {
+      const manager = qr.manager;
+
+      const vente = await manager.findOne(Vente, {
+        where: { id: venteId },
+        relations: {
+          produits: {
+            produitUnite: true,
+          },
+        },
+        lock: {
+          mode: 'pessimistic_write',
         },
       });
 
-      if (!unit) throw new NotFoundException();
-      unit.stock += item.quantite;
-      await this.uniteRepo.save(unit);
-    }
+      if (!vente) {
+        throw new NotFoundException();
+      }
 
-    // vente.statut = 'CANCELLED';
-    return this.repo.save(vente);
+      if (vente.isCancelled === true) {
+        throw new ConflictException('Cette vente est déjà annulée');
+      }
+
+      for (const item of vente.produits) {
+        const unite = await manager.findOne(ProduitUnite, {
+          where: {
+            id: item.produitUnite?.id,
+          },
+          lock: {
+            mode: 'pessimistic_write',
+          },
+        });
+
+        if (!unite) {
+          throw new NotFoundException(
+            `ProduitUnite ${item.produitUnite?.id} introuvable`,
+          );
+        }
+
+        unite.stock += item.quantite;
+
+        await manager.save(unite);
+
+        await manager.save(StockMovement, {
+          produitUnite: unite,
+          type: StockMovementType.SALE_CANCEL,
+          quantite: item.quantite,
+          reference: `ANNULATION-${vente.id}`,
+          note: `Annulation vente`,
+        });
+      }
+
+      // vente.statut = VenteStatut.CANCELLED;
+
+      await manager.save(vente);
+
+      await qr.commitTransaction();
+
+      return vente;
+    } catch (e) {
+      await qr.rollbackTransaction();
+      throw e;
+    } finally {
+      await qr.release();
+    }
   }
 
   async updatePaiement(id: number, montant: number) {

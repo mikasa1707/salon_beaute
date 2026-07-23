@@ -67,18 +67,8 @@ export class VenteList implements OnInit {
     {
       field: 'statutPaiement',
       label: 'Paiement',
-      badgeClass: (row: any) => {
-        switch (row.statutPaiement) {
-          case 'PAYE':
-            return 'success';
-          case 'PARTIEL':
-            return 'warning';
-          case 'NON_PAYE':
-            return 'danger';
-          default:
-            return 'secondary';
-        }
-      },
+      type: 'badge',
+      badgeClass: row => (row.statutPaiement === 'NON_PAYE' ? 'bg-danger' : row.statutPaiement === 'PARTIEL' ? 'bg-warning' : 'bg-success'),
     },
 
     {

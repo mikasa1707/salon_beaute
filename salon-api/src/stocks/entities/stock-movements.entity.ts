@@ -17,6 +17,7 @@ export enum StockMovementType {
   OUT = 'OUT',
   ADJUST = 'ADJUST',
   TRANSFERT = 'TRANSFERT',
+  SALE_CANCEL = 'SALE_CANCEL',
 }
 
 @Entity('stock_movements')
