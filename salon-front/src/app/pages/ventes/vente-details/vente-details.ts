@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 
@@ -8,6 +8,9 @@ import { TableColumn } from '../../../core/models/table-column';
 import { DataTableComponent } from '../../../shared/components/data-table/data-table';
 
 import { Router } from '@angular/router';
+import { VentesApi } from '../../../core/services/vente-api';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog';
+import { ToastService } from '../../../core/services/toast';
 
 @Component({
   selector: 'app-vente-details',
@@ -16,13 +19,12 @@ import { Router } from '@angular/router';
   templateUrl: './vente-details.html',
 })
 export class VenteDetails implements OnChanges {
-  @Input()
-  vente?: any= null;
+  @Input() vente?: any = null;
+  @Output() venteUpdated = new EventEmitter<void>();
+  @Output() close = new EventEmitter<void>();
 
   produits: any[] = [];
-
   prestations: any[] = [];
-
   paiements: any[] = [];
 
   produitColumns: TableColumn[] = [
@@ -104,7 +106,10 @@ export class VenteDetails implements OnChanges {
 
   constructor(
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private venteservice: VentesApi,
+    private toast: ToastService,
+    private confirm: ConfirmDialogService
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -115,9 +120,9 @@ export class VenteDetails implements OnChanges {
 
   prepareDetails() {
     const lignes = this.vente?.produits ?? [];
-    this.produits = lignes.filter((x: { produitUnite: any; }) => x.produitUnite);
-    this.prestations = lignes.filter((x: { prestation: any; }) => x.prestation);
-    console.log(this.prestations)
+    this.produits = lignes.filter((x: { produitUnite: any }) => x.produitUnite);
+    this.prestations = lignes.filter((x: { prestation: any }) => x.prestation);
+    console.log(this.prestations);
     this.paiements = this.vente?.paiements ?? [];
     this.cdr.detectChanges();
   }
@@ -140,13 +145,28 @@ export class VenteDetails implements OnChanges {
     });
   }
 
-  archiver() {
-    /*
-       A brancher avec ton ConfirmDialogService
+  async archiver() {
+    if (!this.vente) return;
 
-       Demande mot de passe
-       Puis API archive
-       Puis refresh liste
-    */
+    const ok = await this.confirm.confirm({
+      title: 'Archivage vente',
+      message: 'La vente sera archivé.',
+      confirmText: 'Archiver',
+      confirmClass: 'btn-danger',
+    });
+
+    if (!ok) return;
+
+    this.venteservice.cancel(this.vente.id).subscribe({
+      next: res => {
+        this.toast.warning('La vente numero ' + this.vente.numero + ' a ete archiver.');
+        this.venteUpdated.emit();
+        this.close.emit();
+      },
+    });
+  }
+
+  closeModal() {
+
   }
 }

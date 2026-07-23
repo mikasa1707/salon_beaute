@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
@@ -8,7 +12,10 @@ import { UpdateVenteDto } from './dto/update-vente.dto';
 import { Facturation } from 'src/facturations/entities/facturation.entity';
 import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
 import { VenteProduit } from 'src/vente-produits/entities/vente-produit.entity';
-import { StockMovement, StockMovementType } from 'src/stocks/entities/stock-movements.entity';
+import {
+  StockMovement,
+  StockMovementType,
+} from 'src/stocks/entities/stock-movements.entity';
 
 @Injectable()
 export class VentesService {
@@ -48,13 +55,15 @@ export class VentesService {
 
       .orderBy('vente.created_at', 'DESC');
 
+    qb.andWhere('vente.isCancelled = :isCancelled', {
+      isCancelled: false,
+    });
+
     if (search.trim()) {
       qb.andWhere(
-        `
-      vente.numero LIKE :search
+        `(vente.numero LIKE :search
       OR client.nom LIKE :search
-      OR client.prenom LIKE :search
-      `,
+      OR client.prenom LIKE :search)`,
         {
           search: `%${search}%`,
         },
@@ -208,36 +217,39 @@ export class VentesService {
         throw new ConflictException('Cette vente est déjà annulée');
       }
 
-      for (const item of vente.produits) {
-        const unite = await manager.findOne(ProduitUnite, {
-          where: {
-            id: item.produitUnite?.id,
-          },
-          lock: {
-            mode: 'pessimistic_write',
-          },
-        });
+      if (vente.produits.length > 0) {
+        for (const item of vente.produits) {
+          const unite = await manager.findOne(ProduitUnite, {
+            where: {
+              id: item.produitUnite?.id,
+            },
+            lock: {
+              mode: 'pessimistic_write',
+            },
+          });
 
-        if (!unite) {
-          throw new NotFoundException(
-            `ProduitUnite ${item.produitUnite?.id} introuvable`,
-          );
+          if (!unite) {
+            throw new NotFoundException(
+              `ProduitUnite ${item.produitUnite?.id} introuvable`,
+            );
+          }
+
+          unite.stock += item.quantite;
+
+          await manager.save(unite);
+
+          await manager.save(StockMovement, {
+            produitUnite: unite,
+            type: StockMovementType.SALE_CANCEL,
+            quantite: item.quantite,
+            reference: `ANNULATION-${vente.id}`,
+            note: `Annulation vente`,
+          });
         }
-
-        unite.stock += item.quantite;
-
-        await manager.save(unite);
-
-        await manager.save(StockMovement, {
-          produitUnite: unite,
-          type: StockMovementType.SALE_CANCEL,
-          quantite: item.quantite,
-          reference: `ANNULATION-${vente.id}`,
-          note: `Annulation vente`,
-        });
-      }
-
-      // vente.statut = VenteStatut.CANCELLED;
+      } 
+      
+      vente.isCancelled = true;
+      vente.cancelledAt = new Date(Date.now());
 
       await manager.save(vente);
 
