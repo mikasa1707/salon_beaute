@@ -54,6 +54,7 @@
       [loading]="loading"
       [page]="page"
       [totalPages]="totalPages"
+      [showViewButton]="true"
       (pageChange)="changePage($event)"
       (view)="view($event)"
       (delete)="cancel($event)"></app-data-table>
@@ -68,6 +69,10 @@
   </div>
 </div>
 
+
+<app-modal title="{{ selected?.numero }}" size="xl" [show]="show" (closed)="close()">
+  <app-vente-details [vente]="selected"></app-vente-details>
+</app-modal>
 <!-- @if (showDetail) {
   <app-vente-details [vente]="selected" (closed)="closeDetail()"></app-vente-details>
 } -->

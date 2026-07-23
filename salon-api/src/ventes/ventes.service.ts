@@ -68,8 +68,11 @@ export class VentesService {
 
       return {
         ...v,
+        numero: this.generateNumeroVente(v.id, v.created_at),
         client: v.facturation?.reservation?.client ?? null,
-        nomComplet: v.facturation?.reservation?.client.prenom ? `${v.facturation?.reservation?.client.genre} ${v.facturation?.reservation?.client.prenom} ${v.facturation?.reservation?.client.nom}` : '',
+        nomComplet: v.facturation?.reservation?.client.prenom
+          ? `${v.facturation?.reservation?.client.genre} ${v.facturation?.reservation?.client.prenom} ${v.facturation?.reservation?.client.nom}`
+          : 'Cllient au comptoir ' + this.generateClientCode(v.id),
         montantPaye,
         reste: total - montantPaye,
         statutPaiement:
@@ -95,6 +98,21 @@ export class VentesService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  private generateClientCode(id: number): string {
+    return id.toString().padStart(6, '0');
+  }
+
+  private generateNumeroVente(id: number, _date: Date): string {
+    const date =
+      _date.getFullYear().toString().slice(2) +
+      String(_date.getMonth() + 1).padStart(2, '0') +
+      String(_date.getDate()).padStart(2, '0');
+
+    const prefix = `V${date}`;
+
+    return `${prefix}-${id.toString().padStart(4, '0')}`;
   }
 
   async findOne(id: number) {

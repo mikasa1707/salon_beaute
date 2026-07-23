@@ -1,1 +1,135 @@
-<p>vente-details works!</p>
+@if (vente) {
+  <div class="card shadow-sm mb-3">
+    <div class="card-header d-flex justify-content-between">
+      <div>
+        <h5 class="mb-0">Vente {{ vente.numero }}</h5>
+
+        <small>
+          {{ vente.created_at | date: 'dd/MM/yyyy HH:mm' }}
+        </small>
+      </div>
+
+      <div>
+        <button class="btn btn-primary me-2" (click)="modifier()">
+          <i class="fa fa-edit"></i>
+
+          Modifier
+        </button>
+
+        <button class="btn btn-danger" (click)="archiver()">
+          <i class="fa fa-box-archive"></i>
+
+          Archiver
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <h6>Informations</h6>
+
+          <table class="table table-sm">
+            <tr>
+              <td>Client</td>
+
+              <td>
+                {{ vente.nomComplet }}
+              </td>
+            </tr>
+
+            <tr>
+              <td>Téléphone</td>
+
+              <td>
+                {{ vente.client?.telephone ?? '-' }}
+              </td>
+            </tr>
+
+            <tr>
+              <td>Facture</td>
+
+              <td>
+                {{ vente.facturation?.numero ?? '-' }}
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="col-md-6">
+          <h6>Paiement</h6>
+
+          <table class="table table-sm">
+            <tr>
+              <td>Total</td>
+
+              <td>
+                {{ vente.total | currency: 'MGA' }}
+              </td>
+            </tr>
+
+            <tr>
+              <td>Payé</td>
+
+              <td class="text-success">
+                {{ vente.montantPaye | currency: 'MGA' }}
+              </td>
+            </tr>
+
+            <tr>
+              <td>Reste</td>
+
+              <td class="text-danger">
+                {{ vente.reste | currency: 'MGA' }}
+              </td>
+            </tr>
+
+            <tr>
+              <td>Status</td>
+
+              <td>
+                <span
+                  class="badge"
+                  [class.bg-success]="vente.statutPaiement === 'PAYE'"
+                  [class.bg-warning]="vente.statutPaiement === 'PARTIEL'"
+                  [class.bg-danger]="vente.statutPaiement === 'NON_PAYE'">
+                  {{ vente.statutPaiement }}
+                </span>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">Produits</div>
+
+        <div class="card-body">
+          <app-data-table [data]="produits" [columns]="produitColumns"></app-data-table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">Prestations</div>
+
+        <div class="card-body">
+          <app-data-table [data]="prestations" [columns]="prestationColumns"></app-data-table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <div class="card-header">Paiements</div>
+
+    <div class="card-body">
+      <app-data-table [data]="paiements" [columns]="paiementColumns"></app-data-table>
+    </div>
+  </div>
+}

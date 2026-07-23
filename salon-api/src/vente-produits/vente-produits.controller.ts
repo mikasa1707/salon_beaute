@@ -34,25 +34,34 @@ export class VenteProduitsController {
   }
 
   @Get()
-  @Roles(
-    PersonnelRole.RECEPTION,
-    PersonnelRole.ADMIN,
-    PersonnelRole.RESPONSABLE,
-    PersonnelRole.COIFFEUR,
-    PersonnelRole.ESTHETICIEN,
-  )
-  @Get()
   findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
     @Query('search') search = '',
+    @Query('status') status = '',
     @Query('typeProduitId') typeProduitId = '',
   ) {
     return this.service.findAll(
       page ? +page : 1,
       limit ? +limit : 10,
+      status || '',
       search || '',
       typeProduitId || '',
+    );
+  }
+
+  @Get('vente')
+  findAllByProduit(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('search') search = '',
+    @Query('venteId') venteId = 0,
+  ) {
+    return this.service.findAllByProduit(
+      page ? +page : 1,
+      limit ? +limit : 10,
+      search || '',
+      venteId || 0,
     );
   }
 

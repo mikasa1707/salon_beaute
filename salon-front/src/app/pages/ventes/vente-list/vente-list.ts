@@ -16,7 +16,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 @Component({
   selector: 'app-vente-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataTableComponent, PageHeaderComponent, VenteDetails, SearchBarComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, DataTableComponent, PageHeaderComponent, VenteDetails, SearchBarComponent, PaginationComponent, ModalComponent],
   templateUrl: './vente-list.html',
 })
 export class VenteList implements OnInit {
@@ -30,7 +30,7 @@ export class VenteList implements OnInit {
 
   statutPaiement = '';
   selected: any = null;
-  showDetail = false;
+  show = false;
 
   columns: TableColumn[] = [
     {
@@ -162,12 +162,11 @@ export class VenteList implements OnInit {
 
   view(item: any) {
     this.selected = item;
-
-    this.showDetail = true;
+    this.show = true;
   }
 
-  closeDetail() {
-    this.showDetail = false;
+  close() {
+    this.show = false;
 
     this.selected = null;
   }

@@ -18,7 +18,13 @@ export class VenteProduitsService {
     return await this.repo.save(_data);
   }
 
-  async findAll(page = 1, limit = 10, search = '', typeProduitId= '') {
+  async findAll(
+    page = 1,
+    limit = 10,
+    search = '',
+    status = '',
+    typeProduitId = '',
+  ) {
     const qb = this.repo
       .createQueryBuilder('vp')
       .leftJoinAndSelect('vp.vente', 'vente')
@@ -27,7 +33,7 @@ export class VenteProduitsService {
       .leftJoinAndSelect('produit.typeProduit', 'typeProduit');
 
     // Recherche
-    if (search) {
+    if (search.trim()) {
       qb.andWhere(
         new Brackets((qb) => {
           qb.where('vp.label LIKE :search', {
@@ -46,25 +52,79 @@ export class VenteProduitsService {
       );
     }
 
-    // Filtre par type
-    if (typeProduitId) {
-      const ids = typeProduitId
-        .split(',')
-        .map((id) => Number(id))
-        .filter((id) => !isNaN(id));
+    // Statut
+    if (status.trim()) {
+      qb.andWhere('vente.status = :status', {
+        status,
+      });
+    }
 
-      if (ids.length) {
+    // Type produit
+    if (typeProduitId.trim()) {
+      const ids = typeProduitId.split(',').map(Number).filter(Number.isFinite);
+
+      if (ids.length > 0) {
         qb.andWhere('typeProduit.id IN (:...ids)', {
           ids,
         });
       }
     }
 
-    qb.orderBy('vp.id', 'DESC')
+    const [data, total] = await qb
+      .orderBy('vp.id', 'DESC')
       .skip((page - 1) * limit)
-      .take(limit);
+      .take(limit)
+      .getManyAndCount();
 
-    const [data, total] = await qb.getManyAndCount();
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async findAllByProduit(page = 1, limit = 10, search = '', venteId?: number) {
+    const qb = this.repo
+      .createQueryBuilder('vp')
+      .leftJoinAndSelect('vp.vente', 'vente')
+      .leftJoinAndSelect('vp.produitUnite', 'pu')
+      .leftJoinAndSelect('pu.produit', 'produit')
+      .leftJoinAndSelect('produit.typeProduit', 'typeProduit');
+
+    // Vente obligatoire
+    if (venteId) {
+      qb.andWhere('vente.id = :venteId', {
+        venteId,
+      });
+    }
+
+    // Recherche
+    if (search.trim()) {
+      qb.andWhere(
+        new Brackets((qb) => {
+          qb.where('vp.label LIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('pu.nom LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('pu.label LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere('produit.nom LIKE :search', {
+              search: `%${search}%`,
+            });
+        }),
+      );
+    }
+
+    const [data, total] = await qb
+      .orderBy('vp.id', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
 
     return {
       data,
