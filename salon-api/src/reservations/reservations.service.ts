@@ -18,6 +18,7 @@ import { FacturationsService } from 'src/facturations/facturations.service';
 import { ReservationPersonnel } from './entities/reservation-personnel.entity';
 import { StockConsumptionService } from 'src/stocks/stock-consumption.service';
 import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
+import { PrestationProduitConsumption } from 'src/prestations/entities/prestation_produit_consumptions.entity';
 
 @Injectable()
 export class ReservationsService {
@@ -33,6 +34,9 @@ export class ReservationsService {
 
     private readonly facturationService: FacturationsService,
     private readonly stockConsumptionService: StockConsumptionService,
+
+    @InjectRepository(PrestationProduitConsumption)
+    private readonly consumptionRepo: Repository<PrestationProduitConsumption>,
   ) {}
 
   async create(createDto: CreateReservationDto) {
@@ -447,16 +451,19 @@ export class ReservationsService {
     id: number,
     newStatus: ReservationStatut,
     products: {
-      produitId: number;
-      uniteMesureId: number;
+      prestationProduitId: number;
       quantite: number;
     }[] = [],
   ) {
     const reservation = await this.repo.findOne({
       where: { id },
       relations: {
-        prestations: true,
-        personnels: true,
+        prestations: {
+          prestation: true,
+        },
+        personnels: {
+          personnel: true,
+        },
         client: true,
       },
     });
@@ -498,7 +505,7 @@ export class ReservationsService {
     let facturation: any = null;
 
     if (newStatus === ReservationStatut.TERMINEE) {
-      await this.consumeProducts(reservation.id, products ?? []);
+      await this.consumeProducts(reservation, products ?? []);
       facturation = await this.facturationService.createFromReservation(
         reservation.id,
       );
@@ -515,37 +522,97 @@ export class ReservationsService {
   }
 
   private async consumeProducts(
-    reservationId: number,
+    reservation: Reservation,
     products: {
-      produitId: number;
-      uniteMesureId: number;
+      prestationProduitId: number;
       quantite: number;
     }[],
   ) {
-    const prestationProduitRepo =
-      this.reservationPrestationRepo.manager.getRepository(PrestationProduit);
+    const manager = this.reservationPrestationRepo.manager;
+    console.log(products)
     for (const item of products) {
-      const prestationProduit = await prestationProduitRepo.findOne({
+      const prestationProduit = await manager.findOne(PrestationProduit, {
         where: {
-          produit: {
-            id: item.produitId,
-          },
+          id: item.prestationProduitId,
         },
       });
+
       if (!prestationProduit) {
         throw new NotFoundException(
-          `Stock prestation introuvable pour le produit ${item.produitId}`,
+          `Produit prestation ${item.prestationProduitId} introuvable`,
         );
       }
-      const nouvelleQuantite =
-        Number(prestationProduit.quantite) - Number(item.quantite);
-      if (nouvelleQuantite < 0) {
+
+      const quantite = Number(item.quantite);
+
+      if (Number(prestationProduit.quantite) < quantite) {
         throw new ConflictException(
-          `Stock insuffisant pour ${prestationProduit.produit?.nom}`,
+          `Stock insuffisant ${prestationProduit.id}`,
         );
       }
-      prestationProduit.quantite = nouvelleQuantite;
-      await prestationProduitRepo.save(prestationProduit);
+
+      const avant = Number(prestationProduit.quantite);
+
+      prestationProduit.quantite = avant - quantite;
+
+      await manager.save(PrestationProduit, prestationProduit);
+
+      await this.consumptionRepo.save({
+        reservation,
+
+        produitPrestation: prestationProduit,
+
+        quantite,
+
+        action: 'CONSUME',
+      });
+    }
+  }
+
+  async restoreProducts(reservationId: number) {
+    const manager = this.reservationPrestationRepo.manager;
+
+    const consumptions = await this.consumptionRepo.find({
+      where: {
+        reservation: {
+          id: reservationId,
+        },
+        action: 'CONSUME',
+      },
+      relations: {
+        produitPrestation: true,
+      },
+    });
+
+    for (const item of consumptions) {
+      const produit = await manager.findOne(PrestationProduit, {
+        where: {
+          id: item.produitPrestation.id,
+        },
+        lock: {
+          mode: 'pessimistic_write',
+        },
+      });
+
+      if (!produit) {
+        continue;
+      }
+
+      produit.quantite = Number(produit.quantite) + Number(item.quantite);
+
+      await manager.save(PrestationProduit, produit);
+
+      await this.consumptionRepo.save({
+        reservation: {
+          id: reservationId,
+        },
+
+        produitPrestation: produit,
+
+        quantite: item.quantite,
+
+        action: 'RESTORE',
+      });
     }
   }
 }

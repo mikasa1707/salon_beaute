@@ -19,6 +19,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateStockEntryDto } from './dto/create-stock-entry.dto';
 import { AuditLogService } from 'src/audit-log/audit-log.service';
 import { TransferPrestationProduitDto } from 'src/prestations_produits/dto/transfer-prestation-produit.dto';
+import { Prestation } from 'src/prestations/entities/prestation.entity';
+import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
+import { PrestationProduitConsumption } from 'src/prestations/entities/prestation_produit_consumptions.entity';
 
 @Injectable()
 export class StockConsumptionService {
@@ -40,76 +43,76 @@ export class StockConsumptionService {
   /**
    * Déduction stock après vente
    */
-  async decreaseFromItems(
-    manager: EntityManager,
-    venteId: number,
-    items: Partial<VenteProduit>[],
-  ) {
-    for (const item of items) {
-      console.log('ITEM RECU STOCK', {
-        label: item.label,
-        produitUniteId: item?.id,
-        quantite: item.quantite,
-      });
-      // Pas de produit = prestation
-      if (!item.produitUnite?.id) {
-        continue;
-      }
+  // async decreaseFromItems(
+  //   manager: EntityManager,
+  //   venteId: number,
+  //   items: Partial<VenteProduit>[],
+  // ) {
+  //   for (const item of items) {
+  //     console.log('ITEM RECU STOCK', {
+  //       label: item.label,
+  //       produitUniteId: item?.id,
+  //       quantite: item.quantite,
+  //     });
+  //     // Pas de produit = prestation
+  //     if (!item.produitUnite?.id) {
+  //       continue;
+  //     }
 
-      const produitUniteId = Number(item.produitUnite.id);
+  //     const produitUniteId = Number(item.produitUnite.id);
 
-      const produitUnite = await manager.findOne(ProduitUnite, {
-        where: {
-          id: produitUniteId,
-        },
+  //     const produitUnite = await manager.findOne(ProduitUnite, {
+  //       where: {
+  //         id: produitUniteId,
+  //       },
 
-        // relations: {
-        //   produit: true,
-        // },
+  //       // relations: {
+  //       //   produit: true,
+  //       // },
 
-        lock: {
-          mode: 'pessimistic_write',
-        },
-      });
-      console.log(produitUniteId);
-      console.log(produitUnite);
+  //       lock: {
+  //         mode: 'pessimistic_write',
+  //       },
+  //     });
+  //     console.log(produitUniteId);
+  //     console.log(produitUnite);
 
-      if (!produitUnite) {
-        throw new NotFoundException(
-          `Produit unité ${produitUniteId} introuvable`,
-        );
-      }
+  //     if (!produitUnite) {
+  //       throw new NotFoundException(
+  //         `Produit unité ${produitUniteId} introuvable`,
+  //       );
+  //     }
 
-      const quantite = Number(item.quantite);
+  //     const quantite = Number(item.quantite);
 
-      if (produitUnite.stock < quantite) {
-        throw new ConflictException(`Stock insuffisant ${produitUnite.nom}`);
-      }
+  //     if (produitUnite.stock < quantite) {
+  //       throw new ConflictException(`Stock insuffisant ${produitUnite.nom}`);
+  //     }
 
-      produitUnite.stock = Number(produitUnite.stock) - quantite;
+  //     produitUnite.stock = Number(produitUnite.stock) - quantite;
 
-      await manager.save(ProduitUnite, produitUnite);
+  //     await manager.save(ProduitUnite, produitUnite);
 
-      const vente = await manager.findOne(Vente, {
-        where: {
-          id: venteId,
-        },
-      });
+  //     const vente = await manager.findOne(Vente, {
+  //       where: {
+  //         id: venteId,
+  //       },
+  //     });
 
-      if (!vente) {
-        throw new NotFoundException('Vente introuvable');
-      }
+  //     if (!vente) {
+  //       throw new NotFoundException('Vente introuvable');
+  //     }
 
-      await this.create(manager, {
-        produitUnite,
-        type: StockMovementType.OUT,
-        quantite,
-        reference: `VENTE-${venteId}`,
-        note: item.label,
-        vente: vente,
-      });
-    }
-  }
+  //     await this.create(manager, {
+  //       produitUnite,
+  //       type: StockMovementType.OUT,
+  //       quantite,
+  //       reference: `VENTE-${venteId}`,
+  //       note: item.label,
+  //       vente: vente,
+  //     });
+  //   }
+  // }
 
   async increase(
     manager: EntityManager,
@@ -344,47 +347,279 @@ export class StockConsumptionService {
     }
   }
 
-  async restoreFromVente(manager: EntityManager, vente: Vente) {
-    const produits = vente.produits ?? [];
+  // async restoreFromVente(manager: EntityManager, vente: Vente) {
+  //   const produits = vente.produits ?? [];
 
-    for (const item of produits) {
-      // uniquement les produits physiques
-      if (!item.produitUnite) {
-        continue;
+  //   for (const item of produits) {
+  //     // uniquement les produits physiques
+  //     if (!item.produitUnite) {
+  //       continue;
+  //     }
+
+  //     const unite = await manager.findOne(ProduitUnite, {
+  //       where: {
+  //         id: item.produitUnite.id,
+  //       },
+  //       lock: {
+  //         mode: 'pessimistic_write',
+  //       },
+  //     });
+
+  //     if (!unite) {
+  //       throw new NotFoundException(
+  //         `Produit unité ${item.produitUnite.id} introuvable`,
+  //       );
+  //     }
+
+  //     // restitution stock
+  //     unite.stock += Number(item.quantite);
+
+  //     await manager.save(ProduitUnite, unite);
+
+  //     // mouvement stock RESTAURATION
+  //     await manager.save(StockMovement, {
+  //       produitUnite: unite,
+
+  //       type: StockMovementType.SALE_CANCEL,
+
+  //       quantite: item.quantite,
+
+  //       reference: `EDIT-RESTAURE-${vente.id}`,
+
+  //       note: `Restauration stock avant modification vente ${vente.id}`,
+  //     });
+  //   }
+  // }
+
+  async decreaseFromItems(
+    manager: EntityManager,
+    venteId: number,
+    items: Partial<VenteProduit>[],
+  ) {
+    const vente = await manager.findOneBy(Vente, {
+      id: venteId,
+    });
+
+    if (!vente) {
+      throw new NotFoundException('Vente introuvable');
+    }
+
+    for (const item of items) {
+      if (item.produitUnite) {
+        await this.consumeProduitUnite(manager, vente, item);
       }
 
+      if (item.prestation) {
+        await this.consumePrestation(manager, vente, item);
+      }
+    }
+  }
+
+  private async consumeProduitUnite(
+    manager: EntityManager,
+    vente: Vente,
+    item: Partial<VenteProduit>,
+  ) {
+    const unite = await manager.findOne(ProduitUnite, {
+      where: {
+        id: item.produitUnite!.id,
+      },
+      lock: {
+        mode: 'pessimistic_write',
+      },
+    });
+
+    if (!unite) {
+      throw new NotFoundException();
+    }
+
+    const qty = Number(item.quantite);
+
+    if (unite.stock < qty) {
+      throw new ConflictException(`Stock insuffisant ${unite.nom}`);
+    }
+
+    unite.stock -= qty;
+
+    await manager.save(unite);
+
+    await manager.save(StockMovement, {
+      produitUnite: unite,
+      type: StockMovementType.OUT,
+      quantite: qty,
+      vente,
+      reference: `VENTE-${vente.id}`,
+      note: item.label,
+    });
+  }
+
+  private async consumePrestation(
+    manager: EntityManager,
+    vente: Vente,
+    venteProduit: Partial<VenteProduit>,
+  ) {
+    // const consommations = venteProduit.consomationsPrestation ?? [];
+
+    // for (const consommation of consommations) {
+    //   const produitPrestation = await manager.findOne(PrestationProduit, {
+    //     where: {
+    //       id: consommation.produitPrestation.id,
+    //     },
+
+    //     lock: {
+    //       mode: 'pessimistic_write',
+    //     },
+    //   });
+
+    //   if (!produitPrestation) {
+    //     throw new NotFoundException('Produit prestation introuvable');
+    //   }
+
+    //   const quantite = Number(consommation.quantite);
+
+    //   if (Number(produitPrestation.stock) < quantite) {
+    //     throw new ConflictException(
+    //       `Stock insuffisant ${produitPrestation.nom}`,
+    //     );
+    //   }
+
+    //   const stockAvant = Number(produitPrestation.stock);
+
+    //   produitPrestation.stock = stockAvant - quantite;
+
+    //   await manager.save(PrestationProduit, produitPrestation);
+
+    //   await manager.save(PrestationProduitConsumption, {
+    //     vente,
+
+    //     venteProduit,
+
+    //     produitPrestation,
+
+    //     quantite,
+
+    //     action: 'CONSUME',
+    //   });
+    // }
+  }
+
+  private async restoreProduit(
+    manager: EntityManager,
+    item: VenteProduit,
+    vente: Vente,
+  ) {
+    const unite = await manager.findOne(ProduitUnite, {
+      where: {
+        id: item.produitUnite?.id,
+      },
+      lock: {
+        mode: 'pessimistic_write',
+      },
+    });
+
+    if (!unite) {
+      throw new NotFoundException();
+    }
+    const avant = Number(unite.stock);
+    unite.stock = avant + Number(item.quantite);
+    await manager.save(ProduitUnite, unite);
+    await manager.save(StockMovement, {
+      produitUnite: unite,
+
+      type: StockMovementType.SALE_CANCEL,
+      quantite: item.quantite,
+      stockAvant: avant,
+      stockApres: unite.stock,
+      vente,
+      reference: `EDIT-RESTAURE-${vente.id}`,
+      note: `Restauration ${item.label}`,
+    });
+  }
+
+  private async restorePrestation(
+    manager: EntityManager,
+    venteProduit: VenteProduit,
+    vente: Vente,
+  ) {
+    const consommations = await manager.find(PrestationProduitConsumption, {
+      where: {
+        vente: {
+          id: vente.id,
+        },
+        action: 'CONSUME',
+      },
+
+      relations: {
+        produitPrestation: {
+          unite: true,
+        },
+      },
+    });
+
+    for (const consommation of consommations) {
       const unite = await manager.findOne(ProduitUnite, {
         where: {
-          id: item.produitUnite.id,
+          id: consommation.produitPrestation.unite.id,
         },
+
         lock: {
           mode: 'pessimistic_write',
         },
       });
 
       if (!unite) {
-        throw new NotFoundException(
-          `Produit unité ${item.produitUnite.id} introuvable`,
-        );
+        throw new NotFoundException('Produit unité introuvable');
       }
 
-      // restitution stock
-      unite.stock += Number(item.quantite);
+      const stockAvant = Number(unite.stock);
+
+      unite.stock = stockAvant + Number(consommation.quantite);
 
       await manager.save(ProduitUnite, unite);
 
-      // mouvement stock RESTAURATION
-      await manager.save(StockMovement, {
-        produitUnite: unite,
+      /**
+       * Historique restauration
+       */
 
-        type: StockMovementType.SALE_CANCEL,
-
-        quantite: item.quantite,
-
-        reference: `EDIT-RESTAURE-${vente.id}`,
-
-        note: `Restauration stock avant modification vente ${vente.id}`,
+      await manager.save(PrestationProduitConsumption, {
+        vente,
+        reservation: vente.reservation ?? undefined,
+        produitPrestation: consommation.produitPrestation,
+        quantite: consommation.quantite,
+        action: 'RESTORE',
       });
+    }
+
+    /**
+     * Supprimer les anciennes consommations
+     * après restauration
+     */
+
+    await manager.delete(PrestationProduitConsumption, {
+      vente: {
+        id: vente.id,
+      },
+      action: 'CONSUME',
+    });
+  }
+
+  async restoreFromVente(manager: EntityManager, vente: Vente) {
+    for (const item of vente.produits ?? []) {
+      // =====================
+      // PRODUIT DIRECT
+      // =====================
+
+      if (item.produitUnite) {
+        await this.restoreProduit(manager, item, vente);
+      }
+
+      // =====================
+      // PRESTATION
+      // =====================
+
+      if (item.prestation) {
+        await this.restorePrestation(manager, item, vente);
+      }
     }
   }
 }

@@ -117,15 +117,16 @@ export class PosPage {
     const state = history.state;
 
     if (state?.vente && state?.mode === 'VENTE_EDIT') {
-      console.log(state.vente)
+      state.vente.reste = Number(state.vente.total) - Number(state.vente.montantPaye ?? 0);
+
       const existing = this.posService.findTicketByVente(state.vente.numero);
+
       if (existing) {
         this.posService.setActive(existing.id);
         this.toastService.warning(`La vente ${state.vente.numero} est déjà ouverte dans la caisse`);
         history.replaceState({}, '');
       } else {
         this.posService.loadVente(state.vente);
-        // Nettoyage du state navigateur
         history.replaceState({}, '');
         return;
       }
@@ -220,40 +221,43 @@ export class PosPage {
   confirmPayment(result: PaymentResult) {
     const ticket = this.posService.activeTicket;
 
-    console.log(ticket)
     if (!ticket) {
       console.error('Aucun ticket actif');
       return;
     }
 
+    const reste = Math.max(ticket.total - (ticket.montantPaye ?? 0), 0);
+
     const payload = {
       ticketId: ticket.id,
-      factureId: ticket.facturation?.id || undefined,
+      factureId: ticket.facturation?.id ?? undefined,
       venteId: ticket.venteId,
       items: ticket.items,
       total: ticket.total,
-      remise: ticket.remise,
+      remise: ticket.remise ?? 0,
       paiement: {
         modePaiement: result.modePaiement,
+        // montant total vente
         montant: ticket.total,
-        montantrecu: result.montantRecu,
-        montantrendu: result.monnaie || 0,
+        // nouveau paiement uniquement
+        montantrecu: Math.min(result.montantRecu, reste),
+        montantrendu: result.monnaie ?? 0,
         referencePaiement: result.referencePaiement,
         numeroPaiement: result.numeroPaiement,
       },
     };
 
-    console.log(payload)
+    console.log(payload);
+
     this.checkoutService.checkoutPos(payload).subscribe({
       next: vente => {
-        this.toastService.success('Paiement effectuee - Vente OK');
-        // supprimer le ticket payé
+        this.toastService.success('Paiement effectué - Vente OK');
         this.posService.removeTicket(ticket.id);
         this.paymentVisible = false;
       },
 
       error: err => {
-        this.toastService.warning('Erreur Paiement');
+        this.toastService.error(err.error?.message ?? 'Erreur Paiement');
       },
     });
   }

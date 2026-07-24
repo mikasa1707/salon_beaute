@@ -113,15 +113,21 @@ export class ReservationPlanning implements OnInit {
   }
 
   changeReservationStatus(id: number, statut: ReservationStatut, products: any[] = []) {
-    this.reservationService.changeStatus(id, statut, products).subscribe({
+    const consumption =
+      statut === ReservationStatut.TERMINEE
+        ? products.map(p => ({
+            prestationProduitId: p.produitId,
+            quantite: p.quantite,
+          }))
+        : undefined;
+    this.reservationService.changeStatus(id, statut, consumption).subscribe({
       next: response => {
         this.toast.success('Statut de la réservation mis à jour');
-
         this.selectedReservation = response.reservation ?? response;
-
         this.updateAvailableActions();
         this.loadReservations();
 
+        // TERMINEE => génération facture puis caisse
         if (statut === ReservationStatut.TERMINEE && response.facturation) {
           this.router.navigate(['/caisse'], {
             state: {
@@ -130,6 +136,7 @@ export class ReservationPlanning implements OnInit {
           });
         }
       },
+
       error: err => {
         this.toast.error(err.error?.message ?? 'Erreur lors du changement de statut');
       },
@@ -167,8 +174,11 @@ export class ReservationPlanning implements OnInit {
     this.selectedProducts = this.selectedProducts.filter(p => p.prestationProduitId !== product.prestationProduitId);
   }
 
-  confirmConsumption(event: any[]) {
-    this.changeReservationStatus(this.selectedReservation.id, ReservationStatut.TERMINEE, event);
+  confirmConsumption(products: any[]) {
+    console.log('Produits reçus du modal:', products);
+
+    this.changeReservationStatus(this.selectedConsumptionReservation.id, ReservationStatut.TERMINEE, products);
+
     this.showConsumptionModal = false;
   }
 

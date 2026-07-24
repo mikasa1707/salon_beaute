@@ -10,8 +10,8 @@ export class CheckoutPosDto {
     id: number;
     label: string;
     quantite: number;
-    prix_unitaire: number;
-    ProduitUnite?: ProduitUnite;
+    prix: number;
+    produitUnite?: ProduitUnite;
     prestation?: Prestation;
   }[];
   paiement!: {

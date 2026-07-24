@@ -49,7 +49,7 @@ export class VenteProduit {
     precision: 10,
     scale: 2,
   })
-  prix_unitaire!: number;
+  prix!: number;
 
   @Column({
     type: 'decimal',

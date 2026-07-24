@@ -86,18 +86,17 @@ export class ReservationConsumptionComponent implements OnChanges {
     }
 
     const exist = this.selectedProducts.find(x => x.produitId === produit.id);
-
     if (exist) {
       exist.quantite = Number(exist.quantite) + 1;
     } else {
       this.selectedProducts.push({
-        produitId: produit.produit.id,
+        produitId: produit.id,
         produit: produit.produit,
         uniteMesure: produit.produit.uniteConsommation,
         quantite: 1,
       });
     }
-    console.log(this.selectedProducts);
+ console.log(this.selectedProducts)
 
     this.selectedProduitList = [];
   }
@@ -107,6 +106,7 @@ export class ReservationConsumptionComponent implements OnChanges {
   }
 
   save() {
+    console.log(this.selectedProducts)
     this.confirmed.emit(
       this.selectedProducts.map(p => ({
         produitId: p.produitId,

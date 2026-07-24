@@ -102,9 +102,8 @@ export class ReservationsController {
     @Body('status') status: ReservationStatut,
     @Body('products')
     products: {
-      produitId: number;
-      uniteMesureId: number;
-      quantite: number;
+    prestationProduitId:number;
+    quantite:number;
     }[],
   ) {
     return this.reservationsService.changeStatus(+id, status, products);

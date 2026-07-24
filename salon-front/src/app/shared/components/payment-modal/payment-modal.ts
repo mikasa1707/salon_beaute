@@ -1,19 +1,25 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ModalComponent } from '../../components/modal/modal';
 
 import { PosTicket } from '../../../core/models/posTicket';
 import { KeyboardMode, NumericKeyboard } from '../numeric-keyboard/numeric-keyboard';
+
 import { ToastService } from '../../../core/services/toast';
 
 export interface PaymentResult {
   modePaiement: 'ESPECES' | 'MVOLA' | 'ORANGE_MONEY' | 'AIRTEL_MONEY' | 'CARTE' | 'AUTRE';
+
   montantRecu: number;
+
   remise: number;
+
   monnaie: number;
+
   referencePaiement: string;
+
   numeroPaiement: string;
 }
 
@@ -24,7 +30,7 @@ export interface PaymentResult {
   templateUrl: './payment-modal.html',
   styleUrl: './payment-modal.scss',
 })
-export class PaymentModalComponent {
+export class PaymentModalComponent implements OnChanges {
   @Input() show = false;
   @Input({ required: true }) ticket!: PosTicket;
 
@@ -80,6 +86,51 @@ export class PaymentModalComponent {
 
   constructor(private readonly toast: ToastService) {}
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['ticket'] && this.ticket) {
+      this.resetPayment();
+    }
+  }
+
+  /*
+  ==============================
+  FINANCE
+  ==============================
+  */
+
+  get montantDejaPaye(): number {
+    return this.ticket?.montantPaye ?? 0;
+  }
+
+  get totalBrut(): number {
+    return this.ticket?.total ?? 0;
+  }
+
+  /**
+   * Montant restant après paiement précédent
+   */
+  get total(): number {
+    return Math.max(this.totalBrut - this.montantDejaPaye - this.remise, 0);
+  }
+
+  get monnaie(): number {
+    return Math.max(this.montantRecu - this.total, 0);
+  }
+
+  get reste(): number {
+    return Math.max(this.total - this.montantRecu, 0);
+  }
+
+  get maxMontantRecu(): number {
+    return this.total;
+  }
+
+  /*
+  ==============================
+  DETAILS
+  ==============================
+  */
+
   get totalPrestations(): number {
     return this.ticket?.totalPrestations ?? 0;
   }
@@ -88,19 +139,15 @@ export class PaymentModalComponent {
     return this.ticket?.totalProduits ?? 0;
   }
 
-  get total(): number {
-    return Math.max((this.ticket?.total ?? 0) - this.remise, 0);
+  get items() {
+    return this.ticket?.items ?? [];
   }
 
-  get monnaie(): number {
-    return Math.max(this.montantRecu - this.total, 0);
-  }
-
-  close() {
-    this.resetPayment();
-    this.show = false;
-    // this.closed.emit();
-  }
+  /*
+  ==============================
+  ACTIONS
+  ==============================
+  */
 
   payer() {
     if (this.total <= 0) {
@@ -108,44 +155,73 @@ export class PaymentModalComponent {
     }
 
     if (this.montantRecu <= 0) {
-      this.toast.error("Impossible d'encaisser. Veuillez choisir mode de paiement et entrez montant recu");
+      this.toast.error("Impossible d'encaisser. Veuillez saisir un montant.");
+
+      return;
+    }
+
+    if (this.montantRecu > this.total) {
+      this.toast.error('Le montant dépasse le reste à payer');
+
       return;
     }
 
     this.confirm.emit({
-      modePaiement: this.modePaiement as 'ESPECES' | 'MVOLA' | 'ORANGE_MONEY' | 'AIRTEL_MONEY' | 'CARTE' | 'AUTRE',
-      montantRecu: this.modePaiement === 'ESPECES' ? this.montantRecu : 0,
-      monnaie: this.modePaiement === 'ESPECES' ? this.monnaie : 0,
+      modePaiement: this.modePaiement as any,
+
+      montantRecu: this.montantRecu,
+
       remise: this.remise,
+
+      monnaie: this.monnaie,
+
       referencePaiement: this.referencePaiement,
+
       numeroPaiement: this.numeroPaiement,
     });
 
     this.close();
   }
 
+  close() {
+    this.resetPayment();
+
+    this.show = false;
+  }
+
+  resetPayment() {
+    this.remise = 0;
+
+    this.montantRecu = 0;
+
+    this.referencePaiement = '';
+
+    this.numeroPaiement = '';
+
+    this.modePaiement = 'ESPECES';
+
+    this.keyboardMode = 'numeric';
+
+    this.keyboardValue = 0;
+
+    this.keyboard?.reset();
+  }
+
   selectMode(mode: string) {
     this.modePaiement = mode;
 
-    this.numeroPaiement = '';
     this.referencePaiement = '';
 
-    if (mode !== 'ESPECES') {
-      this.focusKeyboard('montant');
-    }
+    this.numeroPaiement = '';
+
+    this.focusKeyboard('montant');
   }
 
-  get items() {
-    return this.ticket?.items ?? [];
-  }
-
-  addAmount(amount: number) {
-    this.montantRecu += amount;
-  }
-
-  setExactAmount() {
-    this.montantRecu = this.total;
-  }
+  /*
+  ==============================
+  KEYBOARD
+  ==============================
+  */
 
   focusKeyboard(field: 'montant' | 'reference' | 'phone') {
     this.activeField = field;
@@ -153,17 +229,23 @@ export class PaymentModalComponent {
     switch (field) {
       case 'montant':
         this.keyboardMode = 'numeric';
+
         this.keyboardValue = this.montantRecu;
+
         break;
 
       case 'reference':
         this.keyboardMode = 'text';
+
         this.keyboardValue = this.referencePaiement;
+
         break;
 
       case 'phone':
         this.keyboardMode = 'phone';
+
         this.keyboardValue = this.numeroPaiement;
+
         break;
     }
   }
@@ -171,11 +253,13 @@ export class PaymentModalComponent {
   keyboardChange(value: any) {
     switch (this.activeField) {
       case 'montant':
-        this.montantRecu = Number(value);
+        this.setMontantRecu(value);
+
         break;
 
       case 'reference':
         this.referencePaiement = value;
+
         break;
 
       case 'phone':
@@ -187,35 +271,15 @@ export class PaymentModalComponent {
     }
   }
 
-  resetPayment() {
-    this.remise = 0;
-    this.montantRecu = 0;
-    this.referencePaiement = '';
-    this.numeroPaiement = '';
-    this.modePaiement = 'ESPECES';
-    this.keyboardMode = 'numeric';
-    this.keyboard?.reset();
+  setMontantRecu(value: number) {
+    this.montantRecu = Math.min(Number(value ?? 0), this.maxMontantRecu);
   }
 
-  get keyboardDisplayValue() {
-    if (this.activeField === 'reference' || this.activeField === 'phone') {
-      return this.montantRecu;
-    }
-
-    return this.keyboardValue;
-  }
-
-  get reste(): number {
-    return Math.max(this.total - this.montantRecu, 0);
-  }
-
-  get hasMonnaie(): boolean {
-    return this.montantRecu > this.total;
-  }
-
-  get hasReste(): boolean {
-    return this.montantRecu < this.total;
-  }
+  /*
+  ==============================
+  PHONE
+  ==============================
+  */
 
   formatPhone(value: string): string {
     const digits = value.replace(/\D/g, '');
@@ -228,7 +292,7 @@ export class PaymentModalComponent {
 
     const rest = digits.substring(3);
 
-    if (rest.length > 0) {
+    if (rest.length) {
       result += ' ' + rest.substring(0, 2);
     }
 
@@ -243,6 +307,10 @@ export class PaymentModalComponent {
     return result;
   }
 
+  get selectedPaymentMode() {
+    return this.paymentModes.find(x => x.value === this.modePaiement);
+  }
+
   isValidPhone(): boolean {
     const phone = this.numeroPaiement.replace(/\s/g, '');
 
@@ -255,17 +323,7 @@ export class PaymentModalComponent {
     return this.selectedPaymentMode?.prefixes?.includes(prefix) ?? false;
   }
 
-  get selectedPaymentMode() {
-    return this.paymentModes.find(x => x.value === this.modePaiement);
-  }
-
-  get phonePlaceholder(): string {
-    const prefixes = this.selectedPaymentMode?.prefixes;
-
-    if (!prefixes) {
-      return '034 xx xxx xx';
-    }
-
-    return `${prefixes.join(' / ')} xx xxx xx`;
+  get phonePlaceholder() {
+    return '034 xx xxx xx';
   }
 }

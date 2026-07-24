@@ -1,7 +1,6 @@
-import { ChangeDetectorRef, Component, EventEmitter, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-
-import { PosService } from '../../../../core/services/pos';
+import { Output, EventEmitter, ChangeDetectorRef, Component } from "@angular/core";
+import { PosService } from "../../../../core/services/pos";
+import { CommonModule } from "@angular/common";
 
 @Component({
   selector: 'app-pos-summary',
@@ -17,6 +16,7 @@ export class PosSummaryComponent {
   totalProduits = 0;
   totalPrestations = 0;
   remise = 0;
+  montantPaye = 0;
 
   constructor(
     private readonly posService: PosService,
@@ -25,17 +25,26 @@ export class PosSummaryComponent {
 
   ngOnInit() {
     this.posService.activeTicket$.subscribe(ticket => {
-      console.log(ticket)
+      console.log(ticket);
+
       if (ticket) {
-        this.total = ticket.total;
-        this.totalProduits = ticket.totalProduits;
-        this.totalPrestations = ticket.totalPrestations;
-        this.remise = ticket.remise ?? 0;
-        this.cdr.detectChanges();
+        this.total = Number(ticket.total ?? 0);
+        this.totalProduits = Number(ticket.totalProduits ?? 0);
+        this.totalPrestations = Number(ticket.totalPrestations ?? 0);
+        this.remise = Number(ticket.remise ?? 0);
+
+        // important
+        this.montantPaye = Number(ticket.montantPaye ?? 0);
       } else {
         this.reset();
       }
+
+      this.cdr.detectChanges();
     });
+  }
+
+  get resteAPayer(): number {
+    return Math.max(this.total - this.montantPaye, 0);
   }
 
   reset() {
@@ -43,11 +52,11 @@ export class PosSummaryComponent {
     this.totalProduits = 0;
     this.totalPrestations = 0;
     this.remise = 0;
-    this.cdr.detectChanges();
+    this.montantPaye = 0;
   }
 
   payer() {
-    if (this.total <= 0) {
+    if (this.resteAPayer <= 0) {
       return;
     }
 

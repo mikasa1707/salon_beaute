@@ -157,7 +157,7 @@ export class CheckoutService {
           produitUnite: item.produitUnite ?? undefined,
           label: item.label,
           quantite: item.quantite,
-          prix_unitaire: item.prix,
+          prix: item.prix,
           total: lineTotal,
         });
       }
@@ -381,11 +381,16 @@ export class CheckoutService {
 
         // suppression anciennes lignes
 
-        await manager.delete(VenteProduit, {
-          vente: {
-            id: vente.id,
-          },
-        });
+        if (dto.venteId) {
+          await manager
+            .createQueryBuilder()
+            .delete()
+            .from(VenteProduit)
+            .where('venteId = :venteId', {
+              venteId: dto.venteId,
+            })
+            .execute();
+        }
       } else {
         vente = manager.create(Vente);
       }
@@ -401,8 +406,12 @@ export class CheckoutService {
       // =====================================
 
       for (const item of dto.items) {
-        console.log(item);
-        const prix = Number(item.prix_unitaire ?? item.prix_unitaire ?? 0);
+        // console.log('ITEM POS:', {
+        //   label: item.label,
+        //   prestation: item.prestation,
+        //   produitUnite: item.produitUnite,
+        // });
+        const prix = Number(item.prix ?? item.prix ?? 0);
 
         const quantite = Number(item.quantite ?? 0);
 
@@ -412,7 +421,7 @@ export class CheckoutService {
           throw new ConflictException(`Prix invalide ${item.label}`);
         }
 
-        if (item.ProduitUnite) {
+        if (item.produitUnite) {
           totalProduits += total;
         }
 
@@ -422,19 +431,14 @@ export class CheckoutService {
 
         items.push({
           label: item.label,
-
           quantite,
-
-          prix_unitaire: prix,
-
+          prix: prix,
           total,
-
-          produitUnite: item.ProduitUnite
+          produitUnite: item.produitUnite
             ? ({
-                id: item.ProduitUnite.id,
+                id: item.produitUnite.id,
               } as ProduitUnite)
             : undefined,
-
           prestation: item.prestation
             ? ({
                 id: item.prestation.id,
@@ -466,6 +470,36 @@ export class CheckoutService {
       vente.montantPaye = Number(vente.montantPaye ?? 0) + montantPaiement;
 
       vente.cashRegister = cashRegister;
+
+      if (dto.factureId) {
+        const facture = await manager.findOne(Facturation, {
+          where: {
+            id: dto.factureId,
+          },
+
+          relations: {
+            vente: true,
+          },
+
+          lock: {
+            mode: 'pessimistic_write',
+          },
+        });
+
+        if (!facture) {
+          throw new NotFoundException('Facture introuvable');
+        }
+
+        if (facture.vente) {
+          throw new ConflictException('Cette facture a déjà été encaissée');
+        }
+      }
+
+      if (dto.factureId) {
+        vente.facturation = {
+          id: dto.factureId,
+        } as Facturation;
+      }
 
       const saved = await manager.save(Vente, vente);
 

@@ -7,6 +7,7 @@ import { Reservation } from 'src/reservations/entities/reservation.entity';
 import { TypePrestation } from 'src/types-prestations/entities/types-prestation.entity';
 import { Personnel } from 'src/personnels/entities/personnel.entity';
 import { PrestationRecette } from 'src/prestations-recettes/entities/prestations-recette.entity';
+import { PrestationProduitConsumption } from './entities/prestation_produit_consumptions.entity';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PrestationRecette } from 'src/prestations-recettes/entities/prestations
       TypePrestation,
       Personnel,
       PrestationRecette,
+      PrestationProduitConsumption,
     ]),
   ],
   controllers: [PrestationsController],

@@ -13,6 +13,7 @@ import { PrestationProduit } from 'src/prestations_produits/entities/prestations
 import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
 import { StockMovement } from 'src/stocks/entities/stock-movements.entity';
 import { StockConsumptionModule } from 'src/stocks/stock-consumption.module';
+import { PrestationProduitConsumption } from 'src/prestations/entities/prestation_produit_consumptions.entity';
 
 @Module({
   imports: [
@@ -26,8 +27,9 @@ import { StockConsumptionModule } from 'src/stocks/stock-consumption.module';
       PrestationProduit,
       ProduitUnite,
       StockMovement,
+      PrestationProduitConsumption,
     ]),
-    StockConsumptionModule
+    StockConsumptionModule,
   ],
   controllers: [ReservationsController],
   providers: [ReservationsService, FacturationsService],

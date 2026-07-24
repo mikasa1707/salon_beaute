@@ -99,21 +99,22 @@ export class FacturationsService {
   }
 
   private async generateNumeroFacture(manager: EntityManager): Promise<string> {
-    const now = new Date();
-    const date = now.toISOString().slice(0, 10).replace(/-/g, '');
-    const start = new Date(now);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(now);
-    end.setHours(23, 59, 59, 999);
-    const count = await manager
-      .createQueryBuilder(Facturation, 'facture')
-      .where('facture.created_at BETWEEN :start AND :end', {
-        start,
-        end,
+    const today = new Date();
+    const date = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+    const last = await manager
+      .createQueryBuilder(Facturation, 'f')
+      .where('f.numero LIKE :prefix', {
+        prefix: `FAC-${date}-%`,
       })
-      .getCount();
-    const sequence = String(count + 1).padStart(4, '0');
-    return `FAC-${date}-${sequence}`;
+      .orderBy('f.id', 'DESC')
+      .getOne();
+
+    let sequence = 1;
+    if (last) {
+      const parts = last.numero.split('-');
+      sequence = Number(parts[2]) + 1;
+    }
+    return `FAC-${date}-${String(sequence).padStart(4, '0')}`;
   }
 
   // =========================

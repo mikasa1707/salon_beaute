@@ -51,6 +51,7 @@ export class ReservationApi {
       quantite: number;
     }[] = []
   ): Observable<ChangeStatusResponse> {
+    console.log(products)
     return this.http.patch<ChangeStatusResponse>(`${this.api}/${id}/status`, {
       status: newStatus,
       products,
