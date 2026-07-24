@@ -139,8 +139,8 @@ export class VenteDetails implements OnChanges {
 
     this.router.navigate(['/caisse'], {
       state: {
-        venteId: this.vente.id,
-        mode: 'EDIT',
+        vente: this.vente,
+        mode: 'VENTE_EDIT',
       },
     });
   }

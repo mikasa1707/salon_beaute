@@ -106,7 +106,10 @@ export class VenteList implements OnInit {
     this.loading = true;
     this.api.findAll(this.page, this.limit, _search, this.statutPaiement).subscribe({
       next: res => {
-        this.ventes = res.data;
+        this.ventes = res.data.map((vente: any) => ({
+          ...vente,
+          numero: this.generateNumeroVente(vente.id, vente.created_at)
+        }))
         this.total = res.total;
         this.totalPages = res.totalPages;
         this.loading = false;
@@ -117,6 +120,13 @@ export class VenteList implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  private generateNumeroVente(id: number, _date: Date): string {
+    const d = new Date(_date);
+    const date = d.getFullYear().toString().slice(2) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+    const prefix = `V${date}`;
+    return `${prefix}-${id.toString().padStart(4, '0')}`;
   }
 
   search(value: string) {
@@ -166,6 +176,16 @@ export class VenteList implements OnInit {
 
     this.api.cancel(item.id).subscribe(() => {
       this.load();
+    });
+  }
+
+  edit(vente: Vente) {
+    // console.log(vente)
+    this.router.navigate(['/caisse'], {
+      state: {
+        vente: vente,
+        mode: 'VENTE_EDIT',
+      },
     });
   }
 

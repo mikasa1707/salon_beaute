@@ -12,21 +12,19 @@ export type KeyboardMode = 'numeric' | 'phone' | 'text';
 })
 export class NumericKeyboard {
   @Input() mode: KeyboardMode = 'numeric';
-
   @Input() value: string | number = '';
-
   @Input() quickValues: number[] = [];
-
   @Input() showExact = false;
   @Input() showQuickValues = true;
-
   @Input() exactValue = 0;
 
   @Output() valueChange = new EventEmitter<string | number>();
-
   @Output() exact = new EventEmitter<void>();
 
-  numericKeys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '00', '0', '⌫'];
+  @Input() editable = false;
+  @Output() focus = new EventEmitter<'montant' | 'reference' | 'phone'>();
+
+  numericKeys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '00', '0', 'C', '', '', '⌫'];
 
   textKeys = [
     ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
@@ -39,12 +37,23 @@ export class NumericKeyboard {
   phoneKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0', '⌫'];
 
   press(key: string) {
+    if (!key) {
+      return;
+    }
     let text = this.value?.toString() ?? '';
 
-    if (key === '⌫') {
-      text = text.slice(0, -1);
-    } else {
-      text += key;
+    switch (key) {
+      case '⌫':
+        text = text.slice(0, -1);
+        break;
+
+      case 'C':
+        text = '';
+        break;
+
+      default:
+        text += key;
+        break;
     }
 
     if (this.mode === 'phone') {

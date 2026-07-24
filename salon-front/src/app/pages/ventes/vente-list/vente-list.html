@@ -58,7 +58,8 @@
       (pageChange)="changePage($event)"
       [canDelete]="false"
       (view)="view($event)"
-      (delete)="cancel($event)"></app-data-table>
+      (delete)="cancel($event)"
+      (edit)="edit($event)"></app-data-table>
 
     <app-pagination
       [page]="page"

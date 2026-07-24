@@ -3,14 +3,15 @@ import { Prestation } from 'src/prestations/entities/prestation.entity';
 import { ProduitUnite } from 'src/produits/entities/produit_unites.entity';
 
 export class CheckoutPosDto {
-  ticketId!:string;
-  factureId!:number;
+  ticketId!: string;
+  factureId!: number;
+  venteId!: number;
   items!: {
     id: number;
     label: string;
     quantite: number;
-    prix: number;
-    produit?: ProduitUnite;
+    prix_unitaire: number;
+    ProduitUnite?: ProduitUnite;
     prestation?: Prestation;
   }[];
   paiement!: {

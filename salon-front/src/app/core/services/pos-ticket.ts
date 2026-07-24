@@ -35,32 +35,22 @@ export class PosTicketService {
   createTicket(label = 'Vente libre') {
     const ticket: PosTicket = {
       id: crypto.randomUUID(),
-
       label,
-
       items: [],
-
       remise: 0,
-
       totalProduits: 0,
-
       totalPrestations: 0,
-
       total: 0,
-
+      montantPaye: 0,
+      reste: 0,
       createdAt: new Date(),
-
       updatedAt: new Date(),
     };
 
     const tickets = [...this.tickets, ticket];
-
     this.ticketsSubject.next(tickets);
-
     this.setActive(ticket.id);
-
     this.save();
-
     return ticket;
   }
 

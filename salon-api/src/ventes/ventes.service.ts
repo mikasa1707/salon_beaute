@@ -16,6 +16,7 @@ import {
   StockMovement,
   StockMovementType,
 } from 'src/stocks/entities/stock-movements.entity';
+import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
 
 @Injectable()
 export class VentesService {
@@ -202,6 +203,7 @@ export class VentesService {
         relations: {
           produits: {
             produitUnite: true,
+            prestation: true,
           },
         },
         lock: {
@@ -210,18 +212,23 @@ export class VentesService {
       });
 
       if (!vente) {
-        throw new NotFoundException();
+        throw new NotFoundException('Vente introuvable');
       }
 
-      if (vente.isCancelled === true) {
+      if (vente.isCancelled) {
         throw new ConflictException('Cette vente est déjà annulée');
       }
 
-      if (vente.produits.length > 0) {
-        for (const item of vente.produits) {
+      for (const item of vente.produits) {
+        /**
+         * ==========================================
+         * CAS 1 : Produit vendu directement
+         * ==========================================
+         */
+        if (item.produitUnite) {
           const unite = await manager.findOne(ProduitUnite, {
             where: {
-              id: item.produitUnite?.id,
+              id: item.produitUnite.id,
             },
             lock: {
               mode: 'pessimistic_write',
@@ -230,7 +237,7 @@ export class VentesService {
 
           if (!unite) {
             throw new NotFoundException(
-              `ProduitUnite ${item.produitUnite?.id} introuvable`,
+              `ProduitUnite ${item.produitUnite.id} introuvable`,
             );
           }
 
@@ -242,14 +249,63 @@ export class VentesService {
             produitUnite: unite,
             type: StockMovementType.SALE_CANCEL,
             quantite: item.quantite,
-            reference: `ANNULATION-${vente.id}`,
-            note: `Annulation vente`,
+            reference: `ANNULATION-${this.generateNumeroVente(vente.id, vente.created_at)}`,
+            note: `Annulation vente ${this.generateNumeroVente(vente.id, vente.created_at)}`,
           });
         }
-      } 
-      
+
+        /**
+         * ==========================================
+         * CAS 2 : Produits consommés par prestation
+         * ==========================================
+         */
+        if (item.prestation) {
+          const prestationProduits = await manager.find(PrestationProduit, {
+            where: {
+              prestation: {
+                id: item.prestation.id,
+              },
+            },
+            relations: {
+              produit: true,
+            },
+          });
+
+          for (const pp of prestationProduits) {
+            const unite = await manager.findOne(ProduitUnite, {
+              where: {
+                id: pp.produit.id,
+              },
+              lock: {
+                mode: 'pessimistic_write',
+              },
+            });
+
+            if (!unite) {
+              throw new NotFoundException(
+                `ProduitUnite ${pp.produit.id} introuvable`,
+              );
+            }
+
+            const quantite = pp.quantite * item.quantite;
+
+            unite.stock += quantite;
+
+            await manager.save(unite);
+
+            // await manager.save(StockMovement, {
+            //   produitUnite: unite,
+            //   type: StockMovementType.SALE_CANCEL,
+            //   quantite,
+            //   reference: `ANNULATION-${vente.numero}`,
+            //   note: `Annulation prestation ${item.prestation.nom}`,
+            // });
+          }
+        }
+      }
+
       vente.isCancelled = true;
-      vente.cancelledAt = new Date(Date.now());
+      vente.cancelledAt = new Date();
 
       await manager.save(vente);
 

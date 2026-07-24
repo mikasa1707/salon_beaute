@@ -6,7 +6,10 @@ import { ILike, In, Repository } from 'typeorm';
 import { Personnel } from './entities/personnel.entity';
 import { Prestation } from 'src/prestations/entities/prestation.entity';
 import { CheckAvailablePersonnelDto } from './dto/available-personnel.dto';
-import { Reservation, ReservationStatut } from 'src/reservations/entities/reservation.entity';
+import {
+  Reservation,
+  ReservationStatut,
+} from 'src/reservations/entities/reservation.entity';
 
 @Injectable()
 export class PersonnelsService {
@@ -17,7 +20,7 @@ export class PersonnelsService {
     private readonly prestationRepository: Repository<Prestation>,
     @InjectRepository(Reservation)
     private readonly reservationRepo: Repository<Reservation>,
-  ) { }
+  ) {}
 
   async create(createDto: CreatePersonnelDto) {
     const { prestationIds, ...data } = createDto;
@@ -52,8 +55,14 @@ export class PersonnelsService {
     const personnel = data.map((personnel) => ({
       ...personnel,
       nomComplet: `${personnel.nom} ${personnel.prenom}`,
-    }))
-    return { data: personnel, total, page, limit, totalPages: Math.ceil(total / limit) };
+    }));
+    return {
+      data: personnel,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number) {
@@ -85,8 +94,8 @@ export class PersonnelsService {
     if (prestationIds !== undefined) {
       personnel.prestations = prestationIds.length
         ? await this.prestationRepository.findBy({
-          id: In(prestationIds),
-        })
+            id: In(prestationIds),
+          })
         : [];
     }
 
@@ -141,12 +150,9 @@ export class PersonnelsService {
       0,
     );
 
-
     const startDate = new Date(`${date}T${heure}:00`);
     const endDate = new Date(startDate);
-    endDate.setMinutes(
-      endDate.getMinutes() + dureeTotal,
-    );
+    endDate.setMinutes(endDate.getMinutes() + dureeTotal);
 
     const personnelDisponibles = await Promise.all(
       personnels
@@ -160,7 +166,6 @@ export class PersonnelsService {
           );
         })
         .map(async (personnel) => {
-
           const conflicts = await this.getPersonnelConflicts(
             personnel.id,
             startDate,
@@ -172,9 +177,7 @@ export class PersonnelsService {
             nom: personnel.nom,
             prenom: personnel.prenom,
             prestations: personnel.prestations
-              .filter((prestation) =>
-                prestationIds.includes(prestation.id),
-              )
+              .filter((prestation) => prestationIds.includes(prestation.id))
               .map((prestation) => ({
                 id: prestation.id,
                 nom: prestation.nom,
@@ -210,15 +213,13 @@ export class PersonnelsService {
         'client.prenom',
       ])
       .getMany();
-      
+
     const conflicts = reservations
       .map((reservation) => {
         const debut = new Date(reservation.date_debut);
 
         const fin = new Date(debut);
-        fin.setMinutes(
-          fin.getMinutes() + (reservation.total_duree ?? 0),
-        );
+        fin.setMinutes(fin.getMinutes() + (reservation.total_duree ?? 0));
 
         return {
           reservationId: reservation.id,
@@ -230,10 +231,7 @@ export class PersonnelsService {
         };
       })
       .filter((reservation) => {
-        return (
-          reservation.debut < endDate &&
-          reservation.fin > startDate
-        );
+        return reservation.debut < endDate && reservation.fin > startDate;
       });
 
     return conflicts;

@@ -147,7 +147,7 @@ export class FacturationsService {
       relations: {
         client: true,
         reservation: true,
-        items: { prestation: true , produitUnite: true },
+        items: { prestation: true, produitUnite: true },
         vente: true,
       },
     });
@@ -195,7 +195,7 @@ export class FacturationsService {
       relations: {
         client: true,
         reservation: true,
-        items: { prestation: true , produitUnite: true },
+        items: { prestation: true, produitUnite: true },
         vente: true,
       },
       skip: (page - 1) * limit,

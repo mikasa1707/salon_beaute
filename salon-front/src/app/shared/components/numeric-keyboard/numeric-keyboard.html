@@ -3,6 +3,7 @@
   <!-- NUMERIC / PHONE KEYBOARD -->
   <!-- ========================= -->
 
+  <!-- <input class="form-control form-control-lg text-end fw-bold" [value]="value" [readonly]="!editable" (click)="editable && focus.emit('montant')" /> -->
   @if (mode === 'numeric' || mode === 'phone') {
     <!-- Boutons rapides uniquement pour espèces -->
     @if (mode === 'numeric' && quickValues.length) {
@@ -22,22 +23,26 @@
 
         Exact
       </button>
-    <!-- Affichage -->
-    <input class="form-control form-control-lg text-end fw-bold" [value]="value" readonly />
     }
-
+    <!-- Affichage -->
 
     <!-- Clavier -->
     <div class="row g-2">
-      @for (key of mode === 'phone' ? phoneKeys : numericKeys; track key) {
+      @for (key of mode === 'phone' ? phoneKeys : numericKeys; track $index) {
         <div class="col-4">
-          <button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold" (click)="press(key)">
-            @if (key === '⌫') {
-              <i class="fa-solid fa-delete-left"></i>
-            } @else {
-              {{ key }}
-            }
-          </button>
+          @if (key !== '') {
+            <button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold" (click)="press(key)">
+              @if (key === '⌫') {
+                <i class="fa-solid fa-delete-left"></i>
+              } @else if (key === 'C') {
+                <span class="text-danger fw-bold">C</span>
+              } @else {
+                {{ key }}
+              }
+            </button>
+          } @else {
+            <div class="w-100 py-3"></div>
+          }
         </div>
       }
     </div>
@@ -64,9 +69,9 @@
   }
 
   <!-- Effacer -->
-  <button type="button" class="btn btn-outline-danger" (click)="clear()">
+  <!-- <button type="button" class="btn btn-outline-danger" (click)="clear()">
     <i class="fa-solid fa-trash me-1"></i>
 
     Effacer
-  </button>
+  </button> -->
 </div>

@@ -58,7 +58,6 @@ export class Vente {
   })
   total!: number;
 
-  
   @Column({
     type: 'decimal',
     precision: 10,

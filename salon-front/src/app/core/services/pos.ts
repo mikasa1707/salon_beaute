@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { VenteProduit } from '../models/vente-produit';
 import { Facturation } from '../models/facturation';
 import { PosTicket } from '../models/posTicket';
+import { Vente } from '../models/vente';
 
 @Injectable({
   providedIn: 'root',
@@ -29,6 +30,10 @@ export class PosService {
     return this.tickets.find(t => t.facturation?.id === id);
   }
 
+  findTicketByVente(label: string) {
+    return this.tickets.find(t => t.label === label);
+  }
+
   // ==========================
   // GETTERS
   // ==========================
@@ -49,20 +54,20 @@ export class PosService {
   // CREATION TICKET
   // ==========================
 
-  createTicket(label? : string) {
-    if (!label) {
-      label = `Vente ${this.ticketCounter++}`;
-    }
+  createTicket(label?: string) {
     const ticket: PosTicket = {
       id: crypto.randomUUID(),
-      label,
+      label: label ?? `Ticket ${this.ticketCounter++}`,
       items: [],
-      remise: 0,
       totalProduits: 0,
       totalPrestations: 0,
       total: 0,
+      remise: 0,
+      montantPaye: 0,
+      reste: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
+      mode: 'NEW',
     };
 
     const tickets = [...this.tickets, ticket];
@@ -91,27 +96,129 @@ export class PosService {
   // FacturationItem devient VenteProduit
   // Toutes les lignes facture sont LOCK
 
+  // loadFacture(facture: Facturation) {
+  //   const items: VenteProduit[] = facture.items.map(item => ({
+  //     id: item.id,
+  //     label: item.label,
+  //     nomComplet: item.label,
+  //     quantite: Number(item.quantite),
+  //     prix: Number(item.prix),
+  //     total: Number(item.prix) * Number(item.quantite),
+  //     totalPrestations: Number(item.prix) * Number(item.quantite),
+  //     produit: item.produitUnite ?? undefined,
+  //     prestation: item.prestation ?? undefined,
+  //     locked: true,
+  //   }));
+
+  //   const ticket = this.createTicket(`FAC-${facture.numero}`);
+  //   ticket.facturation = facture;
+  //   ticket.items = items;
+  //   this.calculate(ticket);
+
+  //   this.update(ticket);
+  // }
+
   loadFacture(facture: Facturation) {
-    const items: VenteProduit[] = facture.items.map(item => ({
-      id: item.id,
-      label: item.label,
-      nomComplet: item.label,
-      quantite: Number(item.quantite),
-      prix: Number(item.prix),
-      total: Number(item.prix) * Number(item.quantite),
-      totalPrestations: Number(item.prix) * Number(item.quantite),
-      produit: item.produitUnite ?? undefined,
-      prestation: item.prestation ?? undefined,
-      locked: true,
-    }));
+    const ticket: PosTicket = {
+      id: crypto.randomUUID(),
+      factureId: facture.id,
+      label: `${facture.numero}`,
+      facturation: facture,
+      client: facture.reservation.client,
+      items: facture.items.map(item => ({
+        ...item,
+      })),
+      totalProduits: 0,
+      totalPrestations: Number(facture.total),
+      total: Number(facture.total),
+      remise: 0,
+      montantPaye: 0,
+      reste: Number(facture.total),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      mode: 'FACTURE',
+    };
 
-    const ticket = this.createTicket(`FAC-${facture.numero}`);
-    ticket.facturation = facture;
-    ticket.items = items;
-    this.calculate(ticket);
-
-    this.update(ticket);
+    this.tickets.push(ticket);
+    this.ticketsSubject.next(this.tickets);
+    this.activeTicketSubject.next(ticket);
+    this.save();
+    return ticket;
   }
+
+  // ==========================
+  // LOAD VENTE
+  // ==========================
+
+  loadVente(vente: Vente) {
+    const ticket: PosTicket = {
+      id: crypto.randomUUID(),
+      venteId: vente.id,
+      label: vente.numero ?? this.generateNumeroVente(vente.id, vente.created_at),
+      client: vente.client,
+      facturation: vente.facture,
+      items: vente.produits ?? [],
+      totalProduits: Number(vente.total_produits ?? 0),
+      totalPrestations: Number(vente.total_prestations ?? 0),
+      total: Number(vente.total ?? 0),
+      remise: Number(vente.remise ?? 0),
+      montantPaye: Number(vente.montantPaye ?? 0),
+      reste: Number(vente.total ?? 0) - Number(vente.montantPaye ?? 0),
+      createdAt: new Date(vente.created_at),
+      updatedAt: new Date(),
+      mode: 'VENTE_EDIT',
+    };
+
+    const exists = this.tickets.find(t => t.venteId === vente.id);
+
+    if (exists) {
+      this.setActive(exists.id);
+      return exists;
+    }
+
+    this.tickets.push(ticket);
+    this.ticketsSubject.next(this.tickets);
+    this.activeTicketSubject.next(ticket);
+    this.save();
+    return ticket;
+  }
+
+  private generateNumeroVente(id: number, _date: Date): string {
+    _date = new Date(_date);
+    const date = _date.getFullYear().toString().slice(2) + String(_date.getMonth() + 1).padStart(2, '0') + String(_date.getDate()).padStart(2, '0');
+
+    const prefix = `V${date}`;
+
+    return `${prefix}-${id.toString().padStart(4, '0')}`;
+  }
+
+  // loadVente(vente: Vente) {
+  //   const ticket: PosTicket = {
+  //     id: crypto.randomUUID(),
+
+  //     venteId: vente.id,
+  //     label: this.generateNumeroVente(vente.id, vente.created_at),
+  //     // label: 'V'+ vente.created_at,
+  //     facturation: vente.facture,
+  //     client: vente.client ?? vente.reservation?.client,
+
+  //     items: vente.produits,
+
+  //     total: Number(vente.total),
+  //     totalProduits: Number(vente.total_produits),
+  //     totalPrestations: Number(vente.total_prestations),
+  //     remise: Number(vente.remise),
+
+  //     montantPaye: Number(vente.montantPaye),
+  //     reste: Number(vente.total) - Number(vente.montantPaye),
+
+  //     createdAt: vente.created_at,
+  //     updatedAt: vente.created_at, // ou vente.updated_at si tu l'as
+  //   };
+
+  //   this.tickets.push(ticket);
+  //   this.setActive(ticket.id);
+  // }
 
   // ==========================
   // ADD ITEM

@@ -73,9 +73,7 @@
       </div>
 
       <!-- FINANCE -->
-      <div class="row g-2">
-        <!-- REMISE -->
-
+      <!-- <div class="row g-2">
         <div class="col-6">
           <label class="small text-muted">Remise</label>
 
@@ -86,20 +84,16 @@
           </div>
         </div>
 
-        <!-- ESPECES -->
+        <div class="col-6">
+          <label class="small text-muted">Reçu</label>
 
-        @if (modePaiement === 'ESPECES') {
-          <div class="col-6">
-            <label class="small text-muted">Reçu</label>
+          <div class="input-group">
+            <input type="number" class="form-control text-end fw-bold" (focus)="focusKeyboard('montant')" [(ngModel)]="montantRecu" />
 
-            <div class="input-group">
-              <input type="number" class="form-control text-end fw-bold" [(ngModel)]="montantRecu" />
-
-              <span class="input-group-text">Ar</span>
-            </div>
+            <span class="input-group-text">Ar</span>
           </div>
-        }
-      </div>
+        </div>
+      </div> -->
     </div>
     <div class="col-md-4">
       @if (modePaiement === 'ESPECES') {
@@ -111,14 +105,14 @@
           [exactValue]="total"
           [mode]="'numeric'"
           (exact)="montantRecu = total"></app-numeric-keyboard>
-        <div class="alert mt-3 mb-0 py-2" [class.alert-success]="monnaie >= 0" [class.alert-danger]="montantRecu < total">
+        <!-- <div class="alert mt-3 mb-0 py-2" [class.alert-success]="monnaie >= 0" [class.alert-danger]="montantRecu < total">
           <div class="d-flex justify-content-between">
             <span>Monnaie</span>
             <strong>
               {{ monnaie | currency: 'Ar' : 'symbol' : '1.0-0' }}
             </strong>
           </div>
-        </div>
+        </div> -->
       } @else {
         <div class="row g-2 mt-2">
           <div class="col-md-12">
@@ -140,10 +134,19 @@
               <input
                 class="form-control"
                 [(ngModel)]="numeroPaiement"
-                placeholder="034 xx xxx xx"
+                [placeholder]="phonePlaceholder"
                 (focus)="focusKeyboard('phone')"
                 [class.border-primary]="activeField === 'phone'"
-                [class.border-3]="activeField === 'phone'" />
+                [class.border-3]="activeField === 'phone'" 
+                readonly />
+
+              @if (numeroPaiement) {
+                @if (isValidPhone()) {
+                  <small class="text-success">Numéro valide pour {{ selectedPaymentMode?.label }}</small>
+                } @else {
+                  <small class="text-danger">Numéro incompatible avec {{ selectedPaymentMode?.label }}</small>
+                }
+              }
             </div>
           }
 
@@ -153,6 +156,8 @@
             [showQuickValues]="false"
             [showExact]="false"
             [exactValue]="total"
+            [editable]="modePaiement !== 'ESPECES'"
+            (focus)="focusKeyboard($event)"
             [mode]="keyboardMode"
             (valueChange)="keyboardChange($event)"
             (exact)="montantRecu = total"></app-numeric-keyboard>
@@ -161,20 +166,79 @@
     </div>
     <!-- FOOTER -->
 
-    <div footer>
-      <div class="d-flex gap-2 w-100 mt-2">
-        <button class="btn btn-outline-secondary flex-fill" (click)="close()">Annuler</button>
-        @if (modePaiement === 'ESPECES') {
-          <button class="btn btn-success flex-fill" [disabled]="total <= 0 || (modePaiement === 'ESPECES' && montantRecu < total)" (click)="payer()">
-            <i class="fa-solid fa-cash-register me-2"></i>
-            Encaisser
-          </button>
-        } @else {
-          <button class="btn btn-success flex-fill" [disabled]="referencePaiement === '' || numeroPaiement === ''" (click)="payer()">
-            <i class="fa-solid fa-cash-register me-2"></i>
-            Encaisser
-          </button>
-        }
+    <div modal-footer>
+      <div class="w-100">
+        <!-- RESUME FINANCIER -->
+        <div class="card bg-light mb-3">
+          <div class="card-body py-2">
+            <div class="row g-2">
+              <!-- REMISE -->
+              <div class="col-md-3">
+                <label class="small text-muted">Remise</label>
+
+                <div class="input-group">
+                  <input type="number" class="form-control text-end fw-bold" [(ngModel)]="remise" />
+
+                  <span class="input-group-text fw-bold">Ar</span>
+                </div>
+              </div>
+
+              <!-- MONTANT RECU -->
+              <div class="col-md-3">
+                <label class="small text-muted">Reçu</label>
+
+                <div class="input-group">
+                  <input
+                    class="form-control text-end fw-bold"
+                    [value]="montantRecu"
+                    readonly
+                    (click)="focusKeyboard('montant')"
+                    [class.border-primary]="activeField === 'montant'"
+                    [class.border-3]="activeField === 'montant'" />
+
+                  <span class="input-group-text fw-bold">Ar</span>
+                </div>
+              </div>
+
+              <!-- MONNAIE -->
+              <div class="col-md-3">
+                <label class="small text-muted">Monnaie</label>
+
+                <div class="form-control text-end fw-bold">
+                  {{ monnaie | currency: 'Ar' : 'symbol' : '1.0-0' }}
+                </div>
+              </div>
+
+              <!-- RESTE -->
+              <div class="col-md-3">
+                <label class="small text-muted">Reste</label>
+
+                <div class="form-control text-end fw-bold" [class.text-danger]="reste > 0" [class.text-success]="reste === 0">
+                  {{ reste | currency: 'Ar' : 'symbol' : '1.0-0' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOUTONS -->
+        <div class="d-flex gap-2 w-100">
+          <button class="btn btn-outline-secondary flex-fill" (click)="close()">Annuler</button>
+
+          @if (modePaiement === 'ESPECES') {
+            <button class="btn btn-success flex-fill" [disabled]="total <= 0" (click)="payer()">
+              <i class="fa-solid fa-cash-register me-2"></i>
+
+              Encaisser
+            </button>
+          } @else {
+            <button class="btn btn-success flex-fill" [disabled]="referencePaiement === '' || numeroPaiement === '' || montantRecu <= 0" (click)="payer()">
+              <i class="fa-solid fa-cash-register me-2"></i>
+
+              Encaisser
+            </button>
+          }
+        </div>
       </div>
     </div>
   </div>

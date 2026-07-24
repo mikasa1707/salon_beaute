@@ -17,6 +17,7 @@ import { AuditLogService } from '../audit-log/audit-log.service';
 import { CheckoutPosDto } from './dto/checkout-pos.dto';
 import { Paiement } from 'src/paiements/entities/paiement.entity';
 import { StockConsumptionService } from 'src/stocks/stock-consumption.service';
+import { Prestation } from 'src/prestations/entities/prestation.entity';
 
 @Injectable()
 export class CheckoutService {
@@ -338,46 +339,82 @@ export class CheckoutService {
         throw new ConflictException('Aucune caisse ouverte');
       }
 
-      let totalProduits = 0;
-      let totalPrestations = 0;
+      if (!dto.paiement?.modePaiement) {
+        throw new ConflictException('Mode paiement obligatoire');
+      }
 
-      const items: any[] = [];
+      let vente: Vente;
 
-      for (const item of dto.items) {
-        const total = Number(item.prix) * Number(item.quantite);
+      console.log(dto);
 
-        // ==================
-        // PRODUIT
-        // ==================
+      // =====================================
+      // EXISTANTE OU NOUVELLE VENTE
+      // =====================================
 
-        if (item.produit) {
-          const unite = await manager.findOne(ProduitUnite, {
-            where: {
-              id: item.produit.id,
+      if (dto.venteId) {
+        const existing = await manager.findOne(Vente, {
+          where: {
+            id: dto.venteId,
+          },
+          relations: {
+            produits: {
+              produitUnite: true,
+              prestation: true,
             },
-            lock: {
-              mode: 'pessimistic_write',
-            },
-          });
+          },
+          lock: {
+            mode: 'pessimistic_write',
+          },
+        });
 
-          if (!unite) {
-            throw new NotFoundException('Produit introuvable');
-          }
-
-          if (unite.stock < item.quantite) {
-            throw new ConflictException(`Stock insuffisant ${unite.nom}`);
-          }
-
-          unite.stock -= item.quantite;
-
-          await manager.save(ProduitUnite, unite);
-
-          totalProduits += total;
+        if (!existing) {
+          throw new NotFoundException('Vente introuvable');
         }
 
-        // ==================
-        // PRESTATION
-        // ==================
+        vente = existing;
+
+        // ============================
+        // RESTAURATION ANCIEN STOCK
+        // ============================
+
+        await this.stockConsumptionService.restoreFromVente(manager, vente);
+
+        // suppression anciennes lignes
+
+        await manager.delete(VenteProduit, {
+          vente: {
+            id: vente.id,
+          },
+        });
+      } else {
+        vente = manager.create(Vente);
+      }
+
+      let totalProduits = 0;
+
+      let totalPrestations = 0;
+
+      const items: Partial<VenteProduit>[] = [];
+
+      // =====================================
+      // PREPARATION NOUVELLES LIGNES
+      // =====================================
+
+      for (const item of dto.items) {
+        console.log(item);
+        const prix = Number(item.prix_unitaire ?? item.prix_unitaire ?? 0);
+
+        const quantite = Number(item.quantite ?? 0);
+
+        const total = prix * quantite;
+
+        if (Number.isNaN(total)) {
+          throw new ConflictException(`Prix invalide ${item.label}`);
+        }
+
+        if (item.ProduitUnite) {
+          totalProduits += total;
+        }
 
         if (item.prestation) {
           totalPrestations += total;
@@ -385,45 +422,66 @@ export class CheckoutService {
 
         items.push({
           label: item.label,
-          quantite: item.quantite,
-          prix_unitaire: item.prix,
+
+          quantite,
+
+          prix_unitaire: prix,
+
           total,
-          produitUnite: item.produit ? { id: item.id } : null,
-          prestation: item.prestation ? { id: item.prestation.id } : null,
+
+          produitUnite: item.ProduitUnite
+            ? ({
+                id: item.ProduitUnite.id,
+              } as ProduitUnite)
+            : undefined,
+
+          prestation: item.prestation
+            ? ({
+                id: item.prestation.id,
+              } as Prestation)
+            : undefined,
         });
       }
 
-      // ==================
-      // CREATE VENTE
-      // ==================
+      const totalFinal = Number(dto.total) - Number(dto.remise ?? 0);
 
-      if (!dto.paiement || !dto.paiement.modePaiement) {
-        throw new ConflictException('Mode paiement obligatoire');
-      }
+      const montantPaiement = Number(
+        dto.paiement.montantrecu ?? dto.paiement.montant ?? 0,
+      );
 
-      const vente = manager.create(Vente, {
-        total: dto.total,
-        total_produits: totalProduits,
-        total_prestations: totalPrestations,
-        remise: dto.remise,
-        cashRegister,
-      });
+      // =====================================
+      // UPDATE VENTE
+      // =====================================
+
+      vente.total = totalFinal;
+
+      vente.total_produits = totalProduits;
+
+      vente.total_prestations = totalPrestations;
+
+      vente.remise = Number(dto.remise ?? 0);
+
+      // paiement cumulé
+
+      vente.montantPaye = Number(vente.montantPaye ?? 0) + montantPaiement;
+
+      vente.cashRegister = cashRegister;
 
       const saved = await manager.save(Vente, vente);
 
-      await manager.save(Paiement, {
-        vente: saved,
-        modePaiement: dto.paiement.modePaiement,
-        montant: dto.paiement.montant,
-        montantrecu: dto.paiement.montantrecu,
-        montantrendu: dto.paiement.montantrendu,
-        reference: dto.paiement.referencePaiement,
-        telephone: dto.paiement.numeroPaiement,
-      });
+      // =====================================
+      // NOUVELLE CONSOMMATION STOCK
+      // =====================================
 
-      // ==================
-      // CREATE LIGNES
-      // ==================
+      await this.stockConsumptionService.decreaseFromItems(
+        manager,
+        saved.id,
+        items,
+      );
+
+      // =====================================
+      // NOUVELLES LIGNES
+      // =====================================
 
       for (const item of items) {
         await manager.save(VenteProduit, {
@@ -432,47 +490,31 @@ export class CheckoutService {
         });
       }
 
-      await this.stockConsumptionService.decreaseFromItems(
-        manager,
-        saved.id,
-        items,
-      );
+      // =====================================
+      // NOUVEAU PAIEMENT
+      // =====================================
 
-      // ==================
-      // FACTURE
-      // ==================
+      await manager.save(Paiement, {
+        vente: saved,
 
-      let facture: Facturation | null = null;
+        modePaiement: dto.paiement.modePaiement,
 
-      if (dto.factureId) {
-        facture = await manager.findOne(Facturation, {
-          where: { id: dto.factureId },
-          lock: { mode: 'pessimistic_write' },
-        });
-        if (!facture) {
-          throw new NotFoundException('Facture introuvable');
-        }
+        montant: montantPaiement,
 
-        if (facture.status === FacturationStatus.PAID) {
-          throw new ConflictException('Facture déjà payée');
-        }
+        montantrecu: montantPaiement,
 
-        facture.status = FacturationStatus.PAID;
-        facture.isLocked = true;
+        montantrendu: dto.paiement.montantrendu ?? 0,
 
-        saved.facturation = facture;
+        reference: dto.paiement.referencePaiement,
 
-        await manager.save(Facturation, facture);
-        await manager.save(Vente, saved);
-      }
+        telephone: dto.paiement.numeroPaiement,
+      });
 
-      // ==================
+      // =====================================
       // CAISSE
-      // ==================
+      // =====================================
 
-      const finalTotal = Number(dto.total) - Number(dto.remise ?? 0);
-
-      cashRegister.totalCash = Number(cashRegister.totalCash) + finalTotal;
+      cashRegister.totalCash = Number(cashRegister.totalCash) + montantPaiement;
 
       await manager.save(CashRegister, cashRegister);
 
@@ -480,21 +522,29 @@ export class CheckoutService {
 
       await this.auditLogService.log({
         action: 'CHECKOUT_POS',
+
         entity: 'VENTE',
+
         entityId: saved.id,
+
         userId,
+
         username,
+
         payload: {
-          ticketId: dto.ticketId,
-          total: dto.total,
-          remise: dto.remise,
-          paiement: dto.paiement,
+          venteId: saved.id,
+          montantPaiement,
         },
       });
 
-      return saved;
+      return {
+        ...saved,
+
+        reste: Math.max(saved.total - saved.montantPaye, 0),
+      };
     } catch (error) {
       await qr.rollbackTransaction();
+
       throw error;
     } finally {
       await qr.release();

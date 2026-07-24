@@ -18,6 +18,7 @@ import { PosTicketBar } from '../../../shared/components/pos/pos-ticket-bar/pos-
 import { PaymentResult, PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal';
 import { CheckoutApi } from '../../../core/services/checkout-api';
 import { Toast, ToastService } from '../../../core/services/toast';
+import { VentesApi } from '../../../core/services/vente-api';
 
 @Component({
   selector: 'app-pos-page',
@@ -48,6 +49,9 @@ export class PosPage {
   loading = false;
 
   factureId: number = 0;
+  venteId = 0;
+
+  mode: 'FACTURE' | 'VENTE' = 'FACTURE';
 
   typesProduit: TypeProduit[] = [];
 
@@ -61,6 +65,7 @@ export class PosPage {
     private readonly produitService: ProduitUniteApi,
     private readonly typeProduitService: TypeProduitApi,
     public readonly posService: PosService,
+    public readonly venteService: VentesApi,
     private readonly checkoutService: CheckoutApi,
     private readonly cdr: ChangeDetectorRef,
     private readonly toastService: ToastService
@@ -79,6 +84,12 @@ export class PosPage {
     });
     this.loadProduit();
     this.loadFromNavigation();
+  }
+
+  ngOnDestroy(): void {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
   }
 
   loadProduit(_search: any = '', _filter: any = null) {
@@ -105,16 +116,36 @@ export class PosPage {
   loadFromNavigation() {
     const state = history.state;
 
+    if (state?.vente && state?.mode === 'VENTE_EDIT') {
+      console.log(state.vente)
+      const existing = this.posService.findTicketByVente(state.vente.numero);
+      if (existing) {
+        this.posService.setActive(existing.id);
+        this.toastService.warning(`La vente ${state.vente.numero} est déjà ouverte dans la caisse`);
+        history.replaceState({}, '');
+      } else {
+        this.posService.loadVente(state.vente);
+        // Nettoyage du state navigateur
+        history.replaceState({}, '');
+        return;
+      }
+    }
+
     if (state?.facturationId) {
       this.factureId = state.facturationId;
+
       const existing = this.posService.findTicketByFacture(this.factureId);
 
       if (existing) {
         this.posService.setActive(existing.id);
+
         history.replaceState({}, '');
+
         return;
       }
+
       this.loadFacture(this.factureId);
+
       history.replaceState({}, '');
     }
   }
@@ -189,6 +220,7 @@ export class PosPage {
   confirmPayment(result: PaymentResult) {
     const ticket = this.posService.activeTicket;
 
+    console.log(ticket)
     if (!ticket) {
       console.error('Aucun ticket actif');
       return;
@@ -197,6 +229,7 @@ export class PosPage {
     const payload = {
       ticketId: ticket.id,
       factureId: ticket.facturation?.id || undefined,
+      venteId: ticket.venteId,
       items: ticket.items,
       total: ticket.total,
       remise: ticket.remise,
@@ -210,6 +243,7 @@ export class PosPage {
       },
     };
 
+    console.log(payload)
     this.checkoutService.checkoutPos(payload).subscribe({
       next: vente => {
         this.toastService.success('Paiement effectuee - Vente OK');

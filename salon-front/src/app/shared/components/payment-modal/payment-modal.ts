@@ -6,6 +6,7 @@ import { ModalComponent } from '../../components/modal/modal';
 
 import { PosTicket } from '../../../core/models/posTicket';
 import { KeyboardMode, NumericKeyboard } from '../numeric-keyboard/numeric-keyboard';
+import { ToastService } from '../../../core/services/toast';
 
 export interface PaymentResult {
   modePaiement: 'ESPECES' | 'MVOLA' | 'ORANGE_MONEY' | 'AIRTEL_MONEY' | 'CARTE' | 'AUTRE';
@@ -55,6 +56,7 @@ export class PaymentModalComponent {
       icon: 'fa-mobile-screen',
       color: '#000000',
       image: 'payment/mvola.png',
+      prefixes: ['034', '038'],
     },
     {
       value: 'ORANGE_MONEY',
@@ -62,6 +64,7 @@ export class PaymentModalComponent {
       icon: 'fa-mobile-screen-button',
       color: '#000000',
       image: 'payment/orangemoney.png',
+      prefixes: ['032', '037'],
     },
     {
       value: 'AIRTEL_MONEY',
@@ -69,17 +72,13 @@ export class PaymentModalComponent {
       icon: 'fa-sim-card',
       color: '#000000',
       image: 'payment/airtelmoney.png',
+      prefixes: ['033', '035'],
     },
-    // {
-    //   value: 'CARTE',
-    //   label: 'Carte',
-    //   icon: 'fa-credit-card',
-    //   color: '#006eff',
-    //   image: 'payment/cb.png',
-    // },
   ];
 
   quickAmounts = [500, 1000, 2000, 5000, 10000, 20000];
+
+  constructor(private readonly toast: ToastService) {}
 
   get totalPrestations(): number {
     return this.ticket?.totalPrestations ?? 0;
@@ -108,7 +107,8 @@ export class PaymentModalComponent {
       return;
     }
 
-    if (this.modePaiement === 'ESPECES' && this.montantRecu < this.total) {
+    if (this.montantRecu <= 0) {
+      this.toast.error("Impossible d'encaisser. Veuillez choisir mode de paiement et entrez montant recu");
       return;
     }
 
@@ -126,8 +126,12 @@ export class PaymentModalComponent {
 
   selectMode(mode: string) {
     this.modePaiement = mode;
+
+    this.numeroPaiement = '';
+    this.referencePaiement = '';
+
     if (mode !== 'ESPECES') {
-      this.montantRecu = this.total;
+      this.focusKeyboard('montant');
     }
   }
 
@@ -145,34 +149,40 @@ export class PaymentModalComponent {
 
   focusKeyboard(field: 'montant' | 'reference' | 'phone') {
     this.activeField = field;
-    console.log(this.activeField);
+
     switch (field) {
       case 'montant':
         this.keyboardMode = 'numeric';
-        this.keyboardValue = this.montantRecu ?? 0;
+        this.keyboardValue = this.montantRecu;
         break;
+
       case 'reference':
         this.keyboardMode = 'text';
-        this.keyboardValue = this.referencePaiement ?? '';
+        this.keyboardValue = this.referencePaiement;
         break;
+
       case 'phone':
         this.keyboardMode = 'phone';
-        this.keyboardValue = this.numeroPaiement ?? '';
+        this.keyboardValue = this.numeroPaiement;
         break;
     }
   }
 
   keyboardChange(value: any) {
-    this.keyboardValue = value;
     switch (this.activeField) {
       case 'montant':
         this.montantRecu = Number(value);
         break;
+
       case 'reference':
         this.referencePaiement = value;
         break;
+
       case 'phone':
-        this.numeroPaiement = value;
+        this.numeroPaiement = this.formatPhone(value);
+
+        this.keyboardValue = this.numeroPaiement;
+
         break;
     }
   }
@@ -185,5 +195,77 @@ export class PaymentModalComponent {
     this.modePaiement = 'ESPECES';
     this.keyboardMode = 'numeric';
     this.keyboard?.reset();
+  }
+
+  get keyboardDisplayValue() {
+    if (this.activeField === 'reference' || this.activeField === 'phone') {
+      return this.montantRecu;
+    }
+
+    return this.keyboardValue;
+  }
+
+  get reste(): number {
+    return Math.max(this.total - this.montantRecu, 0);
+  }
+
+  get hasMonnaie(): boolean {
+    return this.montantRecu > this.total;
+  }
+
+  get hasReste(): boolean {
+    return this.montantRecu < this.total;
+  }
+
+  formatPhone(value: string): string {
+    const digits = value.replace(/\D/g, '');
+
+    if (digits.length <= 3) {
+      return digits;
+    }
+
+    let result = digits.substring(0, 3);
+
+    const rest = digits.substring(3);
+
+    if (rest.length > 0) {
+      result += ' ' + rest.substring(0, 2);
+    }
+
+    if (rest.length > 2) {
+      result += ' ' + rest.substring(2, 5);
+    }
+
+    if (rest.length > 5) {
+      result += ' ' + rest.substring(5, 7);
+    }
+
+    return result;
+  }
+
+  isValidPhone(): boolean {
+    const phone = this.numeroPaiement.replace(/\s/g, '');
+
+    if (phone.length !== 10) {
+      return false;
+    }
+
+    const prefix = phone.substring(0, 3);
+
+    return this.selectedPaymentMode?.prefixes?.includes(prefix) ?? false;
+  }
+
+  get selectedPaymentMode() {
+    return this.paymentModes.find(x => x.value === this.modePaiement);
+  }
+
+  get phonePlaceholder(): string {
+    const prefixes = this.selectedPaymentMode?.prefixes;
+
+    if (!prefixes) {
+      return '034 xx xxx xx';
+    }
+
+    return `${prefixes.join(' / ')} xx xxx xx`;
   }
 }

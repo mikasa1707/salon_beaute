@@ -16,4 +16,8 @@ export class CreateVenteProduitDto {
   @IsOptional()
   @IsNumber()
   total?: number;
+
+  @IsOptional()
+  @IsNumber()
+  montantPaye?: number;
 }

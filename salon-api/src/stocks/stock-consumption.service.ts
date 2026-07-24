@@ -343,4 +343,48 @@ export class StockConsumptionService {
       await qr.release();
     }
   }
+
+  async restoreFromVente(manager: EntityManager, vente: Vente) {
+    const produits = vente.produits ?? [];
+
+    for (const item of produits) {
+      // uniquement les produits physiques
+      if (!item.produitUnite) {
+        continue;
+      }
+
+      const unite = await manager.findOne(ProduitUnite, {
+        where: {
+          id: item.produitUnite.id,
+        },
+        lock: {
+          mode: 'pessimistic_write',
+        },
+      });
+
+      if (!unite) {
+        throw new NotFoundException(
+          `Produit unité ${item.produitUnite.id} introuvable`,
+        );
+      }
+
+      // restitution stock
+      unite.stock += Number(item.quantite);
+
+      await manager.save(ProduitUnite, unite);
+
+      // mouvement stock RESTAURATION
+      await manager.save(StockMovement, {
+        produitUnite: unite,
+
+        type: StockMovementType.SALE_CANCEL,
+
+        quantite: item.quantite,
+
+        reference: `EDIT-RESTAURE-${vente.id}`,
+
+        note: `Restauration stock avant modification vente ${vente.id}`,
+      });
+    }
+  }
 }
