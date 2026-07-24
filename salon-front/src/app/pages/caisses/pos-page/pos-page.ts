@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FacturationApiService } from '../../../core/services/facturation-api';
 import { PosService } from '../../../core/services/pos';
 import { VenteProduit } from '../../../core/models/vente-produit';
@@ -68,7 +68,8 @@ export class PosPage {
     public readonly venteService: VentesApi,
     private readonly checkoutService: CheckoutApi,
     private readonly cdr: ChangeDetectorRef,
-    private readonly toastService: ToastService
+    private readonly toastService: ToastService,
+    private readonly router: Router
   ) {}
 
   ngOnInit() {
@@ -112,6 +113,13 @@ export class PosPage {
   // =====================================
   // Chargement facture depuis réservation
   // =====================================
+
+  private generateNumeroVente(id: number, _date: Date): string {
+    const d = new Date(_date);
+    const date = d.getFullYear().toString().slice(2) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+    const prefix = `V${date}`;
+    return `${prefix}-${id.toString().padStart(4, '0')}`;
+  }
 
   loadFromNavigation() {
     const state = history.state;
@@ -164,7 +172,17 @@ export class PosPage {
 
     this.factureService.findOne(id).subscribe({
       next: facture => {
+        // Vérification facture déjà transformée en vente
+        if (facture.vente && facture.vente.montantPaye === facture.vente.total) {
+          this.toastService.warning(`Cette facture est déjà encaissée (Vente N° ${this.generateNumeroVente(facture.vente.id, facture.vente.created_at)})`);
+
+          this.loading = false;
+          this.router.navigateByUrl('/facturations');
+          return;
+        }
+
         this.posService.loadFacture(facture);
+
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -228,6 +246,12 @@ export class PosPage {
 
     const reste = Math.max(ticket.total - (ticket.montantPaye ?? 0), 0);
 
+    const nouveauPaiement = Math.min(result.montantRecu, reste);
+
+    const totalPaye = Number(ticket.montantPaye ?? 0) + nouveauPaiement;
+
+    const paiementComplet = totalPaye >= Number(ticket.total);
+
     const payload = {
       ticketId: ticket.id,
       factureId: ticket.facturation?.id ?? undefined,
@@ -235,24 +259,25 @@ export class PosPage {
       items: ticket.items,
       total: ticket.total,
       remise: ticket.remise ?? 0,
+
       paiement: {
         modePaiement: result.modePaiement,
-        // montant total vente
         montant: ticket.total,
-        // nouveau paiement uniquement
-        montantrecu: Math.min(result.montantRecu, reste),
+        montantrecu: nouveauPaiement,
         montantrendu: result.monnaie ?? 0,
         referencePaiement: result.referencePaiement,
         numeroPaiement: result.numeroPaiement,
       },
-    };
 
-    console.log(payload);
+      paiementComplet,
+    };
 
     this.checkoutService.checkoutPos(payload).subscribe({
       next: vente => {
-        this.toastService.success('Paiement effectué - Vente OK');
+        this.toastService.success(paiementComplet ? 'Paiement complet - Vente validée' : 'Paiement enregistré');
+
         this.posService.removeTicket(ticket.id);
+
         this.paymentVisible = false;
       },
 

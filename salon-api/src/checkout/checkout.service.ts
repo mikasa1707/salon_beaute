@@ -61,6 +61,7 @@ export class CheckoutService {
 
       // 2. CHECK STATUT + LOCK LOGIQUE
       // 🔥 Protection 1 facture = 1 vente
+      console.log(facture);
       if (facture.vente) {
         return facture.vente;
       }
@@ -327,44 +328,46 @@ export class CheckoutService {
 
     try {
       const cashRegister = await manager.findOne(CashRegister, {
-        where: {
-          status: 'OPEN',
-        },
-        lock: {
-          mode: 'pessimistic_write',
-        },
+        where: { status: 'OPEN' },
+        lock: { mode: 'pessimistic_write' },
       });
 
-      if (!cashRegister) {
-        throw new ConflictException('Aucune caisse ouverte');
-      }
+      if (!cashRegister) throw new ConflictException('Aucune caisse ouverte');
 
       if (!dto.paiement?.modePaiement) {
         throw new ConflictException('Mode paiement obligatoire');
       }
 
       let vente: Vente;
+      let facture: Facturation | null = null;
 
-      console.log(dto);
+      if (dto.factureId) {
+        facture = await manager.findOne(Facturation, {
+          where: { id: dto.factureId },
+          relations: { vente: true },
+          lock: { mode: 'pessimistic_write' },
+        });
 
-      // =====================================
-      // EXISTANTE OU NOUVELLE VENTE
-      // =====================================
+        if (!facture) {
+          throw new NotFoundException('Facture introuvable');
+        }
+
+        if (facture.vente && facture.vente.id !== dto.venteId) {
+          throw new ConflictException('Cette facture a déjà été encaissée');
+        }
+      }
 
       if (dto.venteId) {
         const existing = await manager.findOne(Vente, {
-          where: {
-            id: dto.venteId,
-          },
+          where: { id: dto.venteId },
           relations: {
             produits: {
               produitUnite: true,
               prestation: true,
             },
+            facturation: true,
           },
-          lock: {
-            mode: 'pessimistic_write',
-          },
+          lock: { mode: 'pessimistic_write' },
         });
 
         if (!existing) {
@@ -373,76 +376,45 @@ export class CheckoutService {
 
         vente = existing;
 
-        // ============================
-        // RESTAURATION ANCIEN STOCK
-        // ============================
-
         await this.stockConsumptionService.restoreFromVente(manager, vente);
 
-        // suppression anciennes lignes
-
-        if (dto.venteId) {
-          await manager
-            .createQueryBuilder()
-            .delete()
-            .from(VenteProduit)
-            .where('venteId = :venteId', {
-              venteId: dto.venteId,
-            })
-            .execute();
-        }
+        await manager
+          .createQueryBuilder()
+          .delete()
+          .from(VenteProduit)
+          .where('venteId = :venteId', { venteId: dto.venteId })
+          .execute();
       } else {
         vente = manager.create(Vente);
       }
 
       let totalProduits = 0;
-
       let totalPrestations = 0;
 
       const items: Partial<VenteProduit>[] = [];
 
-      // =====================================
-      // PREPARATION NOUVELLES LIGNES
-      // =====================================
-
       for (const item of dto.items) {
-        // console.log('ITEM POS:', {
-        //   label: item.label,
-        //   prestation: item.prestation,
-        //   produitUnite: item.produitUnite,
-        // });
-        const prix = Number(item.prix ?? item.prix ?? 0);
-
+        const prix = Number(item.prix ?? 0);
         const quantite = Number(item.quantite ?? 0);
-
         const total = prix * quantite;
 
         if (Number.isNaN(total)) {
           throw new ConflictException(`Prix invalide ${item.label}`);
         }
 
-        if (item.produitUnite) {
-          totalProduits += total;
-        }
-
-        if (item.prestation) {
-          totalPrestations += total;
-        }
+        if (item.produitUnite) totalProduits += total;
+        if (item.prestation) totalPrestations += total;
 
         items.push({
           label: item.label,
           quantite,
-          prix: prix,
+          prix,
           total,
           produitUnite: item.produitUnite
-            ? ({
-                id: item.produitUnite.id,
-              } as ProduitUnite)
+            ? ({ id: item.produitUnite.id } as ProduitUnite)
             : undefined,
           prestation: item.prestation
-            ? ({
-                id: item.prestation.id,
-              } as Prestation)
+            ? ({ id: item.prestation.id } as Prestation)
             : undefined,
         });
       }
@@ -453,69 +425,24 @@ export class CheckoutService {
         dto.paiement.montantrecu ?? dto.paiement.montant ?? 0,
       );
 
-      // =====================================
-      // UPDATE VENTE
-      // =====================================
-
       vente.total = totalFinal;
-
       vente.total_produits = totalProduits;
-
       vente.total_prestations = totalPrestations;
-
       vente.remise = Number(dto.remise ?? 0);
-
-      // paiement cumulé
-
       vente.montantPaye = Number(vente.montantPaye ?? 0) + montantPaiement;
-
       vente.cashRegister = cashRegister;
 
-      if (dto.factureId) {
-        const facture = await manager.findOne(Facturation, {
-          where: {
-            id: dto.factureId,
-          },
-
-          relations: {
-            vente: true,
-          },
-
-          lock: {
-            mode: 'pessimistic_write',
-          },
-        });
-
-        if (!facture) {
-          throw new NotFoundException('Facture introuvable');
-        }
-
-        if (facture.vente) {
-          throw new ConflictException('Cette facture a déjà été encaissée');
-        }
-      }
-
-      if (dto.factureId) {
-        vente.facturation = {
-          id: dto.factureId,
-        } as Facturation;
+      if (facture) {
+        vente.facturation = facture;
       }
 
       const saved = await manager.save(Vente, vente);
-
-      // =====================================
-      // NOUVELLE CONSOMMATION STOCK
-      // =====================================
 
       await this.stockConsumptionService.decreaseFromItems(
         manager,
         saved.id,
         items,
       );
-
-      // =====================================
-      // NOUVELLES LIGNES
-      // =====================================
 
       for (const item of items) {
         await manager.save(VenteProduit, {
@@ -524,29 +451,25 @@ export class CheckoutService {
         });
       }
 
-      // =====================================
-      // NOUVEAU PAIEMENT
-      // =====================================
-
       await manager.save(Paiement, {
         vente: saved,
-
         modePaiement: dto.paiement.modePaiement,
-
         montant: montantPaiement,
-
         montantrecu: montantPaiement,
-
         montantrendu: dto.paiement.montantrendu ?? 0,
-
         reference: dto.paiement.referencePaiement,
-
         telephone: dto.paiement.numeroPaiement,
       });
 
-      // =====================================
-      // CAISSE
-      // =====================================
+      if (facture) {
+        if (Number(saved.montantPaye) >= Number(saved.total)) {
+          facture.status = FacturationStatus.PAID;
+          facture.isLocked = true;
+          facture.processedAt = new Date();
+        }
+
+        await manager.save(Facturation, facture);
+      }
 
       cashRegister.totalCash = Number(cashRegister.totalCash) + montantPaiement;
 
@@ -556,29 +479,26 @@ export class CheckoutService {
 
       await this.auditLogService.log({
         action: 'CHECKOUT_POS',
-
         entity: 'VENTE',
-
         entityId: saved.id,
-
         userId,
-
         username,
-
         payload: {
           venteId: saved.id,
+          factureId: facture?.id ?? null,
           montantPaiement,
         },
       });
 
       return {
         ...saved,
-
-        reste: Math.max(saved.total - saved.montantPaye, 0),
+        reste: Math.max(
+          Number(saved.total) - Number(saved.montantPaye ?? 0),
+          0,
+        ),
       };
     } catch (error) {
       await qr.rollbackTransaction();
-
       throw error;
     } finally {
       await qr.release();
