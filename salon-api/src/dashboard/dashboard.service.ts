@@ -242,7 +242,7 @@ export class DashboardService {
 
         produit: x.produit.nom,
 
-        unite: x.nom,
+        unites: x.nom,
 
         stock: Number(x.stock),
 

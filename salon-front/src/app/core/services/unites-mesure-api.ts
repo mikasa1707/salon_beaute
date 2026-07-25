@@ -8,7 +8,7 @@ import { environment } from '../../../environnements/environnement';
   providedIn: 'root',
 })
 export class UnitesMesureApi {
-  private apiUrl = `${environment.apiUrl}/unites-mesure`;
+  private apiUrl = `${environment.apiUrl}/unite-mesure`;
 
   constructor(private http: HttpClient) {}
 

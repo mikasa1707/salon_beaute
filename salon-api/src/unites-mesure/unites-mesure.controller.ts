@@ -13,7 +13,7 @@ import { UnitesMesureService } from './unites-mesure.service';
 import { CreateUniteMesureDto } from './dto/create-unites-mesure.dto';
 import { UpdateUnitesMesureDto } from './dto/update-unites-mesure.dto';
 
-@Controller('unites-mesure')
+@Controller('unite-mesure')
 export class UnitesMesureController {
   constructor(private readonly service: UnitesMesureService) {}
 

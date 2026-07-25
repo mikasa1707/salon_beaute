@@ -56,7 +56,7 @@ export class ProduitUnite {
   @Column({
     default: 'ml',
   })
-  unite!: string;
+  unites!: string;
 
   @ManyToOne(() => UniteMesure)
   @JoinColumn({
@@ -64,7 +64,7 @@ export class ProduitUnite {
   })
   uniteMesure!: UniteMesure;
 
-  @OneToMany(() => PrestationProduit, (pp) => pp.unite)
+  @OneToMany(() => PrestationProduit, (pp) => pp.unites)
   utilisations!: PrestationProduit[];
 
   @Column({

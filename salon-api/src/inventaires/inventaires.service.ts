@@ -60,7 +60,7 @@ export class InventairesService {
       const saved = await manager.save(Inventaire, inventaire);
 
       for (const item of dto.lignes) {
-        const unite = await manager.findOne(ProduitUnite, {
+        const unites = await manager.findOne(ProduitUnite, {
           where: {
             id: item.produitUniteId,
           },
@@ -69,14 +69,14 @@ export class InventairesService {
           },
         });
 
-        if (!unite) throw new NotFoundException('Produit unité introuvable');
+        if (!unites) throw new NotFoundException('Produit unité introuvable');
 
         await manager.save(InventaireLigne, {
           inventaire: saved,
-          produitUnite: unite,
-          stockTheorique: unite.stock,
+          produitUnite: unites,
+          stockTheorique: unites.stock,
           stockReel: item.stockReel,
-          ecart: Number(item.stockReel) - Number(unite.stock),
+          ecart: Number(item.stockReel) - Number(unites.stock),
         });
       }
 
@@ -240,7 +240,7 @@ export class InventairesService {
       }
 
       for (const ligne of inventaire.lignes) {
-        const unite = await manager.findOne(ProduitUnite, {
+        const unites = await manager.findOne(ProduitUnite, {
           where: {
             id: ligne.produitUnite.id,
           },
@@ -250,21 +250,21 @@ export class InventairesService {
           },
         });
 
-        if (!unite) {
+        if (!unites) {
           throw new NotFoundException('Produit unité introuvable');
         }
 
-        const ancienStock = Number(unite.stock);
+        const ancienStock = Number(unites.stock);
         const nouveauStock = Number(ligne.stockReel);
         const ecart = nouveauStock - ancienStock;
 
         if (ecart !== 0) {
-          unite.stock = nouveauStock;
+          unites.stock = nouveauStock;
 
-          await manager.save(ProduitUnite, unite);
+          await manager.save(ProduitUnite, unites);
 
           await manager.save(StockMovement, {
-            produitUnite: unite,
+            produitUnite: unites,
             type: StockMovementType.ADJUST,
             quantite: Math.abs(ecart),
             reference: inventaire.numero,
@@ -360,20 +360,20 @@ export class InventairesService {
       // ==========================
 
       for (const item of nouvellesLignes) {
-        const unite = await manager.findOne(ProduitUnite, {
+        const unites = await manager.findOne(ProduitUnite, {
           where: {
             id: item.produitUniteId,
           },
         });
 
-        if (!unite) {
+        if (!unites) {
           throw new NotFoundException(
             `Produit unité ${item.produitUniteId} introuvable`,
           );
         }
 
         const stockReel = Number(item.stockReel);
-        const stockTheo = Number(unite.stock);
+        const stockTheo = Number(unites.stock);
         const ecart = stockReel - stockTheo;
 
         const ligneExistante = anciennesMap.get(item.produitUniteId);
@@ -389,7 +389,7 @@ export class InventairesService {
         } else {
           const ligne = manager.create(InventaireLigne, {
             inventaire,
-            produitUnite: unite,
+            produitUnite: unites,
             stockTheorique: stockTheo,
             stockReel,
             ecart,

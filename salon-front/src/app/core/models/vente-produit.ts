@@ -9,7 +9,9 @@ export interface VenteProduit {
   total: number;
   produit?: ProduitUnite;
   prestation?: Prestation;
-  locked?:boolean;
+  locked?: boolean;
   couleur?: string;
   type?: 'PRODUIT' | 'PRESTATION';
+  isLowStock?: boolean;
+  stock?: number;
 }

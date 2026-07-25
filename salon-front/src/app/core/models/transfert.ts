@@ -10,6 +10,6 @@ export interface StockPrestation {
     produit: {
         nom: string;
     };
-    unite: ProduitUnite;
+    unites: ProduitUnite;
     quantite: number;
 }

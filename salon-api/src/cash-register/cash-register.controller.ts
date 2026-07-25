@@ -5,37 +5,38 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 
 import { CashRegisterService } from './cash-register.service';
+
 import { Roles } from 'src/auth/decorators/roles.decorator';
+
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+
+import { UseGuards } from '@nestjs/common';
+
 import { PersonnelRole } from 'src/personnels/entities/personnel.entity';
 
 @Controller('cash-register')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CashRegisterController {
-  constructor(private readonly cashRegisterService: CashRegisterService) {}
+  constructor(private readonly service: CashRegisterService) {}
 
-  // =========================
-  // OUVRIR LA CAISSE
-  // =========================
   @Post('open')
   @Roles(
     PersonnelRole.RECEPTION,
     PersonnelRole.ADMIN,
     PersonnelRole.RESPONSABLE,
   )
-  open(@Body('openingBalance') openingBalance: number) {
-    // V2 : un seul salon
-    return this.cashRegisterService.openCashRegister(1, Number(openingBalance));
+  open(
+    @Body('openingBalance')
+    openingBalance: number,
+  ) {
+    return this.service.openCashRegister(1, Number(openingBalance));
   }
 
-  // =========================
-  // CAISSE OUVERTE
-  // =========================
   @Get('current')
   @Roles(
     PersonnelRole.RECEPTION,
@@ -43,13 +44,22 @@ export class CashRegisterController {
     PersonnelRole.RESPONSABLE,
   )
   current() {
-    // V2 : un seul salon
-    return this.cashRegisterService.getOpenCashRegister(1);
+    return this.service.getOpenCashRegister(1);
   }
 
-  // =========================
-  // FERMER LA CAISSE
-  // =========================
+  @Get(':id/summary')
+  @Roles(
+    PersonnelRole.RECEPTION,
+    PersonnelRole.ADMIN,
+    PersonnelRole.RESPONSABLE,
+  )
+  summary(
+    @Param('id', ParseIntPipe)
+    id: number,
+  ) {
+    return this.service.getSummary(id);
+  }
+
   @Post('close/:id')
   @Roles(
     PersonnelRole.RECEPTION,
@@ -59,7 +69,19 @@ export class CashRegisterController {
   close(
     @Param('id', ParseIntPipe)
     id: number,
+
+    @Body('countedBalance')
+    countedBalance?: number,
   ) {
-    return this.cashRegisterService.closeCashRegister(id);
+    return this.service.closeCashRegister(
+      id,
+      countedBalance !== undefined ? Number(countedBalance) : undefined,
+    );
+  }
+
+  @Get('history')
+  @Roles(PersonnelRole.ADMIN, PersonnelRole.RESPONSABLE)
+  history() {
+    return this.service.findAll(1);
   }
 }

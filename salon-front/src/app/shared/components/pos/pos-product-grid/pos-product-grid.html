@@ -1,25 +1,41 @@
 <div class="row g-2">
   @for (product of products; track product.id) {
-
-    <div class="col-6 col-md-4 col-lg-3">
-
+    <div class="col-6 col-md-3 col-lg-2">
       <button
-        class="btn w-100 p-3 d-flex flex-column align-items-center justify-content-center"
+        type="button"
+        class="btn product-card w-100 p-3 position-relative d-flex flex-column justify-content-center align-items-center"
         [style.background]="product.couleur"
-        style="min-height: 120px; max-height: 120px;"
+        [class.stock-low]="product.isLowStock && (product.stock ?? 0) > 0"
+        [disabled]="(product.stock ?? 0) <= 0"
+        style="height: 120px;"
         (click)="selectProduct(product)">
-
-        <div class="fw-bold text-center w-100">
+        <div class="fw-bold text-center">
           {{ product.label }}
         </div>
 
-        <div class="mt-2 fw-bold fs-5 text-center">
+        <div class="mt-2 fw-bold fs-6">
           {{ +product.prix | currency: 'Ar' : 'symbol' : '1.0-0' }}
         </div>
 
+        <div class="d-flex justify-content-between align-items-center mt-2 w-100">
+          <small class="text-dark">
+            Stock :
+            <strong>{{ product.stock }}</strong>
+          </small>
+
+          <div class="d-flex align-items-center gap-1">
+            @if (product.isLowStock && (product.stock ?? 0) > 0) {
+              <span class="dark-icon" title="Stock faible">
+                <i class="fa-solid fa-triangle-exclamation text-dark"></i>
+              </span>
+            }
+
+            @if ((product.stock ?? 0) <= 0) {
+              <span class="badge bg-dark">Rupture</span>
+            }
+          </div>
+        </div>
       </button>
-
     </div>
-
   }
 </div>

@@ -124,7 +124,7 @@ export class PosService {
       factureId: facture.id,
       label: `${facture.numero}`,
       facturation: facture,
-      client: facture.reservation.client,
+      client: facture.client,
       items: facture.items.map(item => ({
         ...item,
       })),
@@ -140,6 +140,7 @@ export class PosService {
     };
 
     this.tickets.push(ticket);
+    
     this.ticketsSubject.next(this.tickets);
     this.activeTicketSubject.next(ticket);
     this.save();

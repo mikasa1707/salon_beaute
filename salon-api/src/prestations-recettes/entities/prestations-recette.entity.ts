@@ -1,5 +1,5 @@
 import { Prestation } from 'src/prestations/entities/prestation.entity';
-import { Produit } from 'src/produits/entities/produit.entity';
+import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
 import { UniteMesure } from 'src/unites-mesure/entities/unites-mesure.entity';
 
 import {
@@ -27,13 +27,13 @@ export class PrestationRecette {
   })
   prestation!: Prestation;
 
-  @ManyToOne(() => Produit, (produit) => produit.recettes, {
+  @ManyToOne(() => PrestationProduit, (produit) => produit.recettes, {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({
     name: 'produit_id',
   })
-  produit!: Produit;
+  produit!: PrestationProduit;
 
   @ManyToOne(() => UniteMesure)
   @JoinColumn({

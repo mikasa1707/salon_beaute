@@ -47,8 +47,9 @@ export class VentesService {
       .createQueryBuilder('vente')
 
       .leftJoinAndSelect('vente.facturation', 'facturation')
+      .leftJoinAndSelect('vente.client', 'client')
       .leftJoinAndSelect('facturation.reservation', 'reservation')
-      .leftJoinAndSelect('reservation.client', 'client')
+      // .leftJoinAndSelect('reservation.client', 'client')
       .leftJoinAndSelect('vente.produits', 'ligne')
       .leftJoinAndSelect('ligne.produitUnite', 'produitUnite')
       .leftJoinAndSelect('ligne.prestation', 'prestation')
@@ -82,10 +83,10 @@ export class VentesService {
       return {
         ...v,
         numero: this.generateNumeroVente(v.id, v.created_at),
-        client: v.facturation?.reservation?.client ?? null,
-        nomComplet: v.facturation?.reservation?.client.prenom
-          ? `${v.facturation?.reservation?.client.genre} ${v.facturation?.reservation?.client.prenom} ${v.facturation?.reservation?.client.nom}`
-          : 'Cllient au comptoir ' + this.generateClientCode(v.id),
+        client: v.client ?? null,
+        nomComplet: v.client?.prenom
+          ? `${v.client.genre} ${v.client.prenom} ${v.client.nom}`
+          : 'Client au comptoir ' + this.generateClientCode(v.id),
         montantPaye,
         reste: +total - +montantPaye,
         statutPaiement:
@@ -226,7 +227,7 @@ export class VentesService {
          * ==========================================
          */
         if (item.produitUnite) {
-          const unite = await manager.findOne(ProduitUnite, {
+          const unites = await manager.findOne(ProduitUnite, {
             where: {
               id: item.produitUnite.id,
             },
@@ -235,18 +236,18 @@ export class VentesService {
             },
           });
 
-          if (!unite) {
+          if (!unites) {
             throw new NotFoundException(
               `ProduitUnite ${item.produitUnite.id} introuvable`,
             );
           }
 
-          unite.stock += item.quantite;
+          unites.stock += item.quantite;
 
-          await manager.save(unite);
+          await manager.save(unites);
 
           await manager.save(StockMovement, {
-            produitUnite: unite,
+            produitUnite: unites,
             type: StockMovementType.SALE_CANCEL,
             quantite: item.quantite,
             reference: `ANNULATION-${this.generateNumeroVente(vente.id, vente.created_at)}`,
@@ -272,7 +273,7 @@ export class VentesService {
           });
 
           for (const pp of prestationProduits) {
-            const unite = await manager.findOne(ProduitUnite, {
+            const unites = await manager.findOne(ProduitUnite, {
               where: {
                 id: pp.produit.id,
               },
@@ -281,7 +282,7 @@ export class VentesService {
               },
             });
 
-            if (!unite) {
+            if (!unites) {
               throw new NotFoundException(
                 `ProduitUnite ${pp.produit.id} introuvable`,
               );
@@ -289,12 +290,12 @@ export class VentesService {
 
             const quantite = pp.quantite * item.quantite;
 
-            unite.stock += quantite;
+            unites.stock += quantite;
 
-            await manager.save(unite);
+            await manager.save(unites);
 
             // await manager.save(StockMovement, {
-            //   produitUnite: unite,
+            //   produitUnite: unites,
             //   type: StockMovementType.SALE_CANCEL,
             //   quantite,
             //   reference: `ANNULATION-${vente.numero}`,

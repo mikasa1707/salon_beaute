@@ -62,7 +62,7 @@ export class TransfertProduit implements OnInit {
       label: 'Produits',
     },
     {
-      field: 'unite.unite',
+      field: 'unites.unites',
       label: 'Unité',
     },
     {

@@ -42,7 +42,7 @@ export class PrestationProduitsService {
   //   return this.repo.find({
   //     relations: {
   //       produit: true,
-  //       unite: true,
+  //       unites: true,
   //     },
   //   });
   // }
@@ -50,7 +50,7 @@ export class PrestationProduitsService {
     const where = search
       ? [
           { produit: { nom: ILike(`%${search}%`) } },
-          { unite: { nom: ILike(`%${search}%`) } },
+          { unites: { nom: ILike(`%${search}%`) } },
         ]
       : {};
 
@@ -60,7 +60,7 @@ export class PrestationProduitsService {
         produit: {
           uniteConsommation: true,
         },
-        unite: true,
+        unites: true,
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -93,7 +93,7 @@ export class PrestationProduitsService {
         produit: {
           uniteConsommation: true,
         },
-        unite: true,
+        unites: true,
       },
     });
     if (!data) {
@@ -113,7 +113,7 @@ export class PrestationProduitsService {
       },
       relations: {
         produit: true,
-        unite: true,
+        unites: true,
       },
     });
   }
@@ -135,7 +135,7 @@ export class PrestationProduitsService {
     const manager = qr.manager;
 
     try {
-      const unite = await manager.findOne(ProduitUnite, {
+      const unites = await manager.findOne(ProduitUnite, {
         where: {
           id: dto.produitUniteId,
         },
@@ -147,11 +147,11 @@ export class PrestationProduitsService {
         },
       });
 
-      if (!unite) {
+      if (!unites) {
         throw new NotFoundException('Produit unité introuvable');
       }
 
-      if (unite.stock < dto.quantite) {
+      if (unites.stock < dto.quantite) {
         throw new BadRequestException('Stock insuffisant');
       }
 
@@ -165,17 +165,17 @@ export class PrestationProduitsService {
       // CONVERSION EN UNITE CONSOMMATION
       // ===================================
 
-      const quantiteConvertie = dto.quantite * Number(unite.conversion);
+      const quantiteConvertie = dto.quantite * Number(unites.conversion);
 
       // Recherche stock prestation existant
 
       const existant = await manager.findOne(PrestationProduit, {
         where: {
           produit: {
-            id: unite.produit.id,
+            id: unites.produit.id,
           },
-          unite: {
-            id: unite.id,
+          unites: {
+            id: unites.id,
           },
         },
         lock: {
@@ -190,11 +190,11 @@ export class PrestationProduitsService {
       } else {
         const data = manager.create(PrestationProduit, {
           produit: {
-            id: unite.produit.id,
+            id: unites.produit.id,
           },
 
-          unite: {
-            id: unite.id,
+          unites: {
+            id: unites.id,
           },
 
           quantite: quantiteConvertie,
@@ -204,7 +204,7 @@ export class PrestationProduitsService {
       }
 
       await manager.save(StockMovement, {
-        produitUnite: unite,
+        produitUnite: unites,
         type: StockMovementType.TRANSFERT,
         quantite: dto.quantite,
         reference: `TRANSFERT-${Date.now()}`,
@@ -261,7 +261,7 @@ export class PrestationProduitsService {
 
         relations: {
           produit: true,
-          unite: true,
+          unites: true,
         },
       });
       if (!prestationProduit) {

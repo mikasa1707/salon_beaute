@@ -143,13 +143,13 @@ export class StockConsumptionService {
 
     const qb = this.repo
       .createQueryBuilder('movement')
-      .leftJoinAndSelect('movement.produitUnite', 'unite')
-      .leftJoinAndSelect('unite.produit', 'produit')
+      .leftJoinAndSelect('movement.produitUnite', 'unites')
+      .leftJoinAndSelect('unites.produit', 'produit')
       .orderBy('movement.created_at', 'DESC');
 
     // Filtre produit unité
     if (produitUniteId) {
-      qb.andWhere('unite.id = :produitUniteId', {
+      qb.andWhere('unites.id = :produitUniteId', {
         produitUniteId,
       });
     }
@@ -159,8 +159,8 @@ export class StockConsumptionService {
       qb.andWhere(
         `
         produit.nom LIKE :search
-        OR unite.nom LIKE :search
-        OR unite.code LIKE :search
+        OR unites.nom LIKE :search
+        OR unites.code LIKE :search
         OR movement.reference LIKE :search
         OR movement.note LIKE :search
       `,
@@ -209,7 +209,7 @@ export class StockConsumptionService {
 
     try {
       for (const item of dto.items) {
-        const unite = await manager.findOne(ProduitUnite, {
+        const unites = await manager.findOne(ProduitUnite, {
           where: {
             id: item.produitUniteId,
           },
@@ -221,20 +221,20 @@ export class StockConsumptionService {
           },
         });
 
-        if (!unite) {
+        if (!unites) {
           throw new NotFoundException(
             `Produit unité ${item.produitUniteId} introuvable`,
           );
         }
 
-        const avant = Number(unite.stock);
+        const avant = Number(unites.stock);
 
-        unite.stock += Number(item.quantite);
+        unites.stock += Number(item.quantite);
 
-        await manager.save(ProduitUnite, unite);
+        await manager.save(ProduitUnite, unites);
 
         await manager.save(StockMovement, {
-          produitUnite: unite,
+          produitUnite: unites,
 
           type: StockMovementType.IN,
 
@@ -246,7 +246,7 @@ export class StockConsumptionService {
 
           stockAvant: avant,
 
-          stockApres: unite.stock,
+          stockApres: unites.stock,
         });
       }
 
@@ -292,7 +292,7 @@ export class StockConsumptionService {
     const manager = qr.manager;
 
     try {
-      const unite = await manager.findOne(ProduitUnite, {
+      const unites = await manager.findOne(ProduitUnite, {
         where: {
           id: dto.produitUniteId,
         },
@@ -304,29 +304,29 @@ export class StockConsumptionService {
         },
       });
 
-      if (!unite) {
+      if (!unites) {
         throw new NotFoundException('Produit unité introuvable');
       }
 
-      if (unite.stock < dto.quantite) {
-        throw new ConflictException(`Stock insuffisant ${unite.nom}`);
+      if (unites.stock < dto.quantite) {
+        throw new ConflictException(`Stock insuffisant ${unites.nom}`);
       }
 
       // =====================
       // DIMINUTION STOCK
       // =====================
 
-      unite.stock -= dto.quantite;
+      unites.stock -= dto.quantite;
 
-      await manager.save(ProduitUnite, unite);
+      await manager.save(ProduitUnite, unites);
 
       // =====================
       // STOCK MOVEMENT
       // =====================
-      // console.log(StockMovementType, unite)
+      // console.log(StockMovementType, unites)
 
       // await manager.save(StockMovement, {
-      //   produitUnite: unite,
+      //   produitUnite: unites,
       //   type: StockMovementType.TRANSFERT,
       //   quantite: dto.quantite,
       //   reference: `TRANSFERT-${Date.now()}`,
@@ -356,7 +356,7 @@ export class StockConsumptionService {
   //       continue;
   //     }
 
-  //     const unite = await manager.findOne(ProduitUnite, {
+  //     const unites = await manager.findOne(ProduitUnite, {
   //       where: {
   //         id: item.produitUnite.id,
   //       },
@@ -365,20 +365,20 @@ export class StockConsumptionService {
   //       },
   //     });
 
-  //     if (!unite) {
+  //     if (!unites) {
   //       throw new NotFoundException(
   //         `Produit unité ${item.produitUnite.id} introuvable`,
   //       );
   //     }
 
   //     // restitution stock
-  //     unite.stock += Number(item.quantite);
+  //     unites.stock += Number(item.quantite);
 
-  //     await manager.save(ProduitUnite, unite);
+  //     await manager.save(ProduitUnite, unites);
 
   //     // mouvement stock RESTAURATION
   //     await manager.save(StockMovement, {
-  //       produitUnite: unite,
+  //       produitUnite: unites,
 
   //       type: StockMovementType.SALE_CANCEL,
 
@@ -420,7 +420,7 @@ export class StockConsumptionService {
     vente: Vente,
     item: Partial<VenteProduit>,
   ) {
-    const unite = await manager.findOne(ProduitUnite, {
+    const unites = await manager.findOne(ProduitUnite, {
       where: {
         id: item.produitUnite!.id,
       },
@@ -429,22 +429,22 @@ export class StockConsumptionService {
       },
     });
 
-    if (!unite) {
+    if (!unites) {
       throw new NotFoundException();
     }
 
     const qty = Number(item.quantite);
 
-    if (unite.stock < qty) {
-      throw new ConflictException(`Stock insuffisant ${unite.nom}`);
+    if (unites.stock < qty) {
+      throw new ConflictException(`Stock insuffisant ${unites.nom}`);
     }
 
-    unite.stock -= qty;
+    unites.stock -= qty;
 
-    await manager.save(unite);
+    await manager.save(unites);
 
     await manager.save(StockMovement, {
-      produitUnite: unite,
+      produitUnite: unites,
       type: StockMovementType.OUT,
       quantite: qty,
       vente,
@@ -508,7 +508,7 @@ export class StockConsumptionService {
     item: VenteProduit,
     vente: Vente,
   ) {
-    const unite = await manager.findOne(ProduitUnite, {
+    const unites = await manager.findOne(ProduitUnite, {
       where: {
         id: item.produitUnite?.id,
       },
@@ -517,19 +517,19 @@ export class StockConsumptionService {
       },
     });
 
-    if (!unite) {
+    if (!unites) {
       throw new NotFoundException();
     }
-    const avant = Number(unite.stock);
-    unite.stock = avant + Number(item.quantite);
-    await manager.save(ProduitUnite, unite);
+    const avant = Number(unites.stock);
+    unites.stock = avant + Number(item.quantite);
+    await manager.save(ProduitUnite, unites);
     await manager.save(StockMovement, {
-      produitUnite: unite,
+      produitUnite: unites,
 
       type: StockMovementType.SALE_CANCEL,
       quantite: item.quantite,
       stockAvant: avant,
-      stockApres: unite.stock,
+      stockApres: unites.stock,
       vente,
       reference: `EDIT-RESTAURE-${vente.id}`,
       note: `Restauration ${item.label}`,
@@ -551,15 +551,15 @@ export class StockConsumptionService {
 
       relations: {
         produitPrestation: {
-          unite: true,
+          unites: true,
         },
       },
     });
 
     for (const consommation of consommations) {
-      const unite = await manager.findOne(ProduitUnite, {
+      const unites = await manager.findOne(ProduitUnite, {
         where: {
-          id: consommation.produitPrestation.unite.id,
+          id: consommation.produitPrestation.unites.id,
         },
 
         lock: {
@@ -567,15 +567,15 @@ export class StockConsumptionService {
         },
       });
 
-      if (!unite) {
+      if (!unites) {
         throw new NotFoundException('Produit unité introuvable');
       }
 
-      const stockAvant = Number(unite.stock);
+      const stockAvant = Number(unites.stock);
 
-      unite.stock = stockAvant + Number(consommation.quantite);
+      unites.stock = stockAvant + Number(consommation.quantite);
 
-      await manager.save(ProduitUnite, unite);
+      await manager.save(ProduitUnite, unites);
 
       /**
        * Historique restauration

@@ -22,7 +22,7 @@ import { ToastService } from '../../../core/services/toast';
 import { UnitesMesureApi } from '../../../core/services/unites-mesure-api';
 
 @Component({
-  selector: 'app-produit-unites-form',
+  selector: 'app-produit-unite-form',
   standalone: true,
   imports: [FormBuilderComponent],
   templateUrl: './produit-unites-form.html',
@@ -30,7 +30,7 @@ import { UnitesMesureApi } from '../../../core/services/unites-mesure-api';
 })
 export class ProduitUnitesForm implements OnInit, OnChanges {
   @Input() produit!: Produit;
-  @Input() unite?: ProduitUnite;
+  @Input() unites?: ProduitUnite;
   @Output() saved = new EventEmitter<ProduitUnite>();
   form: FormGroup;
   fields: FormField[] = [];
@@ -68,16 +68,16 @@ export class ProduitUnitesForm implements OnInit, OnChanges {
     if (!this.form) {
       return;
     }
-    console.log(this.unite)
-    if (this.unite) {
+    console.log(this.unites)
+    if (this.unites) {
       this.form.patchValue({
-        nom: this.unite.nom,
-        code: this.unite.code,
-        conversion: this.unite.conversion,
-        stock: this.unite.stock,
-        prix: this.unite.prix,
-        stock_minimum: this.unite.stock_minimum,
-        uniteMesureId: this.unite.uniteMesure?.id,
+        nom: this.unites.nom,
+        code: this.unites.code,
+        conversion: this.unites.conversion,
+        stock: this.unites.stock,
+        prix: this.unites.prix,
+        stock_minimum: this.unites.stock_minimum,
+        uniteMesureId: this.unites.uniteMesure?.id,
         actif: true,
       });
     } else {
@@ -157,13 +157,13 @@ export class ProduitUnitesForm implements OnInit, OnChanges {
 
       produitId: this.produit.id,
     };
-    const request = this.unite?.id
-      ? this.produitUniteService.update(this.unite.id, data)
+    const request = this.unites?.id
+      ? this.produitUniteService.update(this.unites.id, data)
       : this.produitUniteService.create(data);
     request.subscribe({
       next: result => {
         this.loading = false;
-        this.toast.success(this.unite?.id ? 'Unité modifiée' : 'Unité créée');
+        this.toast.success(this.unites?.id ? 'Unité modifiée' : 'Unité créée');
         this.saved.emit(result);
       },
       error: () => {

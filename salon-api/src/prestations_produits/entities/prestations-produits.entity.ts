@@ -5,9 +5,11 @@ import {
   ManyToOne,
   Column,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Produit } from '../../produits/entities/produit.entity';
 import { ProduitUnite } from '../../produits/entities/produit_unites.entity';
+import { PrestationRecette } from 'src/prestations-recettes/entities/prestations-recette.entity';
 
 @Entity('prestation_produits')
 export class PrestationProduit {
@@ -31,11 +33,14 @@ export class PrestationProduit {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'produit_unite_id' })
-  unite!: ProduitUnite;
+  unites!: ProduitUnite;
 
   @Column('decimal', {
     precision: 10,
     scale: 3,
   })
   quantite!: number;
+
+  @OneToMany(() => PrestationRecette, (recette) => recette.produit)
+  recettes!: PrestationRecette[];
 }

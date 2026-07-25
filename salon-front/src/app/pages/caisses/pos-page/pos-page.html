@@ -18,18 +18,13 @@
       <div class="card h-100">
         <div class="card-header">
           <div class="d-flex justify-content-between align-items-center">
-            <app-pos-ticket-bar></app-pos-ticket-bar>
-          </div>
-        </div>
-        <div class="card-header">
-          <div class="d-flex justify-content-between align-items-center">
             <app-filter-button label="Type produit" [options]="typesProduit" [multiple]="true" (filterChange)="filterType($event)"></app-filter-button>
           </div>
         </div>
 
         <div class="card-body">
           <!-- Liste produits -->
-          <app-pos-product-grid [products]="produits" (selected)="addToCart($event)"></app-pos-product-grid>
+          <app-pos-product-grid [products]="produits" [cart]="cart" (selected)="addToCart($event)"></app-pos-product-grid>
         </div>
 
         <div class="card-footer">
@@ -51,6 +46,11 @@
 
     <div class="col-lg-4">
       <div class="card pos-sidebar">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <app-pos-ticket-bar></app-pos-ticket-bar>
+          </div>
+        </div>
         <div class="pos-cart-container">
           <app-pos-cart></app-pos-cart>
         </div>
@@ -63,4 +63,8 @@
   </div>
 </div>
 
-<app-payment-modal [show]="paymentVisible" [ticket]="posService.activeTicket!" (confirm)="confirmPayment($event)"></app-payment-modal>
+<app-payment-modal
+  [show]="paymentVisible"
+  [ticket]="posService.activeTicket!"
+  [allowPartialPayment]="!!posService.activeTicket?.client || !!posService.activeTicket?.facturation"
+  (confirm)="confirmPayment($event)"></app-payment-modal>

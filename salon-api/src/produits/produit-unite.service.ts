@@ -66,8 +66,9 @@ export class ProduitUniteService {
       ...produit,
       stockTotal: this.getTotalStock(produit),
       isLowStock: this.isLowStock(produit),
-      label: `${produit.produit.nom} ${produit.nom}`,
-      uniteLabel: `${produit.conversion} ${produit.unite}`,
+      // label: `${produit.produit.nom} ${produit.nom}`,
+      label: `${produit.nom}`,
+      uniteLabel: `${produit.conversion} ${produit.unites}`,
       couleur: produit.produit?.typeProduit?.color ?? '#6c757d',
     }));
 
@@ -177,7 +178,7 @@ export class ProduitUniteService {
           produit: u.produit.nom,
           marque: u.produit.marque?.nom,
 
-          unite: u.nom,
+          unites: u.nom,
           stock: u.stock,
           stock_minimum: u.stock_minimum,
 
@@ -232,7 +233,7 @@ export class ProduitUniteService {
       ...produit,
 
       label: `${produit.produit.nom} ${produit.nom}`,
-      uniteLabel: `${produit.conversion} ${produit.unite}`,
+      uniteLabel: `${produit.conversion} ${produit.unites}`,
       stockTotal: this.getTotalStock(produit),
       isLowStock: this.isLowStock(produit),
     }));

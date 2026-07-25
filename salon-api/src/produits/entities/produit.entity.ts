@@ -10,7 +10,6 @@ import {
 import { Marque } from '../../marques/entities/marque.entity';
 import { TypeProduit } from '../../types-produits/entities/types-produit.entity';
 import { ProduitUnite } from './produit_unites.entity';
-import { PrestationRecette } from 'src/prestations-recettes/entities/prestations-recette.entity';
 import { UniteMesure } from 'src/unites-mesure/entities/unites-mesure.entity';
 
 @Entity('produits')
@@ -60,7 +59,4 @@ export class Produit {
     default: true,
   })
   actif!: boolean;
-
-  @OneToMany(() => PrestationRecette, (recette) => recette.produit)
-  recettes!: PrestationRecette[];
 }

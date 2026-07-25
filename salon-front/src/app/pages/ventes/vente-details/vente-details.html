@@ -120,7 +120,7 @@
         <div class="card">
           <div class="card-header">Prestations</div>
           <div class="card-body">
-            <app-data-table [data]="prestations" [columns]="prestationColumns"></app-data-table>
+            <app-data-table [data]="prestations" [columns]="prestationColumns" [canAction]="false"></app-data-table>
           </div>
         </div>
       </div>
@@ -131,7 +131,7 @@
     <div class="card-header">Paiements</div>
 
     <div class="card-body">
-      <app-data-table [data]="paiements" [columns]="paiementColumns"></app-data-table>
+      <app-data-table [data]="paiements" [columns]="paiementColumns" [canAction]="false"></app-data-table>
     </div>
   </div>
 }

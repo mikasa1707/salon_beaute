@@ -33,6 +33,7 @@ export interface PaymentResult {
 export class PaymentModalComponent implements OnChanges {
   @Input() show = false;
   @Input({ required: true }) ticket!: PosTicket;
+  @Input() allowPartialPayment = true;
 
   @Output() confirm = new EventEmitter<PaymentResult>();
 
@@ -160,9 +161,14 @@ export class PaymentModalComponent implements OnChanges {
       return;
     }
 
-    if (this.montantRecu > this.total) {
-      this.toast.error('Le montant dépasse le reste à payer');
+    // if (this.montantRecu > this.total) {
+    //   this.toast.error('Le montant dépasse le reste à payer');
 
+    //   return;
+    // }
+
+    if (!this.allowPartialPayment && this.montantRecu < this.maxMontantRecu) {
+      this.toast.error('Cette vente doit être réglée intégralement.');
       return;
     }
 

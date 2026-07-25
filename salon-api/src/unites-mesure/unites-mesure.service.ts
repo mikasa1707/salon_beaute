@@ -44,17 +44,17 @@ export class UnitesMesureService {
   }
 
   async findOne(id: number) {
-    const unite = await this.repo.findOne({
+    const unites = await this.repo.findOne({
       where: {
         id,
       },
     });
 
-    if (!unite) {
+    if (!unites) {
       throw new NotFoundException('Unité de mesure introuvable');
     }
 
-    return unite;
+    return unites;
   }
 
   async create(dto: CreateUniteMesureDto) {
@@ -67,18 +67,18 @@ export class UnitesMesureService {
   }
 
   async update(id: number, dto: UpdateUnitesMesureDto) {
-    const unite = await this.findOne(id);
+    const unites = await this.findOne(id);
 
-    Object.assign(unite, dto);
+    Object.assign(unites, dto);
 
-    return this.repo.save(unite);
+    return this.repo.save(unites);
   }
 
   async remove(id: number) {
-    const unite = await this.findOne(id);
+    const unites = await this.findOne(id);
 
-    unite.actif = false;
+    unites.actif = false;
 
-    return this.repo.save(unite);
+    return this.repo.save(unites);
   }
 }

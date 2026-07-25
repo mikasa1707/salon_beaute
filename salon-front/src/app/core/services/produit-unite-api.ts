@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class ProduitUniteApi {
-  private api = environment.apiUrl + '/produit-unite';
+  private api = environment.apiUrl + '/produit-unites';
 
   constructor(private http: HttpClient) {}
 

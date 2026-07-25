@@ -60,13 +60,14 @@ export class ReservationConsumptionComponent implements OnChanges {
       produits.forEach((recette: any) => {
         const exist = recettes.find(x => x.produitId === recette.produit.id);
 
+    console.log(recette);
         if (exist) {
           exist.quantite = Number(exist.quantite) + Number(recette.quantite);
         } else {
           recettes.push({
             produitId: recette.produit.id,
             produit: recette.produit,
-            uniteMesure: recette.produit.uniteConsommation,
+            uniteMesure: recette.uniteMesure,
             quantite: Number(recette.quantite),
           });
         }
@@ -74,7 +75,6 @@ export class ReservationConsumptionComponent implements OnChanges {
     });
 
     this.selectedProducts = recettes;
-    console.log(recettes);
     this.cdr.detectChanges();
   }
 
@@ -92,7 +92,7 @@ export class ReservationConsumptionComponent implements OnChanges {
       this.selectedProducts.push({
         produitId: produit.id,
         produit: produit.produit,
-        uniteMesure: produit.produit.uniteConsommation,
+        uniteMesure: produit.uniteMesure,
         quantite: 1,
       });
     }

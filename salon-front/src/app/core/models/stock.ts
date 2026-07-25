@@ -2,7 +2,7 @@ export interface Stock {
   id: number;
   produitUniteId: number;
   produit: string;
-  unite: string;
+  unites: string;
   code: string;
   stock: number;
   stockMinimum: number;
@@ -16,7 +16,7 @@ export interface ProduitUniteStock {
   code: string;
   stock: number;
   entry?: number;
-  unite: string;
+  unites: string;
   produit: {
     id: number;
     nom: string;

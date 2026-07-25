@@ -14,6 +14,7 @@ import { VenteProduit } from '../../vente-produits/entities/vente-produit.entity
 import { Paiement } from '../../paiements/entities/paiement.entity';
 import { Facturation } from 'src/facturations/entities/facturation.entity';
 import { CashRegister } from 'src/cash-register/entities/cash_registers.entity';
+import { Client } from 'src/clients/entities/client.entity';
 
 @Entity('ventes')
 export class Vente {
@@ -92,6 +93,14 @@ export class Vente {
 
   @ManyToOne(() => CashRegister)
   cashRegister!: CashRegister;
+
+  @ManyToOne(() => Client, {
+    nullable: true,
+  })
+  @JoinColumn({
+    name: 'client_id',
+  })
+  client?: Client;
 
   @CreateDateColumn()
   created_at!: Date;

@@ -1,8 +1,10 @@
+import { CashMovement } from 'src/cash-movements/entities/cash-movement.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('cash_registers')
@@ -13,30 +15,87 @@ export class CashRegister {
   @Column()
   salonId!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  /**
+   * Fond de caisse ouverture
+   */
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   openingBalance!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  closingBalance!: number;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  /**
+   * Total paiement espèces
+   */
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   totalCash!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  /**
+   * Total paiement carte
+   */
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   totalCard!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  /**
+   * Total Mobile Money
+   */
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   totalMobileMoney!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  /**
+   * Sorties manuelles
+   */
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   cashout!: number;
 
-  @Column({ default: 'OPEN' })
+  /**
+   * Montant compté physiquement à fermeture
+   */
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
+  closingBalance!: number;
+
+  @Column({
+    type: 'enum',
+    enum: ['OPEN', 'CLOSED'],
+    default: 'OPEN',
+  })
   status!: 'OPEN' | 'CLOSED';
 
   @CreateDateColumn()
   openedAt!: Date;
 
-  @Column({ nullable: true })
+  @Column({
+    nullable: true,
+  })
   closedAt?: Date;
+
+  @OneToMany(() => CashMovement, (movement) => movement.cashRegister)
+  movements!: CashMovement[];
 }

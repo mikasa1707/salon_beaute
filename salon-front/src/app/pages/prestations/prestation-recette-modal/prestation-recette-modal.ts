@@ -8,6 +8,7 @@ import { EntityPicker } from '../../../shared/components/entity-picker/entity-pi
 import { DataTableComponent } from '../../../shared/components/data-table/data-table';
 import { TableColumn } from '../../../core/models/table-column';
 import { ToastService } from '../../../core/services/toast';
+import { PrestationProduitApi } from '../../../core/services/prestation-produit-api';
 
 @Component({
   selector: 'app-prestation-recette-modal',
@@ -28,7 +29,7 @@ export class PrestationRecetteModal implements OnChanges {
   pickerConfig: any;
   columns: TableColumn[] = [
     {
-      field: 'produit.nom',
+      field: 'produit.unites.nom',
       label: 'Produit',
       type: 'text',
     },
@@ -38,7 +39,7 @@ export class PrestationRecetteModal implements OnChanges {
       type: 'badge',
     },
     {
-      field: 'produit.uniteConsommation.symbole',
+      field: 'produit.unites.unites',
       label: 'Unité',
     },
   ];
@@ -61,7 +62,7 @@ export class PrestationRecetteModal implements OnChanges {
 
   constructor(
     private readonly api: PrestationRecetteApi,
-    private readonly produitApi: ProduitApi,
+    private readonly produitApi: PrestationProduitApi,
     private readonly cdr: ChangeDetectorRef,
     private readonly toast: ToastService,
   ) {
@@ -70,7 +71,7 @@ export class PrestationRecetteModal implements OnChanges {
       service: this.produitApi,
       columns: [
         {
-          field: 'nom',
+          field: 'unites.nom',
           label: 'Produit',
           type: 'text',
         },
@@ -128,6 +129,8 @@ export class PrestationRecetteModal implements OnChanges {
   }
 
   produitSelected(event: any[]) {
+    console.log(this.tempRecettes)
+    console.log(event)
     event.forEach(produit => {
       const exists = this.tempRecettes.some(x => x.produitId === produit.id);
       if (exists) {
@@ -142,6 +145,7 @@ export class PrestationRecetteModal implements OnChanges {
     });
     this.selectedProduitList = [...this.tempRecettes.map(x => x.produit)];
     console.log(this.selectedProduitList);
+    console.log(this.tempRecettes)
   }
 
   saveRecette() {

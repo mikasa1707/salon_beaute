@@ -15,7 +15,7 @@ import { ProduitUnite } from '../produits/entities/produit_unites.entity';
 import { CashRegister } from '../cash-register/entities/cash_registers.entity';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { CheckoutPosDto } from './dto/checkout-pos.dto';
-import { Paiement } from 'src/paiements/entities/paiement.entity';
+import { ModePaiement, Paiement } from 'src/paiements/entities/paiement.entity';
 import { StockConsumptionService } from 'src/stocks/stock-consumption.service';
 import { Prestation } from 'src/prestations/entities/prestation.entity';
 
@@ -344,7 +344,7 @@ export class CheckoutService {
       if (dto.factureId) {
         facture = await manager.findOne(Facturation, {
           where: { id: dto.factureId },
-          relations: { vente: true },
+          relations: { vente: true, reservation: { client: true } },
           lock: { mode: 'pessimistic_write' },
         });
 
@@ -434,6 +434,10 @@ export class CheckoutService {
 
       if (facture) {
         vente.facturation = facture;
+
+        vente.reservation = facture.reservation;
+
+        vente.client = facture.reservation?.client;
       }
 
       const saved = await manager.save(Vente, vente);
@@ -471,7 +475,31 @@ export class CheckoutService {
         await manager.save(Facturation, facture);
       }
 
-      cashRegister.totalCash = Number(cashRegister.totalCash) + montantPaiement;
+      // cashRegister.totalCash = Number(cashRegister.totalCash) + montantPaiement;
+      switch (dto.paiement.modePaiement) {
+        case ModePaiement.ESPECES:
+          cashRegister.totalCash =
+            Number(cashRegister.totalCash) + montantPaiement;
+          break;
+
+        case ModePaiement.CARTE:
+          cashRegister.totalCard =
+            Number(cashRegister.totalCard) + montantPaiement;
+          break;
+
+        case ModePaiement.MVOLA:
+          cashRegister.totalMobileMoney =
+            Number(cashRegister.totalMobileMoney) + montantPaiement;
+          break;
+        case ModePaiement.AIRTEL_MONEY:
+          cashRegister.totalMobileMoney =
+            Number(cashRegister.totalMobileMoney) + montantPaiement;
+          break;
+        case ModePaiement.ORANGE_MONEY:
+          cashRegister.totalMobileMoney =
+            Number(cashRegister.totalMobileMoney) + montantPaiement;
+          break;
+      }
 
       await manager.save(CashRegister, cashRegister);
 

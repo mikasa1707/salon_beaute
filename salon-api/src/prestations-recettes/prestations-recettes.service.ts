@@ -10,6 +10,7 @@ import { Produit } from 'src/produits/entities/produit.entity';
 
 import { CreatePrestationRecetteDto } from './dto/create-prestations-recette.dto';
 import { CreatePrestationRecetteBulkDto } from './dto/create-prestations-recette-bulk.dto';
+import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
 
 @Injectable()
 export class PrestationsRecettesService {
@@ -22,6 +23,9 @@ export class PrestationsRecettesService {
 
     @InjectRepository(Produit)
     private readonly produitRepo: Repository<Produit>,
+
+    @InjectRepository(PrestationProduit)
+    private readonly prestaProduitRepo: Repository<PrestationProduit>,
   ) {}
 
   findByPrestation(prestationId: number) {
@@ -32,7 +36,7 @@ export class PrestationsRecettesService {
         },
       },
       relations: {
-        produit: { uniteConsommation: true },
+        produit: { unites: true },
       },
     });
   }
@@ -48,12 +52,14 @@ export class PrestationsRecettesService {
       throw new NotFoundException('Prestation introuvable');
     }
 
-    const produit = await this.produitRepo.findOne({
+    const produit = await this.prestaProduitRepo.findOne({
       where: {
         id: dto.produitId,
       },
       relations: {
-        uniteConsommation: true,
+        produit: {
+          uniteConsommation: true,
+        },
       },
     });
 
@@ -81,7 +87,7 @@ export class PrestationsRecettesService {
     const recette = this.repo.create({
       prestation,
       produit,
-      uniteMesure: produit.uniteConsommation,
+      uniteMesure: produit.produit.uniteConsommation,
       quantite: dto.quantite,
     });
 
@@ -135,14 +141,18 @@ export class PrestationsRecettesService {
     const results: PrestationRecette[] = [];
 
     for (const item of dto.produits) {
-      const produit = await this.produitRepo.findOne({
+      const produit = await this.prestaProduitRepo.findOne({
         where: {
           id: item.produitId,
         },
         relations: {
-          uniteConsommation: true,
+          produit: {
+            uniteConsommation: true,
+          },
         },
       });
+
+      console.log(produit);
 
       if (!produit) {
         throw new NotFoundException(`Produit ${item.produitId} introuvable`);
@@ -172,7 +182,7 @@ export class PrestationsRecettesService {
       const recette = this.repo.create({
         prestation,
         produit,
-        uniteMesure: produit.uniteConsommation,
+        uniteMesure: produit.produit.uniteConsommation,
         quantite: item.quantite,
       });
 

@@ -24,7 +24,7 @@ export class StockAlertModal {
       label: 'Produit',
     },
     {
-      field: 'unite',
+      field: 'unites',
       label: 'Unité',
     },
     {

@@ -145,8 +145,8 @@ export class ProduitUnites implements OnInit, OnDestroy, OnChanges {
     this.showModal = true;
   }
 
-  openEdit(unite: ProduitUnite) {
-    this.selected = unite;
+  openEdit(unites: ProduitUnite) {
+    this.selected = unites;
     this.showModal = true;
   }
 

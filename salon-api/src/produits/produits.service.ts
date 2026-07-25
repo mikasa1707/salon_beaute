@@ -50,16 +50,16 @@ export class ProduitsService {
 
     const produits = data.map((produit) => {
       const unitesActives =
-        produit.unites?.filter((unite) => unite.actif) ?? [];
+        produit.unites?.filter((unites) => unites.actif) ?? [];
       return {
         ...produit,
-        stockTotal: unitesActives.reduce((sum, unite) => sum + unite.stock, 0),
+        stockTotal: unitesActives.reduce((sum, unites) => sum + unites.stock, 0),
         isLowStock:
-          unitesActives.reduce((sum, unite) => sum + unite.stock, 0) <=
+          unitesActives.reduce((sum, unites) => sum + unites.stock, 0) <=
           produit.stock_minimum,
         nbUnites: unitesActives.length,
         hasLowStockUnit: unitesActives.some(
-          (unite) => unite.stock <= unite.stock_minimum,
+          (unites) => unites.stock <= unites.stock_minimum,
         ),
         uniteConso: produit.uniteConsommation.symbole,
         uniteConsommationId: produit.uniteConsommation.id,
@@ -142,7 +142,7 @@ export class ProduitsService {
           produit: u.produit.nom,
           marque: u.produit.marque?.nom,
 
-          unite: u.nom,
+          unites: u.nom,
           stock: u.stock,
           stock_minimum: u.stock_minimum,
 

@@ -1,0 +1,10 @@
+.dark-icon {
+  animation: blink 1s infinite;
+  font-size: 1rem;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.3;
+  }
+}

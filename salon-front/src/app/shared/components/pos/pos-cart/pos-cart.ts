@@ -32,6 +32,7 @@ export class PosCartComponent {
     }
 
     this.posService.removeItem(item.id);
+    this.cdr.detectChanges();
   }
 
   increase(item: VenteProduit) {

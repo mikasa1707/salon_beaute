@@ -18,7 +18,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { PersonnelRole } from 'src/personnels/entities/personnel.entity';
 
-@Controller('produit-unite')
+@Controller('produit-unites')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProduitUniteController {
   constructor(private readonly produitsService: ProduitUniteService) {}

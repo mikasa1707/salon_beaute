@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { UnitesMesureApi } from './unites-mesure-api';
+import { UnitesMesureApi } from './unite-mesure-api';
 
 describe('UnitesMesureApi', () => {
   let service: UnitesMesureApi;

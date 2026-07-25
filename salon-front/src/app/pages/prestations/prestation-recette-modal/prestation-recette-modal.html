@@ -26,7 +26,7 @@
               @for (item of tempRecettes; track item.produitId) {
                 <tr>
                   <td>
-                    <strong>{{ item.produit.nom }}</strong>
+                    <strong>{{ item.produit.unites.nom }}</strong>
                   </td>
 
                   <td>
@@ -34,11 +34,11 @@
                   </td>
 
                   <td >
-                    {{ item.produit.uniteConsommation.symbole }}
+                    {{ item.produit.uniteMesure.symbole }}
                   </td>
 
                   <td class="text-center">
-                    <button class="btn btn-sm btn-outline-danger" (click)="removeTemp(item.produitId)">
+                    <button class="btn btn-sm btn-outline-danger" (click)="removeTemp(item.produit.id)">
                       <i class="fa-solid fa-trash"></i>
                     </button>
                   </td>

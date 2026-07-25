@@ -1,6 +1,6 @@
 <div class="pos-cart-items">
   @for (item of cart; track item.id) {
-    <div class="cart-line d-flex align-items-center justify-content-between border-bottom py-2">
+    <div class="cart-line d-flex align-items-center justify-content-between border-bottom py-2 px-2">
       <!-- NOM -->
       <div class="flex-grow-1 text-truncate">
         <strong>
@@ -33,6 +33,10 @@
       <div class="text-end fw-bold" style="min-width: 90px">
         {{ item.total | currency: 'Ar' : 'symbol' : '1.0-0' }}
       </div>
+
+      <button class="btn btn-sm btn-outline-danger border-0" (click)="remove(item)">
+        <i class="fas fa-trash"></i>
+      </button>
     </div>
   }
 

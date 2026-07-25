@@ -44,7 +44,7 @@ export class VenteDetails implements OnChanges {
     },
 
     {
-      field: 'prix_unitaire',
+      field: 'prix',
       label: 'Prix',
       type: 'currency',
     },
@@ -68,7 +68,7 @@ export class VenteDetails implements OnChanges {
     },
 
     {
-      field: 'prix_unitaire',
+      field: 'prix',
       label: 'Prix',
       type: 'currency',
     },
@@ -82,7 +82,7 @@ export class VenteDetails implements OnChanges {
 
   paiementColumns: TableColumn[] = [
     {
-      field: 'date',
+      field: 'date_paiement',
       label: 'Date',
       type: 'date',
     },

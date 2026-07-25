@@ -19,6 +19,7 @@ import { ReservationPersonnel } from './entities/reservation-personnel.entity';
 import { StockConsumptionService } from 'src/stocks/stock-consumption.service';
 import { PrestationProduit } from 'src/prestations_produits/entities/prestations-produits.entity';
 import { PrestationProduitConsumption } from 'src/prestations/entities/prestation_produit_consumptions.entity';
+import { Facturation } from 'src/facturations/entities/facturation.entity';
 
 @Injectable()
 export class ReservationsService {
@@ -55,7 +56,7 @@ export class ReservationsService {
           prestation: {
             recettes: {
               produit: {
-                uniteConsommation: true,
+                unites: true,
               },
               uniteMesure: true,
             },
@@ -101,7 +102,7 @@ export class ReservationsService {
           prestation: {
             recettes: {
               produit: {
-                uniteConsommation: true,
+                unites: true,
               },
               uniteMesure: true,
             },
@@ -468,6 +469,8 @@ export class ReservationsService {
       },
     });
 
+    console.log(reservation);
+
     if (!reservation) {
       throw new NotFoundException(`Réservation ${id} introuvable`);
     }
@@ -502,7 +505,7 @@ export class ReservationsService {
       );
     }
 
-    let facturation: any = null;
+    let facturation: Facturation | null = null;
 
     if (newStatus === ReservationStatut.TERMINEE) {
       await this.consumeProducts(reservation, products ?? []);
@@ -529,7 +532,7 @@ export class ReservationsService {
     }[],
   ) {
     const manager = this.reservationPrestationRepo.manager;
-    console.log(products)
+    console.log(products);
     for (const item of products) {
       const prestationProduit = await manager.findOne(PrestationProduit, {
         where: {

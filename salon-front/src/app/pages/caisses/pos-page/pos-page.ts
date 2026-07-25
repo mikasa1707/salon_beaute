@@ -41,7 +41,7 @@ export class PosPage {
   cart: VenteProduit[] = [];
   produits: VenteProduit[] = [];
   page = 1;
-  limit = 16;
+  limit = 24;
   total = 0;
   totalPages = 0;
   searchValue = '';
@@ -142,7 +142,6 @@ export class PosPage {
 
     if (state?.facturationId) {
       this.factureId = state.facturationId;
-
       const existing = this.posService.findTicketByFacture(this.factureId);
 
       if (existing) {
@@ -180,6 +179,7 @@ export class PosPage {
           this.router.navigateByUrl('/facturations');
           return;
         }
+      console.log(facture)
 
         this.posService.loadFacture(facture);
 
@@ -246,6 +246,11 @@ export class PosPage {
 
     const reste = Math.max(ticket.total - (ticket.montantPaye ?? 0), 0);
 
+    if (!this.canPartialPayment && result.montantRecu < reste) {
+      this.toastService.warning('Un paiement partiel nécessite un client.');
+      return;
+    }
+
     const nouveauPaiement = Math.min(result.montantRecu, reste);
 
     const totalPaye = Number(ticket.montantPaye ?? 0) + nouveauPaiement;
@@ -285,5 +290,15 @@ export class PosPage {
         this.toastService.error(err.error?.message ?? 'Erreur Paiement');
       },
     });
+  }
+
+  get canPartialPayment(): boolean {
+    const ticket = this.posService.activeTicket;
+
+    if (!ticket) {
+      return false;
+    }
+
+    return !!ticket.client || !!ticket.facturation;
   }
 }

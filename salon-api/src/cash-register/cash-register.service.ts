@@ -3,9 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CashRegister } from './entities/cash_registers.entity';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
+
+import { CashRegister } from './entities/cash_registers.entity';
 import { Vente } from '../ventes/entities/vente.entity';
 
 @Injectable()
@@ -17,6 +19,9 @@ export class CashRegisterService {
     private readonly repo: Repository<CashRegister>,
   ) {}
 
+  /**
+   * OUVERTURE CAISSE
+   */
   async openCashRegister(salonId: number, openingBalance: number) {
     const open = await this.repo.findOne({
       where: {
@@ -26,17 +31,25 @@ export class CashRegisterService {
     });
 
     if (open) {
-      throw new ConflictException('Caisse déjà ouverte');
+      throw new ConflictException('Une caisse est déjà ouverte');
     }
 
     return this.repo.save({
       salonId,
-      openedAt: new Date(),
       openingBalance,
+      totalCash: 0,
+      totalCard: 0,
+      totalMobileMoney: 0,
+      cashout: 0,
+      closingBalance: 0,
       status: 'OPEN',
+      openedAt: new Date(),
     });
   }
 
+  /**
+   * CAISSE ACTIVE
+   */
   async getOpenCashRegister(salonId: number) {
     return this.repo.findOne({
       where: {
@@ -46,7 +59,75 @@ export class CashRegisterService {
     });
   }
 
-  async closeCashRegister(cashRegisterId: number) {
+  /**
+   * RESUME CAISSE
+   */
+  async getSummary(cashRegisterId: number) {
+    const cash = await this.repo.findOne({
+      where: {
+        id: cashRegisterId,
+      },
+    });
+
+    if (!cash) {
+      throw new NotFoundException('Caisse introuvable');
+    }
+
+    const theorique =
+      Number(cash.openingBalance) +
+      Number(cash.totalCash) -
+      Number(cash.cashout);
+
+    return {
+      ...cash,
+
+      theorique,
+
+      totalPaiement:
+        Number(cash.totalCash) +
+        Number(cash.totalCard) +
+        Number(cash.totalMobileMoney),
+    };
+  }
+
+  /**
+   * UTILISE PAR CHECKOUT POS
+   */
+  updatePayment(
+    cashRegister: CashRegister,
+    modePaiement: string,
+    montant: number,
+  ) {
+    switch (modePaiement) {
+      case 'ESPECE':
+      case 'CASH':
+        cashRegister.totalCash = Number(cashRegister.totalCash) + montant;
+
+        break;
+
+      case 'CARTE':
+        cashRegister.totalCard = Number(cashRegister.totalCard) + montant;
+
+        break;
+
+      case 'MOBILE_MONEY':
+      case 'MOBILE':
+        cashRegister.totalMobileMoney =
+          Number(cashRegister.totalMobileMoney) + montant;
+
+        break;
+
+      default:
+        throw new ConflictException(`Mode paiement inconnu : ${modePaiement}`);
+    }
+
+    return cashRegister;
+  }
+
+  /**
+   * FERMETURE CAISSE
+   */
+  async closeCashRegister(cashRegisterId: number, countedBalance?: number) {
     const qr = this.dataSource.createQueryRunner();
 
     await qr.connect();
@@ -54,43 +135,81 @@ export class CashRegisterService {
 
     try {
       const cash = await qr.manager.findOne(CashRegister, {
-        where: { id: cashRegisterId },
-        lock: { mode: 'pessimistic_write' },
-      });
-
-      if (!cash) throw new NotFoundException();
-
-      if (cash.status === 'CLOSED') {
-        throw new ConflictException('Déjà fermé');
-      }
-
-      // recalcul total réel depuis ventes
-      const ventes = await qr.manager.find(Vente, {
         where: {
-          cashRegister: { id: cash.id },
+          id: cashRegisterId,
+        },
+        lock: {
+          mode: 'pessimistic_write',
         },
       });
 
-      let total = 0;
-
-      for (const v of ventes) {
-        total += Number(v.total);
+      if (!cash) {
+        throw new NotFoundException('Caisse introuvable');
       }
 
-      cash.closingBalance = cash.openingBalance + total;
+      if (cash.status === 'CLOSED') {
+        throw new ConflictException('Caisse déjà fermée');
+      }
+
+      const ventes = await qr.manager.find(Vente, {
+        where: {
+          cashRegister: {
+            id: cash.id,
+          },
+        },
+      });
+
+      let totalVente = 0;
+
+      for (const vente of ventes) {
+        totalVente += Number(vente.total);
+      }
+
+      const theorique =
+        Number(cash.openingBalance) +
+        Number(cash.totalCash) -
+        Number(cash.cashout);
+
+      cash.closingBalance = countedBalance ?? theorique;
+
       cash.status = 'CLOSED';
+
       cash.closedAt = new Date();
 
-      await qr.manager.save(cash);
+      await qr.manager.save(CashRegister, cash);
 
       await qr.commitTransaction();
 
-      return cash;
-    } catch (e) {
+      return {
+        cash,
+
+        theorique,
+
+        ecart:
+          countedBalance !== undefined ? Number(countedBalance) - theorique : 0,
+
+        totalVente,
+      };
+    } catch (error) {
       await qr.rollbackTransaction();
-      throw e;
+
+      throw error;
     } finally {
       await qr.release();
     }
+  }
+
+  /**
+   * HISTORIQUE
+   */
+  async findAll(salonId: number) {
+    return this.repo.find({
+      where: {
+        salonId,
+      },
+      order: {
+        openedAt: 'DESC',
+      },
+    });
   }
 }

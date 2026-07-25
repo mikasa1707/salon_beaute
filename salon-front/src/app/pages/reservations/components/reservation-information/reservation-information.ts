@@ -57,12 +57,8 @@ export class ReservationInformation implements OnInit {
       allowCreate: true,
       columns: [
         {
-          field: 'nom',
-          label: 'Nom',
-        },
-        {
-          field: 'prenom',
-          label: 'Prénom',
+          field: 'nomComplet',
+          label: 'Nom Prénom',
         },
         {
           field: 'telephone',

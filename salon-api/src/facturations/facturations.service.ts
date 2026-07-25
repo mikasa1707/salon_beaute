@@ -127,7 +127,7 @@ export class FacturationsService {
       relations: {
         items: true,
         client: true,
-        reservation: true,
+        reservation: { client: true },
         vente: true,
       },
     });
@@ -147,7 +147,7 @@ export class FacturationsService {
       where: { id },
       relations: {
         client: true,
-        reservation: true,
+        reservation: { client: true },
         items: { prestation: true, produitUnite: true },
         vente: true,
       },
@@ -195,7 +195,7 @@ export class FacturationsService {
       ],
       relations: {
         client: true,
-        reservation: true,
+        reservation: { client: true },
         items: { prestation: true, produitUnite: true },
         vente: true,
       },

@@ -13,7 +13,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 interface InventaireLigne {
   produitUniteId: number;
   produitNom: string;
-  unite: string;
+  unites: string;
   stockTheorique: number;
   stockReel: number;
 }
@@ -87,7 +87,7 @@ export class InventaireForm implements OnInit {
       this.lignesCache[produit.id] = {
         produitUniteId: produit.id,
         produitNom: produit.produit.nom,
-        unite: produit.nom,
+        unites: produit.nom,
         stockTheorique: produit.stock,
         stockReel: produit.stock,
       };
@@ -147,7 +147,7 @@ export class InventaireForm implements OnInit {
       this.lignesCache[ligne.produitUnite.id] = {
         produitUniteId: ligne.produitUnite.id,
         produitNom: ligne.produitUnite.produit.nom,
-        unite: ligne.produitUnite.nom,
+        unites: ligne.produitUnite.nom,
         stockTheorique: ligne.stockTheorique,
         stockReel: ligne.stockReel,
       };

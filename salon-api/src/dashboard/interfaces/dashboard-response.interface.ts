@@ -25,7 +25,7 @@ export interface DashboardResponse {
   stockAlerts: {
     id: number;
     produit: string;
-    unite: string;
+    unites: string;
     stock: number;
     minimum: number;
   }[];
