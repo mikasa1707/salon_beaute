@@ -1,0 +1,83 @@
+<div class="row g-3">
+  <div class="col-md-3">
+    <app-kpi-card
+      title="Fond de caisse"
+      [value]="cash.openingBalance | currency: 'Ar' : 'symbol' : '1.0-0'"
+      icon="fa fa-shopping-cart"
+      color="primary"></app-kpi-card>
+  </div>
+  
+  <div class="col-md-3">
+    <app-kpi-card
+      title="Espèces"
+      [value]="cash.totalCash | currency: 'Ar' : 'symbol' : '1.0-0'"
+      icon="fa fa-shopping-cart"
+      color="primary"></app-kpi-card>
+  </div>
+  
+  <div class="col-md-3">
+    <app-kpi-card
+      title="Mobile Money"
+      [value]="cash.totalMobileMoney | currency: 'Ar' : 'symbol' : '1.0-0'"
+      icon="fa fa-shopping-cart"
+      color="primary"></app-kpi-card>
+  </div>
+  
+  <div class="col-md-3">
+    <app-kpi-card
+      title="Décaissement"
+      [value]="cash.cashout | currency: 'Ar' : 'symbol' : '1.0-0'"
+      icon="fa fa-shopping-cart"
+      color="warning"></app-kpi-card>
+  </div>
+</div>
+
+<hr />
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <app-kpi-card
+      title="Solde théorique"
+      [value]="cash.theorique | currency: 'Ar' : 'symbol' : '1.0-0'"
+      icon="fa fa-shopping-cart"
+      color="warning"></app-kpi-card>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h6>Ouverture</h6>
+
+        <div>
+          {{ cash.openedAt | date: 'dd/MM/yyyy HH:mm' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-4">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h6>Solde théorique</h6>
+
+        <h3>
+          {{ cash.theorique | currency: 'Ar' : 'symbol' : '1.0-0' }}
+        </h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h6>Ouverture</h6>
+
+        <div>
+          {{ cash.openedAt | date: 'dd/MM/yyyy HH:mm' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

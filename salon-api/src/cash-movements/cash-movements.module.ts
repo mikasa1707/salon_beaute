@@ -1,9 +1,14 @@
 import { Module } from '@nestjs/common';
-import { CashMovementsService } from './cash-movements.service';
-import { CashMovementsController } from './cash-movements.controller';
+import { CashMovementService } from './cash-movements.service';
+import { CashMovementController } from './cash-movements.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { CashMovement } from './entities/cash-movement.entity';
+import { CashRegister } from 'src/cash-register/entities/cash_registers.entity';
 
 @Module({
-  controllers: [CashMovementsController],
-  providers: [CashMovementsService],
+  imports: [TypeOrmModule.forFeature([CashMovement, CashRegister])],
+  controllers: [CashMovementController],
+  providers: [CashMovementService],
+  exports: [CashMovementService],
 })
-export class CashMovementsModule {}
+export class CashMovementModule {}

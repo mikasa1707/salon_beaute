@@ -1,1 +1,62 @@
-<p>cash-register works!</p>
+<app-page-header title="Caisses" subtitle="Gestion de la caisse journalière" icon="fa-solid fa-cash-register"></app-page-header>
+
+@if (cash) {
+  <!-- Menu caisse -->
+  <div class="card">
+    <div class="card-header bg-primary">
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <button class="btn btn-primary me-2" [class.active]="activeTab === 'summary'" (click)="activeTab = 'summary'">
+            <i class="fa-solid fa-chart-line mx-2"></i>
+
+            <span>Résumé <small>Situation actuelle</small></span>
+
+            
+          </button>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <button class="btn btn-primary me-2" [class.active]="activeTab === 'movement'" (click)="activeTab = 'movement'">
+            <i class="fa-solid fa-money-bill-transfer mx-2"></i>
+
+            <span>Mouvements <small>Entrées / sorties</small></span>
+
+            
+          </button>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <button class="btn btn-primary me-2" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'">
+            <i class="fa-solid fa-clock-rotate-left mx-2"></i>
+
+            <span>Historique <small>Anciennes caisses</small></span>
+
+            
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <!-- Contenu -->
+
+      @switch (activeTab) {
+        @case ('summary') {
+          <app-cash-summary [cash]="cash"></app-cash-summary>
+        }
+
+        @case ('movement') {
+          <app-cash-movement-list [cash]="cash"></app-cash-movement-list>
+        }
+
+        @case ('history') {
+          <app-cash-history></app-cash-history>
+        }
+
+        <!-- @case ('close') {
+      <app-cash-close [cash]="cash"></app-cash-close>
+    } -->
+      }
+    </div>
+  </div>
+}

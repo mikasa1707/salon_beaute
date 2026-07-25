@@ -1,10 +1,12 @@
 import { CashMovement } from 'src/cash-movements/entities/cash-movement.entity';
+import { Personnel } from 'src/personnels/entities/personnel.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
 
 @Entity('cash_registers')
@@ -83,10 +85,10 @@ export class CashRegister {
 
   @Column({
     type: 'enum',
-    enum: ['OPEN', 'CLOSED'],
+    enum: ['OPEN', 'CLOSED', 'FORCED'],
     default: 'OPEN',
   })
-  status!: 'OPEN' | 'CLOSED';
+  status!: 'OPEN' | 'CLOSED' | 'FORCED';
 
   @CreateDateColumn()
   openedAt!: Date;
@@ -95,6 +97,12 @@ export class CashRegister {
     nullable: true,
   })
   closedAt?: Date;
+
+  @ManyToOne(() => Personnel)
+  openedBy!: Personnel;
+
+  @ManyToOne(() => Personnel)
+  closedBy!: Personnel;
 
   @OneToMany(() => CashMovement, (movement) => movement.cashRegister)
   movements!: CashMovement[];

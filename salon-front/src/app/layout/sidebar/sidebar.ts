@@ -5,7 +5,7 @@ import { filter } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/auth';
 import { jwtDecode } from 'jwt-decode';
 
-type MenuKey = 'reservation' | 'prestations' | 'produits' | 'stock' | 'ventes';
+type MenuKey = 'reservation' | 'prestations' | 'produits' | 'stock' | 'ventes' | 'registre';
 
 @Component({
   selector: 'app-sidebar',
@@ -82,6 +82,7 @@ export class SidebarComponent implements OnInit {
     if (url.startsWith('/produits')) return 'produits';
     if (url.startsWith('/stock')) return 'stock';
     if (url.startsWith('/ventes')) return 'ventes';
+    if (url.startsWith('/registre')) return 'registre';
 
     return null;
   }

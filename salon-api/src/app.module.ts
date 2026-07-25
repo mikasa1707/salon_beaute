@@ -33,7 +33,7 @@ import { PrestationProduitsModule } from './prestations_produits/prestations-pro
 import { PrestationsRecettesModule } from './prestations-recettes/prestations-recettes.module';
 import { UnitesMesureModule } from './unites-mesure/unites-mesure.module';
 import { StockConsumptionModule } from './stocks/stock-consumption.module';
-import { CashMovementsModule } from './cash-movements/cash-movements.module';
+import { CashMovementModule } from './cash-movements/cash-movements.module';
 
 @Module({
   imports: [
@@ -84,7 +84,7 @@ import { CashMovementsModule } from './cash-movements/cash-movements.module';
     PrestationsRecettesModule,
     UnitesMesureModule,
     StockConsumptionModule,
-    CashMovementsModule,
+    CashMovementModule,
   ],
 
   controllers: [AppController],

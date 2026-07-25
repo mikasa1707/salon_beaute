@@ -190,9 +190,9 @@ export const routes: Routes = [
       },
       
       {
-        path: 'caisse/registre',
+        path: 'registre',
         loadComponent: () =>
-          import('./pages/caisses/cash-register/cash-register').then((m) => m.CashRegister),
+          import('./pages/caisses/cash-register/cash-register').then((m) => m.CashRegisters),
       },
 
       {

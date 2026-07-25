@@ -36,13 +36,21 @@ export class CashRegisterService {
 
     return this.repo.save({
       salonId,
+
       openingBalance,
+
       totalCash: 0,
+
       totalCard: 0,
+
       totalMobileMoney: 0,
+
       cashout: 0,
+
       closingBalance: 0,
+
       status: 'OPEN',
+
       openedAt: new Date(),
     });
   }
@@ -60,7 +68,7 @@ export class CashRegisterService {
   }
 
   /**
-   * RESUME CAISSE
+   * DETAIL CAISSE
    */
   async getSummary(cashRegisterId: number) {
     const cash = await this.repo.findOne({
@@ -73,17 +81,15 @@ export class CashRegisterService {
       throw new NotFoundException('Caisse introuvable');
     }
 
-    const theorique =
-      Number(cash.openingBalance) +
-      Number(cash.totalCash) -
-      Number(cash.cashout);
-
     return {
       ...cash,
 
-      theorique,
+      soldeTheorique:
+        Number(cash.openingBalance) +
+        Number(cash.totalCash) -
+        Number(cash.cashout),
 
-      totalPaiement:
+      totalEncaissement:
         Number(cash.totalCash) +
         Number(cash.totalCard) +
         Number(cash.totalMobileMoney),
@@ -91,7 +97,7 @@ export class CashRegisterService {
   }
 
   /**
-   * UTILISE PAR CHECKOUT POS
+   * UTILISE PAR CHECKOUT
    */
   updatePayment(
     cashRegister: CashRegister,
@@ -110,15 +116,15 @@ export class CashRegisterService {
 
         break;
 
-      case 'MOBILE_MONEY':
       case 'MOBILE':
+      case 'MOBILE_MONEY':
         cashRegister.totalMobileMoney =
           Number(cashRegister.totalMobileMoney) + montant;
 
         break;
 
       default:
-        throw new ConflictException(`Mode paiement inconnu : ${modePaiement}`);
+        throw new ConflictException(`Mode paiement inconnu ${modePaiement}`);
     }
 
     return cashRegister;
@@ -131,6 +137,7 @@ export class CashRegisterService {
     const qr = this.dataSource.createQueryRunner();
 
     await qr.connect();
+
     await qr.startTransaction();
 
     try {
@@ -149,20 +156,6 @@ export class CashRegisterService {
 
       if (cash.status === 'CLOSED') {
         throw new ConflictException('Caisse déjà fermée');
-      }
-
-      const ventes = await qr.manager.find(Vente, {
-        where: {
-          cashRegister: {
-            id: cash.id,
-          },
-        },
-      });
-
-      let totalVente = 0;
-
-      for (const vente of ventes) {
-        totalVente += Number(vente.total);
       }
 
       const theorique =
@@ -187,8 +180,6 @@ export class CashRegisterService {
 
         ecart:
           countedBalance !== undefined ? Number(countedBalance) - theorique : 0,
-
-        totalVente,
       };
     } catch (error) {
       await qr.rollbackTransaction();
@@ -207,6 +198,7 @@ export class CashRegisterService {
       where: {
         salonId,
       },
+
       order: {
         openedAt: 'DESC',
       },

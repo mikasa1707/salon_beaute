@@ -335,6 +335,43 @@
 
       <li>
         <a
+          class="nav-link rounded-3 px-3 py-3 d-flex gap-3 text-light sidebar-item"
+          [ngClass]="{
+            'bg-primary text-white shadow-sm': isRouteActive('registre'),
+          }"
+          (click)="toggleMenu('registre')"
+          title="Cash regiter"
+        >
+          <i class="fa-solid fa-sack-dollar"></i>
+          @if (!isCollapsed) {
+            <span>Cash Regiter</span>
+            <i class="fa-solid fa-angle-down ms-auto" [class.rotate]="isMenuOpen('registre')"></i>
+          }
+        </a>
+
+        @if (isMenuOpen('registre')) {
+          <ul class="nav flex-column mt-2 submenu" [class.ms-4]="!isCollapsed">
+            <li>
+              <a
+                routerLink="/registre"
+                routerLinkActive="bg-primary text-white shadow-sm"
+                [routerLinkActiveOptions]="{ exact: true }"
+                class="nav-link text-light submenu-item d-flex align-items-center"
+                [class.justify-content-center]="isCollapsed"
+                title="Caisses"
+              >
+                <i class="fa-solid fa-cash-register" [class.me-2]="!isCollapsed"></i>
+                @if (!isCollapsed) {
+                  <span>Caisses</span>
+                }
+              </a>
+            </li>
+          </ul>
+        }
+      </li>
+
+      <li>
+        <a
           routerLink="/facturations"
           routerLinkActive="active bg-primary text-white shadow-sm"
           class="nav-link rounded-3 px-3 py-3 d-flex gap-3 text-light"
