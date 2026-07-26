@@ -122,6 +122,7 @@ export class ClientForm implements OnChanges, OnInit {
         this.loading = false;
         this.toast.success(this.client?.id ? 'Client modifié' : 'Client créé');
         this.saved.emit(result);
+        this.form.reset();
       },
       error: () => {
         this.loading = false;

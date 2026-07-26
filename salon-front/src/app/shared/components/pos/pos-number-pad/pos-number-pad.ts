@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-pos-number-pad',
@@ -7,22 +7,40 @@ import { Component, EventEmitter, Output } from '@angular/core';
   styleUrl: './pos-number-pad.scss',
 })
 export class PosNumberPadComponent {
-  @Output()
-  valueChange = new EventEmitter<number>();
+  @Input() value: string | number = '';
+  @Output() valueChange = new EventEmitter<number>();
 
-  value = '';
-
-  keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0'];
+  keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '⌫'];
 
   press(k: string) {
     this.value += k;
 
     this.valueChange.emit(Number(this.value));
+
+    let text = this.value?.toString() ?? '';
+
+    switch (k) {
+      case '⌫':
+        text = text.slice(0, -1);
+        break;
+
+      case 'C':
+        text = '';
+        break;
+
+      default:
+        text += k;
+        break;
+    }
+    this.valueChange.emit(0);
+  }
+  
+  clear() {
+    this.valueChange.emit(0);
   }
 
-  clear() {
-    this.value = '';
-
+  reset() {
+    this.value = 0;
     this.valueChange.emit(0);
   }
 }

@@ -1,62 +1,153 @@
 <app-page-header title="Caisses" subtitle="Gestion de la caisse journalière" icon="fa-solid fa-cash-register"></app-page-header>
 
-@if (cash) {
-  <!-- Menu caisse -->
-  <div class="card">
-    <div class="card-header bg-primary">
-      <div class="row g-3">
-        <div class="col-6 col-md-3">
-          <button class="btn btn-primary me-2" [class.active]="activeTab === 'summary'" (click)="activeTab = 'summary'">
-            <i class="fa-solid fa-chart-line mx-2"></i>
+@if (cashNow) {
+  <div class="row g-3">
+    <!-- =====================
+       CAISSE ACTUELLE
+  ====================== -->
 
-            <span>Résumé <small>Situation actuelle</small></span>
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold text-white" [class.bg-success]="isOpen()" [class.bg-danger]="!isOpen()">
+          <div class="d-flex justify-content-between align-items-center">
+            <span>CAISSE ACTUELLE</span>
 
-            
-          </button>
+            <span class="badge bg-light text-dark">
+              {{ statusLabel(cashNow.status) }}
+            </span>
+          </div>
         </div>
 
-        <div class="col-6 col-md-3">
-          <button class="btn btn-primary me-2" [class.active]="activeTab === 'movement'" (click)="activeTab = 'movement'">
-            <i class="fa-solid fa-money-bill-transfer mx-2"></i>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-3">
+            <span>Date ouverture</span>
 
-            <span>Mouvements <small>Entrées / sorties</small></span>
+            <strong>
+              {{ cashNow.openedAt | date: 'dd/MM/yyyy' }}
+            </strong>
+          </div>
 
-            
-          </button>
+          <div class="d-flex justify-content-between mb-3">
+            <span>Heure ouverture</span>
+
+            <strong>
+              {{ cashNow.openedAt | date: 'HH:mm' }}
+            </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-3">
+            <span>Fond initial</span>
+
+            <strong>
+              {{ cashNow.openingBalance | currency: 'Ar' : 'symbol' : '1.0-0' }}
+            </strong>
+          </div>
+
+          <hr />
+
+          <div class="d-flex justify-content-between mb-3">
+            <span>Total encaissé</span>
+
+            <strong class="text-success">
+              {{ cash?.totalEncaissement | currency: 'Ar' : 'symbol' : '1.0-0' }}
+            </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-3">
+            <span>Solde théorique</span>
+
+            <strong>
+              {{ cash?.soldeTheorique | currency: 'Ar' : 'symbol' : '1.0-0' }}
+            </strong>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <span>Décaissements</span>
+
+            <strong class="text-danger">
+              {{ cash?.cashout | currency: 'Ar' : 'symbol' : '1.0-0' }}
+            </strong>
+          </div>
         </div>
 
-        <div class="col-6 col-md-3">
-          <button class="btn btn-primary me-2" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'">
-            <i class="fa-solid fa-clock-rotate-left mx-2"></i>
+        @if (isOpen()) {
+          <div class="card-footer">
+            <button class="btn btn-success w-100 mb-2" (click)="addMoney()">
+              <i class="fa-solid fa-plus"></i>
 
-            <span>Historique <small>Anciennes caisses</small></span>
+              Entrée d'argent
+            </button>
 
-            
-          </button>
-        </div>
+            <button class="btn btn-danger w-100" (click)="removeMoney()">
+              <i class="fa-solid fa-minus"></i>
+
+              Décaissement
+            </button>
+          </div>
+        }
       </div>
     </div>
 
-    <div class="card-body">
-      <!-- Contenu -->
+    <!-- =====================
+       ACTIONS
+  ====================== -->
 
-      @switch (activeTab) {
-        @case ('summary') {
-          <app-cash-summary [cash]="cash"></app-cash-summary>
-        }
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">ACTIONS</div>
 
-        @case ('movement') {
-          <app-cash-movement-list [cash]="cash"></app-cash-movement-list>
-        }
+        <div class="card-body">
+          @if (!isOpen()) {
+            <button class="btn btn-success btn-lg w-100 mb-3" (click)="openSession()">
+              <i class="fa-solid fa-door-open"></i>
 
-        @case ('history') {
-          <app-cash-history></app-cash-history>
-        }
+              OUVRIR LA SESSION
+            </button>
+          } @else {
+            <button class="btn btn-danger btn-lg w-100 mb-3" (click)="closeSession()">
+              <i class="fa-solid fa-door-closed"></i>
 
-        <!-- @case ('close') {
-      <app-cash-close [cash]="cash"></app-cash-close>
-    } -->
-      }
+              CLOTURER LA SESSION
+            </button>
+          }
+
+          <button class="btn btn-info btn-lg w-100">
+            <i class="fa-solid fa-chart-line"></i>
+
+            RAPPORT SESSION
+          </button>
+        </div>
+      </div>
+
+      <!-- JOURNAL -->
+
+      <div class="card shadow-sm mt-3">
+        <div class="card-header fw-bold">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>JOURNAL DE CAISSE</div>
+            <!-- Recherche -->
+            <div class="search-wrapper">
+              <app-search-bar (searchChange)="search($event)"></app-search-bar>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <app-cash-movement-list [cashRegisterId]="cashNow.id" [search]="searchValue" [page]="page" [limit]="limit"></app-cash-movement-list>
+        </div>
+      </div>
     </div>
   </div>
+} @else {
+  <div class="alert alert-warning">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+
+    Aucune session caisse ouverte.
+  </div>
+
+  <button class="btn btn-success" (click)="createSession()">Créer une nouvelle session</button>
 }
+
+<app-modal title="{{ movementType === 'REFUND' ? 'Entrée de caisse' : 'Décaissement' }}" size="md" [show]="showMovementModal" (closed)="closeMovement()">
+  <app-cash-movement-form [cashRegisterId]="cashNow ? cashNow.id : 0" [type]="movementType" (saved)="closeMovement(); loadDetails(cashNow ? cashNow.id : 0)" (cancel)="closeMovement()" />
+</app-modal>

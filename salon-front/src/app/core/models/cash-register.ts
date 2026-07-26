@@ -12,3 +12,11 @@ export interface CashRegister {
   openedAt: Date;
   closedAt?: Date;
 }
+
+export interface CashRegisterResponse {
+  data: CashRegister[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}

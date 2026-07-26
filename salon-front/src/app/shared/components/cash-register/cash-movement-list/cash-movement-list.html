@@ -1,1 +1,17 @@
-<p>cash-movement-list works!</p>
+<app-data-table
+  [columns]="columns"
+  [data]="movements"
+  [loading]="loading"
+  [page]="page"
+  [totalPages]="totalPages"
+  (pageChange)="changePage($event)"
+  [canAction]="false"></app-data-table>
+
+<app-pagination
+  [page]="page"
+  [totalPages]="totalPages"
+  [total]="total"
+  [limit]="limit" 
+  [showLimit]="false"
+  (pageChange)="changePage($event)"
+  (limitChange)="changeLimit($event)"></app-pagination>

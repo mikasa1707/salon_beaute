@@ -17,13 +17,31 @@ export interface CheckoutPaymentDto {
   numeroPaiement?: string;
 }
 
+export interface CheckoutItemDto {
+  label?: string;
+  quantite: number;
+  prix: number;
+  produitUnite?: { id: number };
+  prestation?: { id: number };
+}
+
 export interface CheckoutPosDto {
   ticketId: string;
   factureId?: number;
-  items: VenteProduit[];
+  venteId?: number;
   total: number;
   remise: number;
-  paiement: CheckoutPaymentDto;
+  items: CheckoutItemDto[];
+
+  paiement: {
+    modePaiement: string;
+    montant: number;
+    montantrecu: number;
+    montantrendu: number;
+    referencePaiement?: string;
+    numeroPaiement?: string;
+  };
+  paiementComplet: boolean;
 }
 
 @Injectable({

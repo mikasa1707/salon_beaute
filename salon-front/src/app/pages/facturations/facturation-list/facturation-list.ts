@@ -12,6 +12,7 @@ import { DataTableComponent } from '../../../shared/components/data-table/data-t
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 import { FacturePrintModal } from '../../../shared/components/facture-print-modal/facture-print-modal';
 import { Route, Router } from '@angular/router';
+import { TableColumn } from '../../../core/models/table-column';
 
 @Component({
   selector: 'app-facturation-list',
@@ -31,11 +32,18 @@ export class FacturationList {
   selectedFacture?: Facturation;
   showPrintModal = false;
 
-  columns = [
+  columns: TableColumn[] = [
     { field: 'numero', label: 'N° Facture' },
     { field: 'date_facture', label: 'Date' },
     { field: 'nom', label: 'Client' },
-    { field: 'status', label: 'Statut' },
+    {
+      field: 'statusLabel',
+      label: 'Statut',
+      type: 'badge',
+      badgeClass: row => {
+        return row.status === 'PAID' ? 'bg-success' : 'bg-danger';
+      },
+    },
     { field: 'total', label: 'Prix' },
   ];
 

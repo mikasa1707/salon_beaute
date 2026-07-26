@@ -218,11 +218,23 @@ export class FacturationsService {
           facture.client?.prenom,
         prenom: facture.client?.prenom,
         date_facture: new Date(facture.created_at).toLocaleDateString('fr-FR'),
+        statusLabel: this.getStatusLabel(facture.status),
       })),
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  getStatusLabel(status: string) {
+    const labels: any = {
+      PAID: 'Payée',
+      UNPAID: 'Non payée',
+      PARTIAL: 'Partiel',
+      CANCELLED: 'Annulée',
+    };
+
+    return labels[status] ?? status;
   }
 }

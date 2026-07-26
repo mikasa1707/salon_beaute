@@ -1,9 +1,15 @@
-<div class="number-pad">
-  @for (k of keys; track k) {
-    <button class="btn btn-secondary" (click)="press(k)">
-      {{ k }}
-    </button>
+<div class="row g-2">
+  @for (key of keys; track key) {
+    <div class="col-4">
+        <button type="button" class="btn btn-light border w-100 py-3 fs-4 fw-bold" (click)="press(key)">
+          @if (key === '⌫') {
+            <i class="fa-solid fa-delete-left"></i>
+          } @else if (key === 'C') {
+            <span class="text-danger fw-bold">C</span>
+          } @else {
+            {{ key }}
+          }
+        </button>
+    </div>
   }
-
-  <button class="btn btn-danger" (click)="clear()">C</button>
 </div>

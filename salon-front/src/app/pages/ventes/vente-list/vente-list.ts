@@ -12,6 +12,7 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
+import { ToastService } from '../../../core/services/toast';
 
 @Component({
   selector: 'app-vente-list',
@@ -84,7 +85,8 @@ export class VenteList implements OnInit {
   constructor(
     private api: VentesApi,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -108,8 +110,8 @@ export class VenteList implements OnInit {
       next: res => {
         this.ventes = res.data.map((vente: any) => ({
           ...vente,
-          numero: this.generateNumeroVente(vente.id, vente.created_at)
-        }))
+          numero: this.generateNumeroVente(vente.id, vente.created_at),
+        }));
         this.total = res.total;
         this.totalPages = res.totalPages;
         this.loading = false;
@@ -181,15 +183,21 @@ export class VenteList implements OnInit {
 
   edit(vente: Vente) {
     // console.log(vente)
-    this.router.navigate(['/caisse'], {
-      state: {
-        vente: vente,
-        mode: 'VENTE_EDIT',
-      },
-    });
+    if (vente.statutPaiement === 'PAYE') {
+      this.toast.warning('La vente numero ' + vente.numero + ' a deja ete paye en totalite');
+    } else {
+      this.router.navigate(['/caisse'], {
+        state: {
+          vente: vente,
+          mode: 'VENTE_EDIT',
+        },
+      });
+    }
   }
 
   openCaisse() {
     this.router.navigateByUrl('/caisse');
   }
+
+  getStatus(vente: Vente) {}
 }

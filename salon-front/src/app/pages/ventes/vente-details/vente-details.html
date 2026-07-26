@@ -8,20 +8,21 @@
           {{ vente.created_at | date: 'dd/MM/yyyy HH:mm' }}
         </small>
       </div>
+      @if (vente.statutPaiement !== 'PAYE') {
+        <div>
+          <button class="btn btn-primary me-2" (click)="modifier()">
+            <i class="fa fa-edit"></i>
 
-      <div>
-        <button class="btn btn-primary me-2" (click)="modifier()">
-          <i class="fa fa-edit"></i>
+            Modifier
+          </button>
 
-          Modifier
-        </button>
+          <button class="btn btn-danger" (click)="archiver()">
+            <i class="fa fa-box-archive"></i>
 
-        <button class="btn btn-danger" (click)="archiver()">
-          <i class="fa fa-box-archive"></i>
-
-          Archiver
-        </button>
-      </div>
+            Archiver
+          </button>
+        </div>
+      }
     </div>
 
     <div class="card-body">
@@ -89,7 +90,7 @@
 
               <td>
                 <span
-                  class="badge"
+                  class="badge fs-6 fw-bold"
                   [class.bg-success]="vente.statutPaiement === 'PAYE'"
                   [class.bg-warning]="vente.statutPaiement === 'PARTIEL'"
                   [class.bg-danger]="vente.statutPaiement === 'NON_PAYE'">
@@ -105,18 +106,18 @@
 
   <div class="row mt-3">
     @if (produits.length > 0) {
-      <div [class]="(produits.length > 0 && prestations.length > 0) ? 'col-md-6' : 'col-md-12'">
+      <div [class]="produits.length > 0 && prestations.length > 0 ? 'col-md-6' : 'col-md-12'">
         <div class="card">
           <div class="card-header">Produits</div>
           <div class="card-body">
-            <app-data-table [data]="produits" [columns]="produitColumns"></app-data-table>
+            <app-data-table [data]="produits" [columns]="produitColumns" [canAction]="false"></app-data-table>
           </div>
         </div>
       </div>
     }
 
     @if (prestations.length > 0) {
-      <div [class]="(produits.length > 0 && prestations.length > 0) ? 'col-md-6' : 'col-md-12'">
+      <div [class]="produits.length > 0 && prestations.length > 0 ? 'col-md-6' : 'col-md-12'">
         <div class="card">
           <div class="card-header">Prestations</div>
           <div class="card-body">

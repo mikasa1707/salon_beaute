@@ -114,14 +114,6 @@
           [exactValue]="total"
           [mode]="'numeric'"
           (exact)="setMontantRecu(maxMontantRecu)"></app-numeric-keyboard>
-        <!-- <div class="alert mt-3 mb-0 py-2" [class.alert-success]="monnaie >= 0" [class.alert-danger]="montantRecu < total">
-          <div class="d-flex justify-content-between">
-            <span>Monnaie</span>
-            <strong>
-              {{ monnaie | currency: 'Ar' : 'symbol' : '1.0-0' }}
-            </strong>
-          </div>
-        </div> -->
       } @else {
         <div class="row g-2 mt-2">
           <div class="col-md-12">

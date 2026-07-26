@@ -3,7 +3,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, EntityManager } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 
 import {
   Facturation,
@@ -18,6 +18,12 @@ import { CheckoutPosDto } from './dto/checkout-pos.dto';
 import { ModePaiement, Paiement } from 'src/paiements/entities/paiement.entity';
 import { StockConsumptionService } from 'src/stocks/stock-consumption.service';
 import { Prestation } from 'src/prestations/entities/prestation.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import {
+  CashMovement,
+  CashMovementDirection,
+  CashMovementType,
+} from 'src/cash-movements/entities/cash-movement.entity';
 
 @Injectable()
 export class CheckoutService {
@@ -236,14 +242,20 @@ export class CheckoutService {
         where: {
           id: venteId,
         },
+
         relations: {
           produits: {
             produitUnite: true,
             prestation: true,
           },
+
           facturation: true,
+
           cashRegister: true,
+
+          paiements: true,
         },
+
         lock: {
           mode: 'pessimistic_write',
         },
@@ -253,7 +265,7 @@ export class CheckoutService {
         throw new NotFoundException('Vente introuvable');
       }
 
-      // 2. CHECK DEJA ANNULEE
+      // 2. DEJA ANNULEE
       if (vente.isCancelled) {
         throw new ConflictException('Vente déjà annulée');
       }
@@ -263,10 +275,12 @@ export class CheckoutService {
         if (!item.produitUnite) {
           continue;
         }
+
         const unit = await manager.findOne(ProduitUnite, {
           where: {
             id: item.produitUnite.id,
           },
+
           lock: {
             mode: 'pessimistic_write',
           },
@@ -276,42 +290,85 @@ export class CheckoutService {
           throw new NotFoundException('Produit introuvable');
         }
 
-        unit.stock += Number(item.quantite);
+        unit.stock = Number(unit.stock) + Number(item.quantite);
+
         await manager.save(ProduitUnite, unit);
       }
 
       // 4. ANNULATION VENTE
-
       vente.isCancelled = true;
+
       vente.cancelledAt = new Date();
 
       await manager.save(Vente, vente);
 
-      // 5. ANNULATION FACTURE LIEE
+      // 5. ANNULATION FACTURE
       if (vente.facturation) {
         vente.facturation.status = FacturationStatus.CANCELLED;
+
         vente.facturation.isLocked = true;
 
         await manager.save(Facturation, vente.facturation);
       }
-      // 6. AJUSTEMENT CAISSE
 
+      // 6. AJUSTEMENT CAISSE + JOURNAL
       if (vente.cashRegister) {
-        vente.cashRegister.totalCash =
-          Number(vente.cashRegister.totalCash) - Number(vente.total);
+        for (const paiement of vente.paiements ?? []) {
+          const montant = Number(paiement.montant);
+
+          switch (paiement.mode) {
+            case ModePaiement.ESPECES:
+              vente.cashRegister.totalCash =
+                Number(vente.cashRegister.totalCash) - montant;
+
+              break;
+
+            case ModePaiement.CARTE:
+              vente.cashRegister.totalCard =
+                Number(vente.cashRegister.totalCard) - montant;
+
+              break;
+
+            case ModePaiement.MVOLA:
+            case ModePaiement.AIRTEL_MONEY:
+            case ModePaiement.ORANGE_MONEY:
+              vente.cashRegister.totalMobileMoney =
+                Number(vente.cashRegister.totalMobileMoney) - montant;
+
+              break;
+          }
+
+          // Journal caisse
+          await manager.save(CashMovement, {
+            cashRegister: vente.cashRegister,
+
+            type: CashMovementType.REFUND,
+
+            direction: CashMovementDirection.OUT,
+
+            amount: montant,
+
+            label: `Annulation vente #${vente.id}`,
+
+            reference: `REFUND-${vente.id}`,
+          });
+        }
 
         await manager.save(CashRegister, vente.cashRegister);
       }
 
       // 7. COMMIT
       await qr.commitTransaction();
+
       return {
         success: true,
 
-        message: 'Vente annulée, stock restauré et caisse ajustée',
+        message:
+          'Vente annulée, stock restauré, caisse ajustée et journal mis à jour',
       };
     } catch (error) {
       await qr.rollbackTransaction();
+
       throw error;
     } finally {
       await qr.release();
@@ -480,28 +537,34 @@ export class CheckoutService {
         case ModePaiement.ESPECES:
           cashRegister.totalCash =
             Number(cashRegister.totalCash) + montantPaiement;
+
           break;
 
         case ModePaiement.CARTE:
           cashRegister.totalCard =
             Number(cashRegister.totalCard) + montantPaiement;
+
           break;
 
         case ModePaiement.MVOLA:
-          cashRegister.totalMobileMoney =
-            Number(cashRegister.totalMobileMoney) + montantPaiement;
-          break;
         case ModePaiement.AIRTEL_MONEY:
-          cashRegister.totalMobileMoney =
-            Number(cashRegister.totalMobileMoney) + montantPaiement;
-          break;
         case ModePaiement.ORANGE_MONEY:
           cashRegister.totalMobileMoney =
             Number(cashRegister.totalMobileMoney) + montantPaiement;
+
           break;
       }
 
       await manager.save(CashRegister, cashRegister);
+
+      // Journal caisse
+      await this.createCashMovement(
+        manager,
+        cashRegister,
+        dto.paiement.modePaiement,
+        montantPaiement,
+        saved.id,
+      );
 
       await qr.commitTransaction();
 
@@ -531,5 +594,50 @@ export class CheckoutService {
     } finally {
       await qr.release();
     }
+  }
+
+  private createCashMovement(
+    manager: EntityManager,
+    cashRegister: CashRegister,
+    modePaiement: ModePaiement,
+    montant: number,
+    venteId: number,
+  ) {
+    let type: CashMovementType;
+
+    switch (modePaiement) {
+      case ModePaiement.ESPECES:
+        type = CashMovementType.SALE_CASH;
+        break;
+
+      case ModePaiement.CARTE:
+        type = CashMovementType.SALE_CARD;
+        break;
+
+      case ModePaiement.MVOLA:
+      case ModePaiement.AIRTEL_MONEY:
+      case ModePaiement.ORANGE_MONEY:
+        type = CashMovementType.SALE_MOBILE;
+        break;
+
+      default:
+        throw new ConflictException(
+          `Mode paiement non supporté ${modePaiement}`,
+        );
+    }
+
+    return manager.save(CashMovement, {
+      cashRegister,
+
+      type,
+
+      direction: CashMovementDirection.IN,
+
+      amount: montant,
+
+      label: `Vente #${venteId}`,
+
+      reference: `VENTE-${venteId}`,
+    });
   }
 }

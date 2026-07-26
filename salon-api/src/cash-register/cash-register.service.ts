@@ -1,14 +1,8 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
-
-import { CashRegister } from './entities/cash_registers.entity';
-import { Vente } from '../ventes/entities/vente.entity';
+import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { CashMovement, CashMovementType, CashMovementDirection } from "src/cash-movements/entities/cash-movement.entity";
+import { DataSource, Repository } from "typeorm";
+import { CashRegister } from "./entities/cash_registers.entity";
 
 @Injectable()
 export class CashRegisterService {
@@ -17,27 +11,20 @@ export class CashRegisterService {
 
     @InjectRepository(CashRegister)
     private readonly repo: Repository<CashRegister>,
+
+    @InjectRepository(CashMovement)
+    private readonly cashMovementRepo: Repository<CashMovement>,
   ) {}
 
   /**
-   * OUVERTURE CAISSE
+   * CREATION SESSION CAISSE
+   * Etat initial CLOSED
    */
-  async openCashRegister(salonId: number, openingBalance: number) {
-    const open = await this.repo.findOne({
-      where: {
-        salonId,
-        status: 'OPEN',
-      },
-    });
-
-    if (open) {
-      throw new ConflictException('Une caisse est déjà ouverte');
-    }
-
-    return this.repo.save({
+  async createSession(salonId: number) {
+    const cash = await this.repo.save({
       salonId,
 
-      openingBalance,
+      openingBalance: 0,
 
       totalCash: 0,
 
@@ -49,14 +36,14 @@ export class CashRegisterService {
 
       closingBalance: 0,
 
-      status: 'OPEN',
-
-      openedAt: new Date(),
+      status: 'CLOSED',
     });
+
+    return cash;
   }
 
   /**
-   * CAISSE ACTIVE
+   * CAISSE OUVERTE
    */
   async getOpenCashRegister(salonId: number) {
     return this.repo.findOne({
@@ -68,12 +55,55 @@ export class CashRegisterService {
   }
 
   /**
-   * DETAIL CAISSE
+   * OUVRIR UNE SESSION EXISTANTE
    */
-  async getSummary(cashRegisterId: number) {
+  async openCashRegister(id: number, openingBalance: number) {
     const cash = await this.repo.findOne({
       where: {
-        id: cashRegisterId,
+        id,
+      },
+    });
+
+    if (!cash) {
+      throw new NotFoundException('Session caisse introuvable');
+    }
+
+    if (cash.status === 'OPEN') {
+      throw new ConflictException('Caisse déjà ouverte');
+    }
+
+    cash.status = 'OPEN';
+
+    cash.openingBalance = openingBalance;
+
+    cash.openedAt = new Date();
+
+    await this.repo.save(cash);
+
+    await this.cashMovementRepo.save({
+      cashRegister: cash,
+
+      type: CashMovementType.OPENING,
+
+      direction: CashMovementDirection.IN,
+
+      amount: openingBalance,
+
+      label: 'Fond de caisse',
+
+      reference: `OPEN-${cash.id}`,
+    });
+
+    return cash;
+  }
+
+  /**
+   * DETAIL CAISSE
+   */
+  async getSummary(id: number) {
+    const cash = await this.repo.findOne({
+      where: {
+        id,
       },
     });
 
@@ -97,97 +127,43 @@ export class CashRegisterService {
   }
 
   /**
-   * UTILISE PAR CHECKOUT
+   * FERMETURE
    */
-  updatePayment(
-    cashRegister: CashRegister,
-    modePaiement: string,
-    montant: number,
-  ) {
-    switch (modePaiement) {
-      case 'ESPECE':
-      case 'CASH':
-        cashRegister.totalCash = Number(cashRegister.totalCash) + montant;
+  async closeCashRegister(id: number, countedBalance?: number) {
+    const cash = await this.repo.findOne({
+      where: {
+        id,
+      },
+    });
 
-        break;
-
-      case 'CARTE':
-        cashRegister.totalCard = Number(cashRegister.totalCard) + montant;
-
-        break;
-
-      case 'MOBILE':
-      case 'MOBILE_MONEY':
-        cashRegister.totalMobileMoney =
-          Number(cashRegister.totalMobileMoney) + montant;
-
-        break;
-
-      default:
-        throw new ConflictException(`Mode paiement inconnu ${modePaiement}`);
+    if (!cash) {
+      throw new NotFoundException('Caisse introuvable');
     }
 
-    return cashRegister;
-  }
-
-  /**
-   * FERMETURE CAISSE
-   */
-  async closeCashRegister(cashRegisterId: number, countedBalance?: number) {
-    const qr = this.dataSource.createQueryRunner();
-
-    await qr.connect();
-
-    await qr.startTransaction();
-
-    try {
-      const cash = await qr.manager.findOne(CashRegister, {
-        where: {
-          id: cashRegisterId,
-        },
-        lock: {
-          mode: 'pessimistic_write',
-        },
-      });
-
-      if (!cash) {
-        throw new NotFoundException('Caisse introuvable');
-      }
-
-      if (cash.status === 'CLOSED') {
-        throw new ConflictException('Caisse déjà fermée');
-      }
-
-      const theorique =
-        Number(cash.openingBalance) +
-        Number(cash.totalCash) -
-        Number(cash.cashout);
-
-      cash.closingBalance = countedBalance ?? theorique;
-
-      cash.status = 'CLOSED';
-
-      cash.closedAt = new Date();
-
-      await qr.manager.save(CashRegister, cash);
-
-      await qr.commitTransaction();
-
-      return {
-        cash,
-
-        theorique,
-
-        ecart:
-          countedBalance !== undefined ? Number(countedBalance) - theorique : 0,
-      };
-    } catch (error) {
-      await qr.rollbackTransaction();
-
-      throw error;
-    } finally {
-      await qr.release();
+    if (cash.status === 'CLOSED') {
+      throw new ConflictException('Caisse déjà fermée');
     }
+
+    const theorique =
+      Number(cash.openingBalance) +
+      Number(cash.totalCash) -
+      Number(cash.cashout);
+
+    cash.closingBalance = countedBalance ?? theorique;
+
+    cash.status = 'CLOSED';
+
+    cash.closedAt = new Date();
+
+    await this.repo.save(cash);
+
+    return {
+      cash,
+
+      theorique,
+
+      ecart: countedBalance ? Number(countedBalance) - theorique : 0,
+    };
   }
 
   /**
@@ -200,7 +176,7 @@ export class CashRegisterService {
       },
 
       order: {
-        openedAt: 'DESC',
+        id: 'DESC',
       },
     });
   }

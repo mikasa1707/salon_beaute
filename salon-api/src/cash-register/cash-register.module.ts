@@ -8,7 +8,7 @@ import { Personnel } from 'src/personnels/entities/personnel.entity';
 import { Vente } from 'src/ventes/entities/vente.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CashRegister, CashMovement, Personnel, Vente])],
+  imports: [TypeOrmModule.forFeature([CashRegister, CashMovement, Personnel])],
   providers: [CashRegisterService],
   controllers: [CashRegisterController],
   exports: [CashRegisterService],

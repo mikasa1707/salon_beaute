@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FacturationApiService } from '../../../core/services/facturation-api';
 import { PosService } from '../../../core/services/pos';
@@ -37,7 +37,7 @@ import { VentesApi } from '../../../core/services/vente-api';
   templateUrl: './pos-page.html',
   styleUrl: './pos-page.scss',
 })
-export class PosPage {
+export class PosPage implements OnInit, OnDestroy {
   cart: VenteProduit[] = [];
   produits: VenteProduit[] = [];
   page = 1;
@@ -45,6 +45,7 @@ export class PosPage {
   total = 0;
   totalPages = 0;
   searchValue = '';
+  filterValue: any[] = [];
 
   loading = false;
 
@@ -179,7 +180,7 @@ export class PosPage {
           this.router.navigateByUrl('/facturations');
           return;
         }
-      console.log(facture)
+        console.log(facture);
 
         this.posService.loadFacture(facture);
 
@@ -217,7 +218,7 @@ export class PosPage {
   }
 
   filterType(filters: any[]) {
-    console.log(filters);
+    this.filterValue = filters;
     this.page = 1;
     this.loadProduit(
       '',
@@ -252,28 +253,32 @@ export class PosPage {
     }
 
     const nouveauPaiement = Math.min(result.montantRecu, reste);
-
     const totalPaye = Number(ticket.montantPaye ?? 0) + nouveauPaiement;
-
     const paiementComplet = totalPaye >= Number(ticket.total);
+
+    const items = ticket.items.map(i => ({
+      label: i.label,
+      quantite: i.quantite,
+      prix: i.prix,
+      produitUnite: i.id ? { id: i.id } : undefined,
+      prestation: i.prestation?.id ? { id: i.prestation.id } : undefined,
+    }));
 
     const payload = {
       ticketId: ticket.id,
-      factureId: ticket.facturation?.id ?? undefined,
+      factureId: ticket.facturation?.id,
       venteId: ticket.venteId,
-      items: ticket.items,
       total: ticket.total,
       remise: ticket.remise ?? 0,
-
+      items,
       paiement: {
         modePaiement: result.modePaiement,
-        montant: ticket.total,
-        montantrecu: nouveauPaiement,
+        montant: nouveauPaiement,
+        montantrecu: result.montantRecu,
         montantrendu: result.monnaie ?? 0,
         referencePaiement: result.referencePaiement,
         numeroPaiement: result.numeroPaiement,
       },
-
       paiementComplet,
     };
 
@@ -284,6 +289,7 @@ export class PosPage {
         this.posService.removeTicket(ticket.id);
 
         this.paymentVisible = false;
+        this.loadProduit(this.searchValue);
       },
 
       error: err => {
