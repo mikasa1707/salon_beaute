@@ -8,7 +8,7 @@ export class TypeProduit {
 
   @Column({ unique: true })
   nom!: string;
-  
+
   @Column({ unique: true, nullable: true })
   color!: string;
 
@@ -16,7 +16,12 @@ export class TypeProduit {
   produits!: Produit[];
 
   @Column({
-    default: true
+    default: true,
   })
   actif!: boolean;
+
+  @Column({
+    default: true,
+  })
+  isCommercialisable!: boolean;
 }

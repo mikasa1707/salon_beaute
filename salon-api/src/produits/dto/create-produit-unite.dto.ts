@@ -4,7 +4,8 @@ export class CreateProduitUniteDto {
   stock!: number;
   prix!: number;
   stock_minimum!: number;
-  uniteMesureId!: number;
   conversion!: number;
   actif?: boolean;
+  produit_id!: number;
+  unite_mesure_id!: number;
 }

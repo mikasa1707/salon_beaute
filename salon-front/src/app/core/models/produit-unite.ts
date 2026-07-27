@@ -1,3 +1,5 @@
+import { Produit } from "./produit";
+
 export interface ProduitUnite {
   id: number;
   nom: string;
@@ -13,4 +15,8 @@ export interface ProduitUnite {
   stock_minimum: number;
   couleur: string;
   actif: boolean;
+  produit_id: number;
+  unite_mesure_id: number;
+  unites: string;
+  produit?: Produit;
 }

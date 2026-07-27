@@ -10,6 +10,7 @@ import { CreateCashMovementDto } from './dto/create-cash-movement.dto';
 import {
   CashMovement,
   CashMovementDirection,
+  CashMovementType,
 } from './entities/cash-movement.entity';
 
 @Injectable()
@@ -140,17 +141,17 @@ export class CashMovementService {
     };
   }
 
-  typeLabel(type: any) {
-    const labels: any = {
-      OPENING: 'Ouverture caisse',
-      SALE_CASH: 'Vente espèce',
-      SALE_CARD: 'Vente carte',
-      SALE_MOBILE: 'Vente mobile',
-      OTHER_INCOME: 'Autre entrée',
-      CASH_OUT: 'Retrait',
-      EXPENSE: 'Dépense',
-      REFUND: 'Remboursement',
-      SALARY_ADVANCE: 'Avance salaire',
+  typeLabel(type: CashMovementType): string {
+    const labels: Record<CashMovementType, string> = {
+      [CashMovementType.OPENING]: 'Ouverture caisse',
+      [CashMovementType.SALE_CASH]: 'Vente espèce',
+      [CashMovementType.SALE_CARD]: 'Vente carte',
+      [CashMovementType.SALE_MOBILE]: 'Vente mobile',
+      [CashMovementType.OTHER_INCOME]: 'Autre entrée',
+      [CashMovementType.CASH_OUT]: 'Retrait',
+      [CashMovementType.EXPENSE]: 'Dépense',
+      [CashMovementType.REFUND]: 'Remboursement',
+      [CashMovementType.SALARY_ADVANCE]: 'Avance salaire',
     };
 
     return labels[type] ?? type;

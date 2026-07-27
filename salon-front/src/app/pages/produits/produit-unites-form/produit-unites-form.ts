@@ -1,13 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnInit,
-  Output,
-  SimpleChanges,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
@@ -31,6 +22,7 @@ import { UnitesMesureApi } from '../../../core/services/unites-mesure-api';
 export class ProduitUnitesForm implements OnInit, OnChanges {
   @Input() produit!: Produit;
   @Input() unites?: ProduitUnite;
+  @Input() label? = '';
   @Output() saved = new EventEmitter<ProduitUnite>();
   form: FormGroup;
   fields: FormField[] = [];
@@ -42,12 +34,12 @@ export class ProduitUnitesForm implements OnInit, OnChanges {
     private readonly produitUniteService: ProduitUniteApi,
     private readonly uniteMesureApi: UnitesMesureApi,
     private readonly toast: ToastService,
-    private readonly cdr: ChangeDetectorRef,
+    private readonly cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       nom: ['', Validators.required],
       code: [''],
-      uniteMesureId: [null, Validators.required],
+      unite_mesure_id: [null, Validators.required],
       conversion: [1, [Validators.required, Validators.min(1)]],
       stock: [0, [Validators.required, Validators.min(0)]],
       prix: [0, [Validators.required, Validators.min(0)]],
@@ -68,7 +60,12 @@ export class ProduitUnitesForm implements OnInit, OnChanges {
     if (!this.form) {
       return;
     }
-    console.log(this.unites)
+    if (!this.unites && changes['label']) {
+      this.form.patchValue({
+        nom: this.label ?? '',
+      });
+    }
+    console.log(this.label);
     if (this.unites) {
       this.form.patchValue({
         nom: this.unites.nom,
@@ -77,11 +74,12 @@ export class ProduitUnitesForm implements OnInit, OnChanges {
         stock: this.unites.stock,
         prix: this.unites.prix,
         stock_minimum: this.unites.stock_minimum,
-        uniteMesureId: this.unites.uniteMesure?.id,
+        unite_mesure_id: this.unites.uniteMesure?.id,
         actif: true,
       });
     } else {
       this.form.reset({
+        nom: this.label ?? '',
         conversion: 1,
         stock: 0,
         prix: 0,
@@ -108,10 +106,10 @@ export class ProduitUnitesForm implements OnInit, OnChanges {
       },
 
       {
-        key: 'uniteMesureId',
+        key: 'unite_mesure_id',
         label: 'Unité de conversion',
         type: 'select',
-        required: true,        
+        required: true,
         options: this.unitesMesure,
       },
 
@@ -155,13 +153,19 @@ export class ProduitUnitesForm implements OnInit, OnChanges {
     const data = {
       ...this.form.value,
 
-      produitId: this.produit.id,
+      produit_id: this.produit.id,
     };
-    const request = this.unites?.id
-      ? this.produitUniteService.update(this.unites.id, data)
-      : this.produitUniteService.create(data);
+    const request = this.unites?.id ? this.produitUniteService.update(this.unites.id, data) : this.produitUniteService.create(data);
+    console.log(data);
     request.subscribe({
       next: result => {
+        this.form.reset({
+          conversion: 1,
+          stock: 0,
+          prix: 0,
+          stock_minimum: 0,
+          actif: true,
+        });
         this.loading = false;
         this.toast.success(this.unites?.id ? 'Unité modifiée' : 'Unité créée');
         this.saved.emit(result);

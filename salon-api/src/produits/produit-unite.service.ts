@@ -5,25 +5,67 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { ProduitUnite } from './entities/produit_unites.entity';
 import { Brackets } from 'typeorm';
+import { UniteMesure } from 'src/unites-mesure/entities/unites-mesure.entity';
 
 @Injectable()
 export class ProduitUniteService {
   constructor(
     @InjectRepository(ProduitUnite)
     private readonly repo: Repository<ProduitUnite>,
+
+    @InjectRepository(UniteMesure)
+    private readonly uniteMesureRepo: Repository<UniteMesure>,
   ) {}
 
   async create(createDto: CreateProduitUniteDto) {
-    const _data = this.repo.create(createDto);
-    return await this.repo.save(_data);
+    const uniteMesure = await this.uniteMesureRepo.findOne({
+      where: {
+        id: createDto.unite_mesure_id,
+      },
+    });
+
+    if (!uniteMesure) {
+      throw new NotFoundException('Unité de mesure introuvable');
+    }
+
+    const data = this.repo.create({
+      ...createDto,
+
+      produit: {
+        id: createDto.produit_id,
+      },
+
+      uniteMesure: {
+        id: uniteMesure.id,
+      },
+
+      unites: uniteMesure.symbole, // ou uniteMesure.nom selon ton besoin
+    });
+
+    return await this.repo.save(data);
   }
 
-  async getAll(page = 1, limit = 10, search = '', typeProduitId = '') {
+  async getAll(
+    page = 1,
+    limit = 10,
+    search = '',
+    isCommercialisable?: any,
+    typeProduitId = '',
+  ) {
     const qb = this.repo
       .createQueryBuilder('pu')
       .leftJoinAndSelect('pu.produit', 'produit')
       .leftJoinAndSelect('produit.typeProduit', 'typeProduit')
       .where('pu.actif = :actif', { actif: true });
+
+    // =========================
+    // POS uniquement
+    // =========================
+    if (isCommercialisable === 'true') {
+      qb.andWhere('typeProduit.isCommercialisable = :isCommercialisable', {
+        isCommercialisable: true,
+      });
+    }
 
     // Recherche
     if (search.trim()) {
@@ -50,7 +92,9 @@ export class ProduitUniteService {
         .filter((id) => !isNaN(id));
 
       if (ids.length) {
-        qb.andWhere('typeProduit.id IN (:...ids)', { ids });
+        qb.andWhere('typeProduit.id IN (:...ids)', {
+          ids,
+        });
       }
     }
 
@@ -66,8 +110,7 @@ export class ProduitUniteService {
       ...produit,
       stockTotal: this.getTotalStock(produit),
       isLowStock: this.isLowStock(produit),
-      // label: `${produit.produit.nom} ${produit.nom}`,
-      label: `${produit.nom}`,
+      label: produit.nom,
       uniteLabel: `${produit.conversion} ${produit.unites}`,
       couleur: produit.produit?.typeProduit?.color ?? '#6c757d',
     }));

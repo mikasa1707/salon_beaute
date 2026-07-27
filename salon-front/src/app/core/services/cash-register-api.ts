@@ -1,7 +1,7 @@
-import { HttpClient } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { environment } from "../../../environnements/environnement";
-import { CashRegister } from "../models/cash-register";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { environment } from '../../../environnements/environnement';
+import { CashRegister } from '../models/cash-register';
 
 @Injectable({
   providedIn: 'root',
@@ -35,7 +35,16 @@ export class CashRegisterApi {
     });
   }
 
-  history() {
-    return this.http.get<CashRegister[]>(`${this.apiUrl}/history`);
+  history(page = 1, limit = 10) {
+    return this.http.get<any>(`${this.apiUrl}/history`, {
+      params: {
+        page,
+        limit,
+      },
+    });
+  }
+
+  detail(id: number) {
+    return this.http.get<any>(`${this.apiUrl}/${id}/detail`);
   }
 }

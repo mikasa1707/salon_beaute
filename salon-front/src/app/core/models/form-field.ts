@@ -7,6 +7,7 @@ export interface FormField {
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
+  currency?: boolean;
   validators?: ValidatorFn[];
   options?: any[];
   optionLabel?: string;

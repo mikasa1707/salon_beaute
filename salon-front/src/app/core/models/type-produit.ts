@@ -4,4 +4,5 @@ export interface TypeProduit {
     description?: string;
     color?:string;
     actif: boolean;
+    isCommercialisable: boolean;
 }

@@ -1,8 +1,20 @@
-import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { CashMovement, CashMovementType, CashMovementDirection } from "src/cash-movements/entities/cash-movement.entity";
-import { DataSource, Repository } from "typeorm";
-import { CashRegister } from "./entities/cash_registers.entity";
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
+
+import { InjectRepository } from '@nestjs/typeorm';
+
+import {
+  CashMovement,
+  CashMovementType,
+  CashMovementDirection,
+} from 'src/cash-movements/entities/cash-movement.entity';
+
+import { DataSource, Repository } from 'typeorm';
+
+import { CashRegister } from './entities/cash_registers.entity';
 
 @Injectable()
 export class CashRegisterService {
@@ -17,14 +29,14 @@ export class CashRegisterService {
   ) {}
 
   /**
-   * CREATION SESSION CAISSE
-   * Etat initial CLOSED
+   * Création prochaine session
+   * CLOSED par défaut
    */
-  async createSession(salonId: number) {
-    const cash = await this.repo.save({
+  async createSession(salonId: number, openingBalance = 0) {
+    const cash = this.repo.create({
       salonId,
 
-      openingBalance: 0,
+      openingBalance,
 
       totalCash: 0,
 
@@ -39,25 +51,28 @@ export class CashRegisterService {
       status: 'CLOSED',
     });
 
-    return cash;
+    return this.repo.save(cash);
   }
 
   /**
-   * CAISSE OUVERTE
+   * Dernière session du salon
    */
-  async getOpenCashRegister(salonId: number) {
+  async getCurrentCashRegister(salonId: number) {
     return this.repo.findOne({
       where: {
         salonId,
-        status: 'OPEN',
+      },
+
+      order: {
+        id: 'DESC',
       },
     });
   }
 
   /**
-   * OUVRIR UNE SESSION EXISTANTE
+   * Ouverture manuelle
    */
-  async openCashRegister(id: number, openingBalance: number) {
+  async openCashRegister(id: number) {
     const cash = await this.repo.findOne({
       where: {
         id,
@@ -74,31 +89,13 @@ export class CashRegisterService {
 
     cash.status = 'OPEN';
 
-    cash.openingBalance = openingBalance;
-
     cash.openedAt = new Date();
 
-    await this.repo.save(cash);
-
-    await this.cashMovementRepo.save({
-      cashRegister: cash,
-
-      type: CashMovementType.OPENING,
-
-      direction: CashMovementDirection.IN,
-
-      amount: openingBalance,
-
-      label: 'Fond de caisse',
-
-      reference: `OPEN-${cash.id}`,
-    });
-
-    return cash;
+    return this.repo.save(cash);
   }
 
   /**
-   * DETAIL CAISSE
+   * Résumé caisse
    */
   async getSummary(id: number) {
     const cash = await this.repo.findOne({
@@ -111,23 +108,87 @@ export class CashRegisterService {
       throw new NotFoundException('Caisse introuvable');
     }
 
+    const movements = await this.cashMovementRepo.find({
+      where: {
+        cashRegister: {
+          id,
+        },
+      },
+    });
+
+    const sum = (list: CashMovement[]) =>
+      list.reduce((total, m) => total + Number(m.amount), 0);
+
+    const salesCash = movements.filter(
+      (m) => m.type === CashMovementType.SALE_CASH,
+    );
+
+    const salesCard = movements.filter(
+      (m) => m.type === CashMovementType.SALE_CARD,
+    );
+
+    const salesMobile = movements.filter(
+      (m) => m.type === CashMovementType.SALE_MOBILE,
+    );
+
+    const cashIn = movements.filter(
+      (m) =>
+        m.direction === CashMovementDirection.IN &&
+        m.type !== CashMovementType.SALE_CASH &&
+        m.type !== CashMovementType.SALE_CARD &&
+        m.type !== CashMovementType.SALE_MOBILE,
+    );
+
+    const cashOut = movements.filter(
+      (m) => m.direction === CashMovementDirection.OUT,
+    );
+
+    const soldeTheorique =
+      Number(cash.openingBalance ?? 0) +
+      sum(salesCash) +
+      sum(cashIn) -
+      sum(cashOut);
+
     return {
       ...cash,
 
-      soldeTheorique:
-        Number(cash.openingBalance) +
-        Number(cash.totalCash) -
-        Number(cash.cashout),
+      soldeTheorique,
 
-      totalEncaissement:
-        Number(cash.totalCash) +
-        Number(cash.totalCard) +
-        Number(cash.totalMobileMoney),
+      totalEncaissement: sum(salesCash) + sum(salesCard) + sum(salesMobile),
+
+      kpi: {
+        espece: {
+          montant: sum(salesCash),
+          transactions: salesCash.length,
+        },
+
+        carte: {
+          montant: sum(salesCard),
+          transactions: salesCard.length,
+        },
+
+        mobileMoney: {
+          montant: sum(salesMobile),
+          transactions: salesMobile.length,
+        },
+
+        entree: {
+          montant: sum(cashIn),
+          transactions: cashIn.length,
+        },
+
+        sortie: {
+          montant: sum(cashOut),
+          transactions: cashOut.length,
+        },
+
+        totalTransactions: movements.length,
+      },
     };
   }
 
   /**
-   * FERMETURE
+   * Fermeture + préparation prochaine session
    */
   async closeCashRegister(id: number, countedBalance?: number) {
     const cash = await this.repo.findOne({
@@ -140,16 +201,17 @@ export class CashRegisterService {
       throw new NotFoundException('Caisse introuvable');
     }
 
-    if (cash.status === 'CLOSED') {
-      throw new ConflictException('Caisse déjà fermée');
+    if (cash.status !== 'OPEN') {
+      throw new ConflictException('Caisse non ouverte');
     }
 
-    const theorique =
-      Number(cash.openingBalance) +
-      Number(cash.totalCash) -
-      Number(cash.cashout);
+    const summary = await this.getSummary(id);
 
-    cash.closingBalance = countedBalance ?? theorique;
+    const theorique = summary.soldeTheorique;
+
+    const finalBalance = countedBalance ?? theorique;
+
+    cash.closingBalance = finalBalance;
 
     cash.status = 'CLOSED';
 
@@ -157,20 +219,45 @@ export class CashRegisterService {
 
     await this.repo.save(cash);
 
+    /**
+     * Préparation session suivante
+     * PAS de mouvement OPENING
+     */
+    const nextCash = this.repo.create({
+      salonId: cash.salonId,
+
+      openingBalance: finalBalance,
+
+      totalCash: 0,
+
+      totalCard: 0,
+
+      totalMobileMoney: 0,
+
+      cashout: 0,
+
+      closingBalance: 0,
+
+      status: 'CLOSED',
+    });
+
+    await this.repo.save(nextCash);
+
     return {
       cash,
 
+      nextCash,
+
       theorique,
 
-      ecart: countedBalance ? Number(countedBalance) - theorique : 0,
+      countedBalance: finalBalance,
+
+      ecart: finalBalance - theorique,
     };
   }
 
-  /**
-   * HISTORIQUE
-   */
-  async findAll(salonId: number) {
-    return this.repo.find({
+  async findAll(salonId: number, page = 1, limit = 10) {
+    const [data, total] = await this.repo.findAndCount({
       where: {
         salonId,
       },
@@ -178,6 +265,120 @@ export class CashRegisterService {
       order: {
         id: 'DESC',
       },
+
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getHistoryDetail(id: number) {
+    const cash = await this.repo.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!cash) {
+      throw new NotFoundException('Session introuvable');
+    }
+
+    const movements = await this.cashMovementRepo.find({
+      where: {
+        cashRegister: {
+          id,
+        },
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    const sum = (items: CashMovement[]) =>
+      items.reduce((total, m) => total + Number(m.amount), 0);
+
+    const ventes = movements.filter((m) =>
+      [
+        CashMovementType.SALE_CASH,
+        CashMovementType.SALE_CARD,
+        CashMovementType.SALE_MOBILE,
+      ].includes(m.type),
+    );
+
+    const theorique =
+      Number(cash.openingBalance) +
+      sum(movements.filter((m) => m.direction === CashMovementDirection.IN)) -
+      sum(movements.filter((m) => m.direction === CashMovementDirection.OUT));
+
+    return {
+      session: cash,
+
+      resume: {
+        fondInitial: Number(cash.openingBalance),
+
+        soldeTheorique: theorique,
+
+        soldeReel: Number(cash.closingBalance ?? 0),
+
+        ecart: Number(cash.closingBalance ?? 0) - theorique,
+
+        totalVentes: ventes.length,
+
+        montantVentes: sum(ventes),
+      },
+
+      kpi: {
+        espece: {
+          montant: sum(
+            movements.filter((m) => m.type === CashMovementType.SALE_CASH),
+          ),
+
+          transactions: movements.filter(
+            (m) => m.type === CashMovementType.SALE_CASH,
+          ).length,
+        },
+
+        mobile: {
+          montant: sum(
+            movements.filter((m) => m.type === CashMovementType.SALE_MOBILE),
+          ),
+
+          transactions: movements.filter(
+            (m) => m.type === CashMovementType.SALE_MOBILE,
+          ).length,
+        },
+
+        carte: {
+          montant: sum(
+            movements.filter((m) => m.type === CashMovementType.SALE_CARD),
+          ),
+
+          transactions: movements.filter(
+            (m) => m.type === CashMovementType.SALE_CARD,
+          ).length,
+        },
+
+        entree: {
+          montant: sum(
+            movements.filter((m) => m.direction === CashMovementDirection.IN),
+          ),
+        },
+
+        sortie: {
+          montant: sum(
+            movements.filter((m) => m.direction === CashMovementDirection.OUT),
+          ),
+        },
+      },
+
+      mouvements: movements,
+    };
   }
 }

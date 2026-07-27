@@ -1,1 +1,129 @@
-<p>cash-history works!</p>
+<app-page-header title="Histrique des sessions" subtitle="" icon="fa-solid fa-timeline">
+  <div class="d-flex gap-2 flex-wrap">
+    <!-- Recherche -->
+    <!-- <div class="search-wrapper">
+        <app-search-bar (searchChange)="search($event)"></app-search-bar>
+      </div> -->
+  </div>
+</app-page-header>
+
+@if (data.length) {
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <app-data-table [data]="data" [columns]="columns" (view)="view($event)" [showViewButton]="true" [canEdit]="false" [canDelete]="false"></app-data-table>
+
+      <app-pagination [page]="page" [totalPages]="totalPages" (pageChange)="changePage($event)"></app-pagination>
+    </div>
+  </div>
+}
+
+<app-modal title="Rapport session caisse" size="xl" [show]="showDetail" (closed)="close()">
+  @if (selected) {
+    <div class="row g-3">
+      <!-- ======================
+ DETAILS SESSION
+======================= -->
+
+      <div class="col-md-4">
+        <div class="card shadow-sm">
+          <div
+            class="card-header fw-bold"
+            [class.bg-success]="selected.status === 'OPEN'"
+            [class.bg-warning]="selected.status === 'CLOSED'"
+            [class.bg-danger]="selected.status === 'FORCED'">
+            Session du {{ selected.openedAt | date: 'dd/MM/yyyy HH:mm' }}
+            @if (selected.closedAt) {
+              au {{ selected.closedAt | date: 'dd/MM/yyyy HH:mm' }}
+            }
+          </div>
+
+          <div class="card-body">
+            <p>
+              Fond initial
+
+              <strong class="float-end">
+                {{ selected.openingBalance | currency: 'Ar' : 'symbol' : '1.0-0' }}
+              </strong>
+            </p>
+
+            <p>
+              Solde fermeture
+
+              <strong class="float-end">
+                {{ selected.closingBalance | currency: 'Ar' : 'symbol' : '1.0-0' }}
+              </strong>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================
+ KPI
+======================= -->
+
+      <div class="col-md-8">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <app-kpi-card title="Ventes" [value]="selectedReport?.resume?.totalVentes" icon="fas fa-shopping-cart" color="primary"></app-kpi-card>
+          </div>
+
+          @if (selectedReport?.status === 'CLOSED') {
+            <div class="col-md-4">
+              <app-kpi-card
+                title="Ecart de caisse"
+                [value]="selectedReport?.resume?.ecart | currency: 'Ar' : 'symbol' : '1.0-0'"
+                icon="fas fa-shopping-cart"
+                [color]="selectedReport?.resume?.ecart === 0 ? 'success' : 'danger'"></app-kpi-card>
+            </div>
+          }
+
+          <div class="col-md-4">
+            <app-kpi-card
+              title="CA Espèces"
+              [value]="selectedReport?.kpi.espece?.montant | currency: 'Ar' : 'symbol' : '1.0-0'"
+              icon="fas fa-money-bill"
+              color="success"></app-kpi-card>
+          </div>
+
+          <div class="col-md-4">
+            <app-kpi-card
+              title="Mobile Money"
+              [value]="selectedReport?.kpi.mobile?.montant | currency: 'Ar' : 'symbol' : '1.0-0'"
+              icon="fas fa-mobile"
+              color="warning"></app-kpi-card>
+          </div>
+
+          <div class="col-md-4">
+            <app-kpi-card
+              title="Entrées"
+              [value]="selectedReport?.kpi.entree?.montant | currency: 'Ar' : 'symbol' : '1.0-0'"
+              icon="fas fa-plus"
+              color="success"></app-kpi-card>
+          </div>
+
+          <div class="col-md-4">
+            <app-kpi-card
+              title="Sorties"
+              [value]="selectedReport?.kpi.sortie?.montant | currency: 'Ar' : 'symbol' : '1.0-0'"
+              icon="fas fa-minus"
+              color="danger"></app-kpi-card>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================
+ MOUVEMENTS
+======================= -->
+
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header fw-bold">Journal mouvements</div>
+
+          <div class="card-body">
+            <app-cash-movement-list [cashRegisterId]="selected.id" [page]="page" [limit]="6" [refresh]="refreshMovements"></app-cash-movement-list>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</app-modal>

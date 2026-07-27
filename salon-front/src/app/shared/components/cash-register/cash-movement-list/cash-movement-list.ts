@@ -13,10 +13,11 @@ import { PaginationComponent } from '../../pagination/pagination';
   templateUrl: './cash-movement-list.html',
 })
 export class CashMovementList implements OnChanges {
-  @Input() cashRegisterId!: number;
+  @Input() cashRegisterId: number = 0;
   @Input() search = '';
   @Input() page = 1;
   @Input() limit = 10;
+  @Input() refresh = 0;
 
   movements: CashMovement[] = [];
 
@@ -42,7 +43,7 @@ export class CashMovementList implements OnChanges {
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if ((changes['cashRegisterId'] || changes['search']) && this.cashRegisterId) {
+    if ((changes['cashRegisterId'] || changes['search'] || changes['refresh']) && this.cashRegisterId) {
       this.load(this.search);
       console.log(this.search);
     }

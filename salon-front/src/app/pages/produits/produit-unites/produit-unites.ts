@@ -42,6 +42,7 @@ export class ProduitUnites implements OnInit, OnDestroy, OnChanges {
   searchValue = '';
   loading = false;
   showModal = false;
+  label: string = '';
   selected?: ProduitUnite;
 
   columns: TableColumn[] = [
@@ -89,7 +90,7 @@ export class ProduitUnites implements OnInit, OnDestroy, OnChanges {
     }
 
     this.loading = true;
-
+    this.label = this.produit.nom;
     this.produitUniteService.findbyProduit(this.produit.id, this.page, this.limit, search).subscribe({
       next: res => {
         this.unites = res.data.map((u: any) => ({
@@ -151,6 +152,7 @@ export class ProduitUnites implements OnInit, OnDestroy, OnChanges {
   }
 
   closeModal() {
+    this.label = '';
     this.showModal = false;
   }
 

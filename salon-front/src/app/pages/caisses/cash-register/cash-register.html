@@ -86,6 +86,39 @@
           </div>
         }
       </div>
+      <div class="row g-2 mt-3">
+        <div class="col-md-6">
+          <app-kpi-card
+            title="Espèces"
+            [value]="cash?.kpi?.espece?.montant | currency: 'Ar' : 'symbol' : '1.0-0'"
+            icon="fa-solid fa-money-bill"
+            color="success"></app-kpi-card>
+        </div>
+
+        <div class="col-md-6">
+          <app-kpi-card
+            title="Mobile Money"
+            [value]="cash?.kpi?.mobileMoney?.montant | currency: 'Ar' : 'symbol' : '1.0-0'"
+            icon="fa-solid fa-mobile"
+            color="warning"></app-kpi-card>
+        </div>
+
+        <div class="col-md-6">
+          <app-kpi-card
+            title="Entrées"
+            [value]="cash?.kpi?.entree?.montant | currency: 'Ar' : 'symbol' : '1.0-0'"
+            icon="fa-solid fa-arrow-down"
+            color="info"></app-kpi-card>
+        </div>
+
+        <div class="col-md-6">
+          <app-kpi-card
+            title="Sorties"
+            [value]="cash?.kpi?.sortie?.montant | currency: 'Ar' : 'symbol' : '1.0-0'"
+            icon="fa-solid fa-arrow-up"
+            color="danger"></app-kpi-card>
+        </div>
+      </div>
     </div>
 
     <!-- =====================
@@ -111,11 +144,11 @@
             </button>
           }
 
-          <button class="btn btn-info btn-lg w-100">
+          <!-- <button class="btn btn-info btn-lg w-100">
             <i class="fa-solid fa-chart-line"></i>
 
             RAPPORT SESSION
-          </button>
+          </button> -->
         </div>
       </div>
 
@@ -133,7 +166,12 @@
         </div>
 
         <div class="card-body">
-          <app-cash-movement-list [cashRegisterId]="cashNow.id" [search]="searchValue" [page]="page" [limit]="limit"></app-cash-movement-list>
+          <app-cash-movement-list
+            [cashRegisterId]="cashNow.id"
+            [search]="searchValue"
+            [page]="page"
+            [limit]="limit"
+            [refresh]="refreshMovements"></app-cash-movement-list>
         </div>
       </div>
     </div>
@@ -149,5 +187,9 @@
 }
 
 <app-modal title="{{ movementType === 'REFUND' ? 'Entrée de caisse' : 'Décaissement' }}" size="md" [show]="showMovementModal" (closed)="closeMovement()">
-  <app-cash-movement-form [cashRegisterId]="cashNow ? cashNow.id : 0" [type]="movementType" (saved)="closeMovement(); loadDetails(cashNow ? cashNow.id : 0)" (cancel)="closeMovement()" />
+  <app-cash-movement-form
+    [cashRegisterId]="cashNow ? cashNow.id : 0"
+    [type]="movementType"
+    (saved)="closeMovement(); loadDetails(cashNow ? cashNow.id : 0); reloadMovements()"
+    (cancel)="closeMovement()" />
 </app-modal>

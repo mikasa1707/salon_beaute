@@ -366,6 +366,21 @@
                 }
               </a>
             </li>
+            <li>
+              <a
+                routerLink="/registre/historique"
+                routerLinkActive="bg-primary text-white shadow-sm"
+                [routerLinkActiveOptions]="{ exact: true }"
+                class="nav-link text-light submenu-item d-flex align-items-center"
+                [class.justify-content-center]="isCollapsed"
+                title="Caisses"
+              >
+                <i class="fa-solid fa-timeline" [class.me-2]="!isCollapsed"></i>
+                @if (!isCollapsed) {
+                  <span>Sessions</span>
+                }
+              </a>
+            </li>
           </ul>
         }
       </li>

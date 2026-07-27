@@ -24,6 +24,7 @@ export class CheckoutController {
   @Post('pos')
   @Roles(PersonnelRole.RECEPTION, PersonnelRole.ADMIN)
   checkoutPos(@Body() dto: CheckoutPosDto, @Req() req: RequestWithUser) {
+    console.log(dto);
     return this.checkoutService.checkoutPos(
       dto,
       req.user.userId,

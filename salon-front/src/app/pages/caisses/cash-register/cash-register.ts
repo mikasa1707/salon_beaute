@@ -9,14 +9,15 @@ import { CashMovementList } from '../../../shared/components/cash-register/cash-
 import { ToastService } from '../../../core/services/toast';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog';
-import { ModalComponent } from "../../../shared/components/modal/modal";
-import { CashMovementForm } from "../../../shared/components/cash-register/cash-movement-form/cash-movement-form";
+import { ModalComponent } from '../../../shared/components/modal/modal';
+import { CashMovementForm } from '../../../shared/components/cash-register/cash-movement-form/cash-movement-form';
 import { CashMovementType } from '../../../core/models/cash-movement';
+import { KpiCard } from "../../../shared/components/dashboard/kpi-card/kpi-card";
 
 @Component({
   selector: 'app-cash-register-page',
   standalone: true,
-  imports: [CommonModule, PageHeaderComponent, CashMovementList, SearchBarComponent, ModalComponent, CashMovementForm],
+  imports: [CommonModule, PageHeaderComponent, CashMovementList, SearchBarComponent, ModalComponent, CashMovementForm, KpiCard],
   templateUrl: './cash-register.html',
 })
 export class CashRegisters implements OnInit {
@@ -29,6 +30,8 @@ export class CashRegisters implements OnInit {
   searchValue = '';
   page = 1;
   limit = 8;
+  
+  refreshMovements = 0;
 
   showMovementModal = false;
   movementType: CashMovementType = CashMovementType.REFUND;
@@ -58,11 +61,13 @@ export class CashRegisters implements OnInit {
     this.cashApi.current().subscribe({
       next: res => {
         this.cashNow = res;
-        if (res) {
-          this.loadDetails(res.id);
-        } else {
-          this.cash = undefined;
-        }
+        console.log(res)
+        this.loadDetails(res.id);
+        // if (res) {
+        //   this.loadDetails(res.id);
+        // } else {
+        //   this.cash = undefined;
+        // }
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -195,7 +200,7 @@ export class CashRegisters implements OnInit {
   }
 
   addMoney() {
-    this.movementType = CashMovementType.REFUND;
+    this.movementType = CashMovementType.OTHER_INCOME;
     this.showMovementModal = true;
   }
 
@@ -219,5 +224,9 @@ export class CashRegisters implements OnInit {
   search(value: string) {
     this.searchValue = value;
     this.page = 1;
+  }
+
+  reloadMovements() {
+    this.refreshMovements++;
   }
 }

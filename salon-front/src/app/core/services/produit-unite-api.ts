@@ -12,12 +12,16 @@ export class ProduitUniteApi {
 
   constructor(private http: HttpClient) {}
 
-  findAll(page = 1, limit = 16, search = '', filter?: number | null): Observable<any> {
-    let params = new HttpParams().set('page', page).set('limit', limit);
+  findAll(page = 1, limit = 16, search = '', isCommercialisable = false, filter?: number | null): Observable<any> {
+    let params = new HttpParams().set('page', page).set('limit', limit).set('isCommercialisable', isCommercialisable);
 
     if (search.trim()) {
       params = params.set('search', search.trim());
     }
+
+    // if (isCommercialisable) {
+    //   params = params.set('isCommercialisable', isCommercialisable);
+    // }
 
     if (filter) {
       params = params.set('typeProduitId', filter);

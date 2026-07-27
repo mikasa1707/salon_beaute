@@ -45,12 +45,14 @@ export class ProduitUniteController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
+    @Query('isCommercialisable') isCommercialisable?: boolean,
     @Query('typeProduitId') typeProduitId?: string,
   ) {
     return this.produitsService.getAll(
       page ? +page : 1,
       limit ? +limit : 10,
       search || '',
+      isCommercialisable || false,
       typeProduitId || '',
     );
   }

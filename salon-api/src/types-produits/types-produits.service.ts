@@ -10,14 +10,14 @@ export class TypesProduitsService {
   constructor(
     @InjectRepository(TypeProduit)
     private readonly repo: Repository<TypeProduit>,
-  ) { }
+  ) {}
 
   async create(createDto: CreateTypeProduitDto) {
     const _data = this.repo.create(createDto);
     return await this.repo.save(_data);
   }
 
-  async findAll(page = 1, limit = 10, search = '',) {
+  async findAll(page = 1, limit = 10, search = '') {
     const [data, total] = await this.repo.findAndCount({
       where: [
         {
@@ -35,11 +35,18 @@ export class TypesProduitsService {
       },
     });
 
-    const produits = data.map(typeProduit => ({
+    const produits = data.map((typeProduit) => ({
       ...typeProduit,
-      nbProduits: typeProduit.produits?.filter(p => p.actif).length ?? 0,
+      nbProduits: typeProduit.produits?.filter((p) => p.actif).length ?? 0,
+      commerce: typeProduit.isCommercialisable === true ? 'OUI' : 'NON',
     }));
-    return { data: produits, total, page, limit, totalPages: Math.ceil(total / limit), };
+    return {
+      data: produits,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number) {
@@ -70,10 +77,10 @@ export class TypesProduitsService {
   async remove(id: number) {
     await this.findOne(id);
     await this.repo.update(id, {
-      actif: false
+      actif: false,
     });
     return {
-      message: 'Produit archivé'
+      message: 'Produit archivé',
     };
   }
 }

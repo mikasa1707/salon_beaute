@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { environment } from "../../../environnements/environnement";
 import { Marque } from "../models/marques";
+import { TypeProduit } from "../models/type-produit";
 
 @Injectable({
     providedIn: 'root'
@@ -19,15 +20,15 @@ export class TypeProduitApi {
     }
 
     findOne(id: number) {
-        return this.http.get<Marque>(`${this.api}/${id}`);
+        return this.http.get<TypeProduit>(`${this.api}/${id}`);
     }
 
     create(dto: any) {
-        return this.http.post<Marque>(this.api, dto);
+        return this.http.post<TypeProduit>(this.api, dto);
     }
 
     update(id: number, dto: any) {
-        return this.http.patch<Marque>(`${this.api}/${id}`, dto);
+        return this.http.patch<TypeProduit>(`${this.api}/${id}`, dto);
     }
 
     remove(id: number) {

@@ -14,7 +14,9 @@ export class CashRegister {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
+  @Column({
+    default: 1,
+  })
   salonId!: number;
 
   /**

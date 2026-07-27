@@ -34,6 +34,9 @@ export class TypeProduits {
     { field: 'nom', label: 'TypeProduit', },
     { field: 'nbProduits', label: 'Produits', type: 'badge' },
     { field: 'color', label: 'Couleur', type: 'color' },
+    { field: 'commerce', label: 'Commercialisable', type: 'badge',
+      badgeClass: row => (row.isCommercialisable ? 'bg-success' : 'bg-danger')
+     },
   ];
 
   private searchSubject = new Subject<string>();

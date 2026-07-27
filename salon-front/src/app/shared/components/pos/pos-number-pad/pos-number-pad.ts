@@ -12,29 +12,28 @@ export class PosNumberPadComponent {
 
   keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '⌫'];
 
-  press(k: string) {
-    this.value += k;
+  press(key: string) {
+    let text = (this.value ?? '').toString();
 
-    this.valueChange.emit(Number(this.value));
-
-    let text = this.value?.toString() ?? '';
-
-    switch (k) {
-      case '⌫':
-        text = text.slice(0, -1);
-        break;
-
+    switch (key) {
       case 'C':
         text = '';
         break;
 
+      case '⌫':
+        text = text.slice(0, -1);
+        break;
+
       default:
-        text += k;
+        text += key;
         break;
     }
-    this.valueChange.emit(0);
+
+    this.value = text;
+
+    this.valueChange.emit(text === '' ? 0 : Number(text));
   }
-  
+
   clear() {
     this.valueChange.emit(0);
   }

@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormField } from '../../../core/models/form-field';
 import { TypeProduitApi } from '../../../core/services/type-produit-api';
 import { ToastService } from '../../../core/services/toast';
-import { FormBuilderComponent } from "../../../shared/components/form-builder/form-builder";
+import { FormBuilderComponent } from '../../../shared/components/form-builder/form-builder';
 
 @Component({
   selector: 'app-type-produit-form',
@@ -26,12 +26,13 @@ export class TypeProduitForm {
     private fb: FormBuilder,
     private typeProduitService: TypeProduitApi,
     private toast: ToastService,
-    private cdr: ChangeDetectorRef,
+    private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       nom: ['', Validators.required],
       color: [''],
       actif: [true],
+      isCommercialisable: [true],
     });
   }
 
@@ -56,6 +57,11 @@ export class TypeProduitForm {
         label: 'Couleur',
         type: 'color',
       },
+      {
+        key: 'isCommercialisable',
+        label: 'Commercialisable',
+        type: 'checkbox',
+      },
     ];
     this.cdr.detectChanges();
   }
@@ -69,7 +75,8 @@ export class TypeProduitForm {
     } else {
       this.form.reset({
         actif: true,
-        color: ''
+        isCommercialisable: true,
+        color: '',
       });
     }
   }
@@ -92,9 +99,9 @@ export class TypeProduitForm {
 
         if (!this.typeProduit?.id) {
           this.form.reset({
-            duree: 30,
-            prix: 0,
             actif: true,
+            isCommercialisable: true,
+            color: '',
           });
         }
         this.saved.emit(result);

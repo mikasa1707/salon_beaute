@@ -10,6 +10,7 @@ import { Marque } from 'src/marques/entities/marque.entity';
 import { ProduitUnite } from './entities/produit_unites.entity';
 import { ProduitUniteService } from './produit-unite.service';
 import { PrestationRecette } from 'src/prestations-recettes/entities/prestations-recette.entity';
+import { UniteMesure } from 'src/unites-mesure/entities/unites-mesure.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PrestationRecette } from 'src/prestations-recettes/entities/prestations
       Marque,
       ProduitUnite,
       PrestationRecette,
+      UniteMesure,
     ]),
   ],
   controllers: [ProduitsController, ProduitUniteController],

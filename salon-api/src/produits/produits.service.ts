@@ -53,7 +53,10 @@ export class ProduitsService {
         produit.unites?.filter((unites) => unites.actif) ?? [];
       return {
         ...produit,
-        stockTotal: unitesActives.reduce((sum, unites) => sum + unites.stock, 0),
+        stockTotal: unitesActives.reduce(
+          (sum, unites) => sum + unites.stock,
+          0,
+        ),
         isLowStock:
           unitesActives.reduce((sum, unites) => sum + unites.stock, 0) <=
           produit.stock_minimum,

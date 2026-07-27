@@ -8,6 +8,7 @@ export interface VenteProduit {
   prix: number;
   total: number;
   produit?: ProduitUnite;
+  produitUnite?: ProduitUnite;
   prestation?: Prestation;
   locked?: boolean;
   couleur?: string;

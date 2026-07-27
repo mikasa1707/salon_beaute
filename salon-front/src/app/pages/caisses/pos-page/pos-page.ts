@@ -19,6 +19,7 @@ import { PaymentResult, PaymentModalComponent } from '../../../shared/components
 import { CheckoutApi } from '../../../core/services/checkout-api';
 import { Toast, ToastService } from '../../../core/services/toast';
 import { VentesApi } from '../../../core/services/vente-api';
+import { CashRegisterApi } from '../../../core/services/cash-register-api';
 
 @Component({
   selector: 'app-pos-page',
@@ -60,6 +61,8 @@ export class PosPage implements OnInit, OnDestroy {
   private searchSubscription!: Subscription;
 
   paymentVisible = false;
+  cashOpen = false;
+  checkingCash = true;
 
   constructor(
     private readonly factureService: FacturationApiService,
@@ -70,6 +73,7 @@ export class PosPage implements OnInit, OnDestroy {
     private readonly checkoutService: CheckoutApi,
     private readonly cdr: ChangeDetectorRef,
     private readonly toastService: ToastService,
+    private readonly cashApi: CashRegisterApi,
     private readonly router: Router
   ) {}
 
@@ -85,7 +89,8 @@ export class PosPage implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
     this.loadProduit();
-    this.loadFromNavigation();
+    this.checkCashSession();
+    // this.loadFromNavigation();
   }
 
   ngOnDestroy(): void {
@@ -94,8 +99,37 @@ export class PosPage implements OnInit, OnDestroy {
     }
   }
 
+  checkCashSession() {
+    this.checkingCash = true;
+
+    this.cashApi.current().subscribe({
+      next: cash => {
+        this.cashOpen = !!cash && cash.status === 'OPEN';
+
+        this.checkingCash = false;
+
+        if (this.cashOpen) {
+          this.loadFromNavigation();
+        }
+
+        if (!this.cashOpen) {
+          this.toastService.warning('La caisse est fermée. Veuillez ouvrir une session avant de vendre.');
+        }
+
+        this.cdr.detectChanges();
+      },
+
+      error: () => {
+        this.cashOpen = false;
+        this.checkingCash = false;
+
+        this.toastService.error('Impossible de vérifier la session caisse');
+      },
+    });
+  }
+
   loadProduit(_search: any = '', _filter: any = null) {
-    this.produitService.findAll(this.page, this.limit, _search, _filter).subscribe({
+    this.produitService.findAll(this.page, this.limit, _search, true, _filter).subscribe({
       next: (res: { data: any[]; totalPages: number; total: number }) => {
         this.produits = res.data;
         this.total = res.total;
@@ -123,6 +157,11 @@ export class PosPage implements OnInit, OnDestroy {
   }
 
   loadFromNavigation() {
+    if (!this.cashOpen) {
+      this.toastService.warning('Impossible de charger une vente. La caisse est fermée.');
+
+      return;
+    }
     const state = history.state;
 
     if (state?.vente && state?.mode === 'VENTE_EDIT') {
@@ -168,6 +207,11 @@ export class PosPage implements OnInit, OnDestroy {
   // =====================================
 
   loadFacture(id: number) {
+    if (!this.cashOpen) {
+      this.toastService.warning('Impossible de charger une facture. La caisse est fermée.');
+
+      return;
+    }
     this.loading = true;
 
     this.factureService.findOne(id).subscribe({
@@ -212,7 +256,12 @@ export class PosPage implements OnInit, OnDestroy {
   }
 
   addToCart(product: VenteProduit) {
-    console.log(product);
+    if (!this.cashOpen) {
+      this.toastService.warning('Impossible de vendre. La caisse est fermée.');
+
+      return;
+    }
+
     this.posService.addItem(product);
     this.cdr.detectChanges();
   }
@@ -227,7 +276,11 @@ export class PosPage implements OnInit, OnDestroy {
   }
 
   openPayment() {
-    console.log(this.posService.activeTicket);
+    if (!this.cashOpen) {
+      this.toastService.warning('Veuillez ouvrir la caisse avant encaissement.');
+
+      return;
+    }
     if (!this.posService.activeTicket) {
       return;
     }
@@ -260,7 +313,7 @@ export class PosPage implements OnInit, OnDestroy {
       label: i.label,
       quantite: i.quantite,
       prix: i.prix,
-      produitUnite: i.id ? { id: i.id } : undefined,
+      produitUnite: i.produitUnite?.id ? { id: i.produitUnite.id } : undefined,
       prestation: i.prestation?.id ? { id: i.prestation.id } : undefined,
     }));
 

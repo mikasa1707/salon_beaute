@@ -3,7 +3,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 
 import {
   Facturation,
@@ -18,7 +18,6 @@ import { CheckoutPosDto } from './dto/checkout-pos.dto';
 import { ModePaiement, Paiement } from 'src/paiements/entities/paiement.entity';
 import { StockConsumptionService } from 'src/stocks/stock-consumption.service';
 import { Prestation } from 'src/prestations/entities/prestation.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   CashMovement,
   CashMovementDirection,

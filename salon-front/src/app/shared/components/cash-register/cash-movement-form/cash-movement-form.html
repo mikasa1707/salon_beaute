@@ -1,3 +1,66 @@
-<app-form-builder [form]="form" [fields]="fields" [loading]="loading" (submitForm)="submit()">
-  <app-pos-number-pad (valueChange)="changeAmount($event)" />
+<app-form-builder [form]="form" [fields]="[]" [loading]="loading" [showSave]="false" (submitForm)="submit()">
+  <div class="row g-3">
+    <!-- =========================
+         MONTANT
+    ========================== -->
+
+    <div class="col-12">
+      <label class="form-label fw-semibold">Montant</label>
+
+      <div
+        class="form-control form-control-lg text-end fw-bold fs-6"
+        tabindex="0"
+        (click)="focusKeyboard('montant')"
+        [class.border-primary]="activeField === 'montant'"
+        [class.border-3]="activeField === 'montant'">
+        {{ form.value.montant ?? 0 | currency: 'Ar' : 'symbol' : '1.0-0' }}
+      </div>
+    </div>
+
+    <!-- =========================
+         LIBELLE
+    ========================== -->
+
+    <div class="col-12">
+      <label class="form-label fw-semibold">Libellé</label>
+
+      <input
+        class="form-control"
+        readonly
+        [value]="form.value.label"
+        placeholder="Ex : Achat fournitures"
+        (click)="focusKeyboard('label')"
+        [class.border-primary]="activeField === 'label'"
+        [class.border-3]="activeField === 'label'" />
+    </div>
+
+    <!-- =========================
+         CLAVIER
+    ========================== -->
+
+    <div class="col-12">
+      <app-numeric-keyboard
+        #keyboard
+        [(value)]="keyboardValue"
+        [mode]="keyboardMode"
+        [showQuickValues]="activeField === 'montant'"
+        [quickValues]="[1000, 5000, 10000, 20000, 50000, 100000]"
+        [showExact]="false"
+        (valueChange)="keyboardChange($event)"></app-numeric-keyboard>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2 mt-4">
+    <button type="button" class="btn btn-outline-secondary" (click)="cancel.emit()">
+      <i class="fa-solid fa-xmark me-2"></i>
+
+      Annuler
+    </button>
+
+    <button type="submit" class="btn btn-success" (submitForm)="submit()" [disabled]="form.invalid || loading">
+      <i class="fa-solid fa-check me-2"></i>
+
+      Enregistrer
+    </button>
+  </div>
 </app-form-builder>

@@ -196,7 +196,7 @@ export const routes: Routes = [
       },
 
       {
-        path: 'caisse/historique-caisse',
+        path: 'registre/historique',
         loadComponent: () =>
           import('./pages/caisses/cash-history/cash-history').then((m) => m.CashHistory),
       },
