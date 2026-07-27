@@ -1,0 +1,21 @@
+<app-page-header title="Consommation stock" subtitle="Sortie des produits non commercialisables" icon="fa-solid fa-box-open"></app-page-header>
+
+<div class="card shadow-sm">
+  <div class="card-header d-flex justify-content-between">
+    <span class="fw-bold">Historique consommation</span>
+
+    <button class="btn btn-primary" (click)="openForm()">
+      <i class="fa-solid fa-plus"></i>
+
+      Nouvelle consommation
+    </button>
+  </div>
+
+  <div class="card-body">
+    <app-stock-consumption-list [refresh]="refresh"></app-stock-consumption-list>
+  </div>
+</div>
+
+<app-modal size="xl" title="Nouvelle consommation" [show]="showForm" (closed)="closeForm()">
+  <app-stock-consumption-form (saved)="saved()" (cancel)="closeForm()"></app-stock-consumption-form>
+</app-modal>

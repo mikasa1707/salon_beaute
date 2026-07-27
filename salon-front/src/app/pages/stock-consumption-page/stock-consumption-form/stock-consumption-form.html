@@ -1,0 +1,42 @@
+<div class="row g-3">
+  <!-- PRODUITS -->
+  <div class="col-lg-8">
+    <app-stock-product-grid [produits]="produitUnites" (add)="addProduct($event)"></app-stock-product-grid>
+    <app-pagination
+      [page]="page"
+      [totalPages]="totalPages"
+      [total]="total"
+      [limit]="limit"
+      [showLimit]="false"
+      (pageChange)="changePage($event)"
+      (limitChange)="changeLimit($event)"></app-pagination>
+  </div>
+
+  <!-- PANIER -->
+  <div class="col-lg-4">
+    <app-pos-cart></app-pos-cart>
+  </div>
+</div>
+
+<form [formGroup]="form">
+  <div class="card mt-3">
+    <div class="card-header">
+      <i class="fa-solid fa-note-sticky"></i>
+      Motif de sortie
+    </div>
+
+    <div class="card-body">
+      <textarea class="form-control" rows="3" formControlName="motif" placeholder="Ex: utilisation salon, serviette client..."></textarea>
+    </div>
+  </div>
+</form>
+
+<div class="text-end mt-3">
+  <button class="btn btn-secondary me-2" (click)="cancel.emit()">Annuler</button>
+
+  <button class="btn btn-primary" [disabled]="loading || cart.length === 0" (click)="submit()">
+    <i class="fa-solid fa-box-open"></i>
+
+    Valider sortie
+  </button>
+</div>

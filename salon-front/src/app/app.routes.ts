@@ -119,6 +119,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/stocks/stock-list/stock-list').then((m) => m.StockList),
       },
+      
+      {
+        path: 'stock/consommation',
+        loadComponent: () =>
+          import('./pages/stock-consumption-page/stock-consumption-page').then((m) => m.StockConsumptionPage),
+      },
 
       {
         path: 'stock/inventaires',

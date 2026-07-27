@@ -1,0 +1,7 @@
+<div class="d-flex justify-content-between mb-3">
+  <app-search-bar (searchChange)="search($event)"></app-search-bar>
+</div>
+
+<app-data-table [data]="data" [columns]="columns"></app-data-table>
+
+<app-pagination [page]="page" [totalPages]="totalPages" (pageChange)="changePage($event)"></app-pagination>

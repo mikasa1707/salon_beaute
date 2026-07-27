@@ -3,19 +3,12 @@
   <div class="sidebar-overlay" (click)="closeMobileMenu()"></div>
 }
 
-<aside
-  class="sidebar bg-dark text-white d-flex flex-column shadow-lg"
-  [class.collapsed]="isCollapsed"
-  [class.mobile-open]="isMobileOpen"
->
+<aside class="sidebar bg-dark text-white d-flex flex-column shadow-lg" [class.collapsed]="isCollapsed" [class.mobile-open]="isMobileOpen">
   <!-- HEADER -->
   <div class="border-bottom border-secondary-subtle p-3">
     <div class="d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center gap-3">
-        <div
-          class="bg-primary rounded-3 d-flex justify-content-center align-items-center"
-          style="width: 42px; height: 42px"
-        >
+        <div class="bg-primary rounded-3 d-flex justify-content-center align-items-center" style="width: 42px; height: 42px">
           <i class="fa-solid fa-scissors text-white"></i>
         </div>
 
@@ -41,8 +34,7 @@
           routerLink="/dashboard"
           routerLinkActive="active bg-primary text-white shadow-sm"
           class="nav-link rounded-3 px-3 py-3 d-flex gap-3 text-light"
-          title="Dashboard"
-        >
+          title="Dashboard">
           <i class="fa-solid fa-chart-line"></i>
           @if (!isCollapsed) {
             <span>Dashboard</span>
@@ -57,8 +49,7 @@
             'bg-primary text-white shadow-sm': isRouteActive('reservation'),
           }"
           (click)="toggleMenu('reservation')"
-          title="Réservations"
-        >
+          title="Réservations">
           <i class="fa-solid fa-calendar"></i>
           @if (!isCollapsed) {
             <span>Réservations</span>
@@ -75,8 +66,7 @@
                 [routerLinkActiveOptions]="{ exact: true }"
                 class="nav-link text-light submenu-item d-flex align-items-center"
                 [class.justify-content-center]="isCollapsed"
-                title="Calendrier"
-              >
+                title="Calendrier">
                 <i class="fa-solid fa-list" [class.me-2]="!isCollapsed"></i>
                 @if (!isCollapsed) {
                   <span>Calendrier</span>
@@ -89,8 +79,7 @@
                 routerLinkActive="bg-primary text-white shadow-sm"
                 class="nav-link text-light submenu-item d-flex align-items-center"
                 [class.justify-content-center]="isCollapsed"
-                title="Nouveau"
-              >
+                title="Nouveau">
                 <i class="fa-solid fa-plus" [class.me-2]="!isCollapsed"></i>
                 @if (!isCollapsed) {
                   <span>Nouveau</span>
@@ -106,8 +95,7 @@
           routerLink="/clients"
           routerLinkActive="active bg-primary text-white shadow-sm"
           class="nav-link rounded-3 px-3 py-3 d-flex gap-3 text-light"
-          title="Clients"
-        >
+          title="Clients">
           <i class="fa-solid fa-users"></i>
           @if (!isCollapsed) {
             <span>Clients</span>
@@ -122,8 +110,7 @@
             'bg-primary text-white shadow-sm': isRouteActive('prestations'),
           }"
           (click)="toggleMenu('prestations')"
-          title="Prestations"
-        >
+          title="Prestations">
           <i class="fa-solid fa-hand-sparkles"></i>
           @if (!isCollapsed) {
             <span>Prestations</span>
@@ -140,8 +127,7 @@
                 [routerLinkActiveOptions]="{ exact: true }"
                 class="nav-link text-light submenu-item d-flex align-items-center"
                 [class.justify-content-center]="isCollapsed"
-                title="Prestations"
-              >
+                title="Prestations">
                 <i class="fa-solid fa-star" [class.me-2]="!isCollapsed"></i>
                 @if (!isCollapsed) {
                   <span>Prestations</span>
@@ -154,8 +140,7 @@
                 routerLinkActive="bg-primary text-white shadow-sm"
                 class="nav-link text-light submenu-item d-flex align-items-center"
                 [class.justify-content-center]="isCollapsed"
-                title="Types"
-              >
+                title="Types">
                 <i class="fa-solid fa-tags" [class.me-2]="!isCollapsed"></i>
                 @if (!isCollapsed) {
                   <span>Types</span>
@@ -173,8 +158,7 @@
             'bg-primary text-white shadow-sm': isRouteActive('produits'),
           }"
           (click)="toggleMenu('produits')"
-          title="Produits"
-        >
+          title="Produits">
           <i class="fa-solid fa-box"></i>
           @if (!isCollapsed) {
             <span>Produits</span>
@@ -191,8 +175,7 @@
                 [routerLinkActiveOptions]="{ exact: true }"
                 class="nav-link text-light submenu-item d-flex align-items-center"
                 [class.justify-content-center]="isCollapsed"
-                title="Produits"
-              >
+                title="Produits">
                 <i class="fa-solid fa-box-open" [class.me-2]="!isCollapsed"></i>
                 @if (!isCollapsed) {
                   <span>Produits</span>
@@ -205,8 +188,7 @@
                 routerLinkActive="bg-primary text-white shadow-sm"
                 class="nav-link text-light submenu-item d-flex align-items-center"
                 [class.justify-content-center]="isCollapsed"
-                title="Configuration"
-              >
+                title="Configuration">
                 <i class="fa-solid fa-gear" [class.me-2]="!isCollapsed"></i>
                 @if (!isCollapsed) {
                   <span>Configuration</span>
@@ -224,8 +206,7 @@
             'bg-primary text-white shadow-sm': isRouteActive('stock'),
           }"
           (click)="toggleMenu('stock')"
-          title="Stock"
-        >
+          title="Stock">
           <i class="fa-solid fa-boxes-stacked"></i>
           @if (!isCollapsed) {
             <span>Stock</span>
@@ -242,8 +223,7 @@
                 [routerLinkActiveOptions]="{ exact: true }"
                 class="nav-link text-light submenu-item d-flex align-items-center"
                 [class.justify-content-center]="isCollapsed"
-                title="Stock"
-              >
+                title="Stock">
                 <i class="fa-solid fa-cubes" [class.me-2]="!isCollapsed"></i>
                 @if (!isCollapsed) {
                   <span>Stock</span>
@@ -256,8 +236,7 @@
                 routerLinkActive="bg-primary text-white shadow-sm"
                 class="nav-link text-light submenu-item d-flex align-items-center"
                 [class.justify-content-center]="isCollapsed"
-                title="Inventaires"
-              >
+                title="Inventaires">
                 <i class="fa-solid fa-clipboard-list" [class.me-2]="!isCollapsed"></i>
                 @if (!isCollapsed) {
                   <span>Inventaires</span>
@@ -270,11 +249,24 @@
                 routerLinkActive="bg-primary text-white shadow-sm"
                 class="nav-link text-light submenu-item d-flex align-items-center"
                 [class.justify-content-center]="isCollapsed"
-                title="Transfert"
-              >
+                title="Transfert">
                 <i class="fa-solid fa-arrow-right-arrow-left" [class.me-2]="!isCollapsed"></i>
                 @if (!isCollapsed) {
                   <span>Transfert</span>
+                }
+              </a>
+            </li>
+            <li>
+              <a
+                routerLink="/stock/consommation"
+                routerLinkActive="bg-primary text-white shadow-sm"
+                [routerLinkActiveOptions]="{ exact: true }"
+                class="nav-link text-light submenu-item d-flex align-items-center"
+                [class.justify-content-center]="isCollapsed"
+                title="Consommations">
+                <i class="fa-solid fa-cubes" [class.me-2]="!isCollapsed"></i>
+                @if (!isCollapsed) {
+                  <span>Consommations</span>
                 }
               </a>
             </li>
@@ -284,53 +276,15 @@
 
       <li>
         <a
-          class="nav-link rounded-3 px-3 py-3 d-flex gap-3 text-light sidebar-item"
-          [ngClass]="{
-            'bg-primary text-white shadow-sm': isRouteActive('ventes'),
-          }"
-          (click)="toggleMenu('ventes')"
-          title="Ventes"
-        >
+          routerLink="/ventes"
+          routerLinkActive="active bg-primary text-white shadow-sm"
+          class="nav-link rounded-3 px-3 py-3 d-flex gap-3 text-light"
+          title="Ventes">
           <i class="fa-solid fa-cart-shopping"></i>
           @if (!isCollapsed) {
             <span>Ventes</span>
-            <i class="fa-solid fa-angle-down ms-auto" [class.rotate]="isMenuOpen('ventes')"></i>
           }
         </a>
-
-        @if (isMenuOpen('ventes')) {
-          <ul class="nav flex-column mt-2 submenu" [class.ms-4]="!isCollapsed">
-            <li>
-              <a
-                routerLink="/ventes"
-                routerLinkActive="bg-primary text-white shadow-sm"
-                [routerLinkActiveOptions]="{ exact: true }"
-                class="nav-link text-light submenu-item d-flex align-items-center"
-                [class.justify-content-center]="isCollapsed"
-                title="Liste"
-              >
-                <i class="fa-solid fa-receipt" [class.me-2]="!isCollapsed"></i>
-                @if (!isCollapsed) {
-                  <span>Liste</span>
-                }
-              </a>
-            </li>
-            <li>
-              <a
-                routerLink="/ventes/checkout"
-                routerLinkActive="bg-primary text-white shadow-sm"
-                class="nav-link text-light submenu-item d-flex align-items-center"
-                [class.justify-content-center]="isCollapsed"
-                title="Checkout"
-              >
-                <i class="fa-solid fa-cash-register" [class.me-2]="!isCollapsed"></i>
-                @if (!isCollapsed) {
-                  <span>Checkout</span>
-                }
-              </a>
-            </li>
-          </ul>
-        }
       </li>
 
       <li>
@@ -340,8 +294,7 @@
             'bg-primary text-white shadow-sm': isRouteActive('registre'),
           }"
           (click)="toggleMenu('registre')"
-          title="Cash regiter"
-        >
+          title="Cash regiter">
           <i class="fa-solid fa-sack-dollar"></i>
           @if (!isCollapsed) {
             <span>Cash Regiter</span>
@@ -358,8 +311,7 @@
                 [routerLinkActiveOptions]="{ exact: true }"
                 class="nav-link text-light submenu-item d-flex align-items-center"
                 [class.justify-content-center]="isCollapsed"
-                title="Caisses"
-              >
+                title="Caisses">
                 <i class="fa-solid fa-cash-app" [class.me-2]="!isCollapsed"></i>
                 @if (!isCollapsed) {
                   <span>Caisses</span>
@@ -373,8 +325,7 @@
                 [routerLinkActiveOptions]="{ exact: true }"
                 class="nav-link text-light submenu-item d-flex align-items-center"
                 [class.justify-content-center]="isCollapsed"
-                title="Caisses"
-              >
+                title="Caisses">
                 <i class="fa-solid fa-timeline" [class.me-2]="!isCollapsed"></i>
                 @if (!isCollapsed) {
                   <span>Sessions</span>
@@ -390,8 +341,7 @@
           routerLink="/facturations"
           routerLinkActive="active bg-primary text-white shadow-sm"
           class="nav-link rounded-3 px-3 py-3 d-flex gap-3 text-light"
-          title="Factures"
-        >
+          title="Factures">
           <i class="fa-solid fa-file-invoice-dollar"></i>
           @if (!isCollapsed) {
             <span>Factures</span>
@@ -404,11 +354,10 @@
           routerLink="/caisse"
           routerLinkActive="active bg-primary text-white shadow-sm"
           class="nav-link rounded-3 px-3 py-3 d-flex gap-3 text-light"
-          title="Caisse"
-        >
+          title="POS">
           <i class="fa-solid fa-cash-register"></i>
           @if (!isCollapsed) {
-            <span>Caisse</span>
+            <span>POS</span>
           }
         </a>
       </li>
@@ -418,8 +367,7 @@
           routerLink="/personnels"
           routerLinkActive="active bg-primary text-white shadow-sm"
           class="nav-link rounded-3 px-3 py-3 d-flex gap-3 text-light"
-          title="Personnel"
-        >
+          title="Personnel">
           <i class="fa-solid fa-user-tie"></i>
           @if (!isCollapsed) {
             <span>Personnel</span>

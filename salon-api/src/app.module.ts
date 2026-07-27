@@ -34,6 +34,7 @@ import { PrestationsRecettesModule } from './prestations-recettes/prestations-re
 import { UnitesMesureModule } from './unites-mesure/unites-mesure.module';
 import { StockConsumptionModule } from './stocks/stock-consumption.module';
 import { CashMovementModule } from './cash-movements/cash-movements.module';
+import { StockConsumptionsModule } from './stock-consumptions/stock-consumptions.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { CashMovementModule } from './cash-movements/cash-movements.module';
     UnitesMesureModule,
     StockConsumptionModule,
     CashMovementModule,
+    StockConsumptionsModule,
   ],
 
   controllers: [AppController],
