@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 
 import { PrintDocument } from '../models/print-document';
-import { ExcelRendererService } from './excel-renderer';
-import { HtmlRendererService } from './html-renderer';
 import { PdfRendererService } from './pdf-renderer';
 
 @Injectable({
@@ -10,9 +8,9 @@ import { PdfRendererService } from './pdf-renderer';
 })
 export class PrintService {
   constructor(
-    private readonly htmlRenderer: HtmlRendererService,
+    private readonly htmlRenderer: html,
     private readonly pdfRenderer: PdfRendererService,
-    private readonly excelRenderer: ExcelRendererService
+    private readonly excelRenderer: rxe
   ) {}
 
   preview(document: PrintDocument) {
