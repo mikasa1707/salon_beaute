@@ -1,42 +1,37 @@
-import { ChangeDetectorRef, Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FormField } from '../../../core/models/form-field';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { ProduitUnite } from '../../../core/models/produit-unite';
 import { ProduitUniteApi } from '../../../core/services/produit-unite-api';
 import { ToastService } from '../../../core/services/toast';
-import { ProduitUnite } from '../../../core/models/produit-unite';
-import { StockConsumptionApi } from '../../../core/services/stock-consumption-api.ts';
-import { PosCartComponent } from '../../../shared/components/pos/pos-cart/pos-cart';
-import { CommonModule } from '@angular/common';
-import { VenteProduit } from '../../../core/models/vente-produit';
 import { StockProductGrid } from '../../../shared/components/stock/stock-product-grid/stock-product-grid';
+import { StockCart } from '../../../shared/components/stock/stock-cart/stock-cart';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
+import { StockConsumptionApi } from '../../../core/services/stock-consumption-api.ts';
+import { StockConsumption } from '../../../core/models/stock-consumption';
 
 @Component({
   selector: 'app-stock-consumption-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PosCartComponent, StockProductGrid, PaginationComponent],
+  imports: [CommonModule, ReactiveFormsModule, StockProductGrid, StockCart, PaginationComponent],
   templateUrl: './stock-consumption-form.html',
 })
 export class StockConsumptionForm implements OnInit {
-  @Output()
-  saved = new EventEmitter<any>();
+  @Output() saved = new EventEmitter<any>();
 
-  @Output()
-  cancel = new EventEmitter<void>();
+  @Output() cancel = new EventEmitter<void>();
+
+  @Input() editData?: StockConsumption;
 
   form!: FormGroup;
-  fields: FormField[] = [];
   loading = false;
+  produitUnites: ProduitUnite[] = [];
+  cart: ProduitUnite[] = [];
   page = 1;
   limit = 12;
   total = 0;
   totalPages = 0;
-  produitUnites: ProduitUnite[] = [];
-  items: ProduitUnite[] = [];
-  cart: VenteProduit[] = [];
-
-  search = '';
-  selectedProduit?: ProduitUnite;
+  searchValue = '';
 
   constructor(
     private readonly fb: FormBuilder,
@@ -46,7 +41,7 @@ export class StockConsumptionForm implements OnInit {
     private readonly cdr: ChangeDetectorRef
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.form = this.fb.group({
       motif: ['', Validators.required],
     });
@@ -54,54 +49,56 @@ export class StockConsumptionForm implements OnInit {
     this.loadProduits();
   }
 
-  selectProduit(produit: ProduitUnite) {
-    this.selectedProduit = produit;
+  loadProduits() {
+    this.produitUniteApi.findAllNoneCommerce(this.page, this.limit, this.searchValue).subscribe({
+      next: res => {
+        this.produitUnites = res.data;
+        this.total = res.total;
+        this.totalPages = res.totalPages;
+        if (this.editData) {
+          this.initEdit();
+        }
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  initEdit() {
+    if (!this.editData) {
+      return;
+    }
 
     this.form.patchValue({
-      produit_unite_id: produit.id,
+      motif: this.editData.motif,
     });
+
+    this.cart = this.editData.items.map(item => ({
+      id: item.produitUnite.id,
+      nom: item.produitUnite.nom,
+      code: item.produitUnite.code,
+      conversion: item.produitUnite.conversion,
+      uniteMesure: item.produitUnite.uniteMesure,
+      stock: item.produitUnite.stock,
+      prix: item.produitUnite.prix,
+      stock_minimum: item.produitUnite.stock_minimum,
+      couleur: item.produitUnite.couleur,
+      actif: true,
+      produit_id: item.produitUnite.produit_id,
+      unite_mesure_id: item.produitUnite.unite_mesure_id,
+      unites: item.produitUnite.unites,
+      produit: item.produitUnite.produit,
+      quantite: item.quantite,
+    }));
+
+    // IMPORTANT
+    // clone pour déclencher Angular
+    this.cart = [...this.cart];
   }
 
-  isSelected(id: number) {
-    return this.selectedProduit?.id === id;
-  }
-
-  loadProduits() {
-    this.produitUniteApi.findAll(this.page, this.limit, this.search, false).subscribe(res => {
-      this.produitUnites = res.data;
-      this.total = res.total;
-      this.totalPages = res.totalPages;
-
-      this.cdr.detectChanges();
-    });
-  }
-
-  initFields() {
-    this.fields = [
-      {
-        key: 'produit_unite_id',
-        label: 'Produit',
-        type: 'select',
-        required: true,
-        options: this.produitUnites,
-        optionLabel: 'nom',
-        optionValue: 'id',
-      },
-
-      {
-        key: 'quantite',
-        label: 'Quantité',
-        type: 'number',
-        required: true,
-      },
-
-      {
-        key: 'motif',
-        label: 'Motif',
-        type: 'textarea',
-        required: true,
-      },
-    ];
+  search(value: string) {
+    this.searchValue = value;
+    this.page = 1;
+    this.loadProduits();
   }
 
   changePage(page: number) {
@@ -109,41 +106,43 @@ export class StockConsumptionForm implements OnInit {
     this.loadProduits();
   }
 
-  changeLimit(newLimit: number) {
-    this.limit = newLimit;
-    this.page = 1; // 💡 Sécurité : On revient à la page 1 si la taille d'affichage change
-    this.loadProduits();
-  }
-
-  searchProduit(value: string) {
-    this.search = value;
-
+  changeLimit(limit: number) {
+    this.limit = limit;
     this.page = 1;
-
     this.loadProduits();
   }
 
-  removeProduct(id: number) {
-    this.cart = this.cart.filter(item => item.produitUnite?.id !== id);
+  addProduct(product: ProduitUnite) {
+    const exist = this.cart.find(x => x.id === product.id);
+
+    if (exist) {
+      const current = exist.quantite ?? 0;
+
+      if (current >= product.stock) {
+        this.toast.warning(`Stock maximum atteint pour ${product.nom}`);
+        return;
+      }
+
+      exist.quantite = current + 1;
+      this.cart = [...this.cart];
+      return;
+    }
+
+    this.cart = [
+      ...this.cart,
+      {
+        ...product,
+        quantite: 1,
+      },
+    ];
   }
 
-  updateQuantity(event: { item: VenteProduit; quantite: number }) {
-    const item = event.item;
+  removeProduct(item: ProduitUnite) {
+    this.cart = this.cart.filter(x => x.id !== item.id);
+  }
 
-    item.quantite = 1;
-    if (item.produitUnite && event.quantite > item.produitUnite?.stock) {
-      item.quantite = item.produitUnite?.stock;
-      return;
-    }
-
-    if (event.quantite < 1) {
-      item.quantite = 1;
-      return;
-    }
-
-    item.quantite = event.quantite;
-
-    item.total = Number(item.produitUnite?.prix) * item.quantite;
+  quantityChanged() {
+    this.cart = [...this.cart];
   }
 
   submit() {
@@ -155,51 +154,25 @@ export class StockConsumptionForm implements OnInit {
 
     this.loading = true;
 
-    const data = {
+    const payload = {
       motif: this.form.value.motif,
-
       items: this.cart.map(item => ({
-        produitUniteId: item.produitUnite?.id,
-        quantite: Number(item.quantite),
+        produitUniteId: item.id,
+        quantite: Number(item.quantite ?? 0),
       })),
     };
 
-    this.api.create(data).subscribe({
+    const request = this.editData ? this.api.update(this.editData.id, payload) : this.api.create(payload);
+    request.subscribe({
       next: res => {
-        this.loading = false;
-
-        this.toast.success('Consommation enregistrée');
-
+        this.toast.success(this.editData ? 'Consommation modifiée' : 'Consommation enregistrée');
         this.cart = [];
-
         this.form.reset();
-
         this.saved.emit(res);
       },
-
       error: () => {
-        this.loading = false;
-
-        this.toast.error('Erreur lors de la consommation');
+        this.toast.error('Erreur sauvegarde consommation');
       },
     });
-  }
-
-  addProduct(product: ProduitUnite) {
-    const exist = this.cart.find(x => x.produitUnite?.id === product.id);
-
-    if (exist) {
-      exist.quantite++;
-      exist.total = exist.quantite * Number(exist.prix);
-      return;
-    }
-
-    this.cart.push({
-      produitUnite: product,
-      label: product.nom,
-      prix: product.prix,
-      quantite: 1,
-      total: Number(product.prix),
-    } as VenteProduit);
   }
 }

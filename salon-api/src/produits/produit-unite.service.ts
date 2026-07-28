@@ -124,6 +124,76 @@ export class ProduitUniteService {
     };
   }
 
+  async getAllNoneCommerce(
+    page = 1,
+    limit = 10,
+    search = '',
+    typeProduitId = '',
+  ) {
+    const qb = this.repo
+      .createQueryBuilder('pu')
+      .leftJoinAndSelect('pu.produit', 'produit')
+      .leftJoinAndSelect('produit.typeProduit', 'typeProduit')
+      .where('pu.actif = :actif', { actif: true })
+      .andWhere('typeProduit.isCommercialisable = false');
+
+    // Recherche
+    if (search.trim()) {
+      qb.andWhere(
+        new Brackets((qb) => {
+          qb.where('pu.nom LIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('produit.nom LIKE :search', {
+              search: `%${search}%`,
+            })
+            .orWhere("CONCAT(produit.nom, ' ', pu.nom) LIKE :search", {
+              search: `%${search}%`,
+            });
+        }),
+      );
+    }
+
+    // Filtre multi type
+    if (typeProduitId) {
+      const ids = typeProduitId
+        .split(',')
+        .map((id) => Number(id))
+        .filter((id) => !isNaN(id));
+
+      if (ids.length) {
+        qb.andWhere('typeProduit.id IN (:...ids)', {
+          ids,
+        });
+      }
+    }
+
+    qb.orderBy('typeProduit.id', 'ASC')
+      .addOrderBy('produit.nom', 'ASC')
+      .addOrderBy('pu.nom', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    const produits = data.map((produit) => ({
+      ...produit,
+      stockTotal: this.getTotalStock(produit),
+      isLowStock: this.isLowStock(produit),
+      label: produit.nom,
+      uniteLabel: `${produit.conversion} ${produit.unites}`,
+      couleur: produit.produit?.typeProduit?.color ?? '#6c757d',
+    }));
+
+    return {
+      data: produits,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
   async findAll(produitId: number, page = 1, limit = 10, search = '') {
     const [data, total] = await this.repo.findAndCount({
       where: [

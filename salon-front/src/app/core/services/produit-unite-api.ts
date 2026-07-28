@@ -19,15 +19,25 @@ export class ProduitUniteApi {
       params = params.set('search', search.trim());
     }
 
-    // if (isCommercialisable) {
-    //   params = params.set('isCommercialisable', isCommercialisable);
-    // }
-
     if (filter) {
       params = params.set('typeProduitId', filter);
     }
 
     return this.http.get<any>(`${this.api}/unites`, { params });
+  }
+
+  findAllNoneCommerce(page = 1, limit = 16, search = '', filter?: number | null): Observable<any> {
+    let params = new HttpParams().set('page', page).set('limit', limit);
+
+    if (search.trim()) {
+      params = params.set('search', search.trim());
+    }
+
+    if (filter) {
+      params = params.set('typeProduitId', filter);
+    }
+
+    return this.http.get<any>(`${this.api}/unites/no`, { params });
   }
 
   findbyProduit(produitId: number, page = 1, limit = 10, search = '') {

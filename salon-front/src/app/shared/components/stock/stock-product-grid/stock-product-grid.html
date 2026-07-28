@@ -1,24 +1,31 @@
 <div class="row g-3">
   @for (produit of produits; track produit.id) {
     <div class="col-md-4">
-      <div class="card h-100 product-card" (click)="add.emit(produit)">
-        <div class="card-body">
-          <h6 class="fw-bold">
-            {{ produit.nom }}
-          </h6>
-
-          <div class="mt-2">
+      <button
+        type="button"
+        class="btn btn-secondary product-card w-100 p-3 position-relative d-flex flex-column justify-content-center align-items-center"
+        [class.stock-low]="(produit.stock < produit.stock_minimum) && (produit.stock ?? 0) > 0"
+        [disabled]="(produit.stock ?? 0) <= 0"
+        style="height: 120px;"
+        (click)="addTocart(produit)">
+        <div class="fw-bold text-center">
+          {{ produit.nom }}
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-2 w-100">
+          <small class="text-dark">
             Stock :
+            <strong>{{ produit.stock }}</strong>
+          </small>
 
-            <span class="badge bg-success">
-              {{ produit.stock }}
-              <small class="">
-                {{ produit.unites }}
-              </small>
-            </span>
+          <div class="d-flex align-items-center gap-1">
+            @if ((produit.stock < produit.stock_minimum) && (produit.stock ?? 0) > 0) {
+              <span class="dark-icon" title="Stock faible">
+                <i class="fa-solid fa-triangle-exclamation text-dark"></i>
+              </span>
+            }
           </div>
         </div>
-      </div>
+      </button>
     </div>
   }
 </div>

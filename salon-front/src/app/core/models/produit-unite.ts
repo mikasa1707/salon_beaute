@@ -11,6 +11,7 @@ export interface ProduitUnite {
     symbole: string;
   };
   stock: number;
+  quantite?: number;
   prix: number;
   stock_minimum: number;
   couleur: string;

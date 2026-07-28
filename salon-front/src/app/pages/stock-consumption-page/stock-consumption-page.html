@@ -1,21 +1,65 @@
-<app-page-header title="Consommation stock" subtitle="Sortie des produits non commercialisables" icon="fa-solid fa-box-open"></app-page-header>
+<app-page-header title="Consommation stock" subtitle="Sortie des produits non commercialisables" icon="fa-solid fa-box-open">
+  <button class="btn btn-primary" (click)="openForm()">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+</app-page-header>
 
-<div class="card shadow-sm">
-  <div class="card-header d-flex justify-content-between">
-    <span class="fw-bold">Historique consommation</span>
+<div class="row g-3">
+  <!-- HISTORIQUE -->
 
-    <button class="btn btn-primary" (click)="openForm()">
-      <i class="fa-solid fa-plus"></i>
-
-      Nouvelle consommation
-    </button>
+  <div class="col-lg-5">
+    <app-stock-consumption-list [refresh]="refresh" (selected)="selectConsumption($event)"></app-stock-consumption-list>
   </div>
 
-  <div class="card-body">
-    <app-stock-consumption-list [refresh]="refresh"></app-stock-consumption-list>
+  <!-- DETAIL -->
+
+  <div class="col-lg-7">
+    <div>
+      <strong>Détail consommation</strong>
+
+      @if (selected) {
+        <span class="ms-2 text-muted">
+          {{ selected.numero }}
+        </span>
+      }
+    </div>
+
+    @if (selected) {
+      <div class="p-3">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <strong>Motif :</strong>
+
+            {{ selected.motif }}
+          </div>
+
+          <div class="col-md-6">
+            <strong>Date :</strong>
+
+            {{ selected.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+          </div>
+        </div>
+      </div>
+
+      <app-data-table [data]="detailData" [columns]="detailColumns" [page]="detailPage" [totalPages]="detailTotalPages" [canAction]="false"></app-data-table>
+
+      <app-pagination
+        [page]="detailPage"
+        [totalPages]="detailTotalPages"
+        [total]="detailTotal"
+        [limit]="detailLimit"
+        [showLimit]="false"
+        (pageChange)="changeDetailPage($event)"></app-pagination>
+    } @else {
+      <div class="text-center text-muted py-5">
+        <i class="fa-solid fa-box-open fa-2x mb-3"></i>
+
+        <p>Sélectionnez une consommation</p>
+      </div>
+    }
   </div>
 </div>
 
 <app-modal size="xl" title="Nouvelle consommation" [show]="showForm" (closed)="closeForm()">
-  <app-stock-consumption-form (saved)="saved()" (cancel)="closeForm()"></app-stock-consumption-form>
+  <app-stock-consumption-form (saved)="saved()" (cancel)="closeForm()" [editData]="editConsumption"></app-stock-consumption-form>
 </app-modal>

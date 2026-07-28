@@ -2,6 +2,15 @@
   <app-search-bar (searchChange)="search($event)"></app-search-bar>
 </div>
 
-<app-data-table [data]="data" [columns]="columns"></app-data-table>
+<app-data-table
+  [data]="data"
+  [columns]="columns"
+  [loading]="loading"
+  [page]="page"
+  [totalPages]="totalPages"
+  [showViewButton]="true"
+  (view)="view($event)"
+  (edit)="edit($event)"
+  (delete)="archive($event)"></app-data-table>
 
-<app-pagination [page]="page" [totalPages]="totalPages" (pageChange)="changePage($event)"></app-pagination>
+<app-pagination [page]="page" [totalPages]="totalPages" [total]="total" [limit]="limit" [showLimit]="false" (pageChange)="changePage($event)"></app-pagination>

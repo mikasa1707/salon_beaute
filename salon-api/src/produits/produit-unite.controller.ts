@@ -57,6 +57,28 @@ export class ProduitUniteController {
     );
   }
 
+  @Get('/unites/no')
+  @Roles(
+    PersonnelRole.RECEPTION,
+    PersonnelRole.ADMIN,
+    PersonnelRole.RESPONSABLE,
+    PersonnelRole.COIFFEUR,
+    PersonnelRole.ESTHETICIEN,
+  )
+  findAllNoneCommerce(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('typeProduitId') typeProduitId?: string,
+  ) {
+    return this.produitsService.getAllNoneCommerce(
+      page ? +page : 1,
+      limit ? +limit : 10,
+      search || '',
+      typeProduitId || '',
+    );
+  }
+
   @Get(':id/unites')
   @Roles(
     PersonnelRole.RECEPTION,

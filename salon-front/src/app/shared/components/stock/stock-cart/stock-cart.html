@@ -1,0 +1,45 @@
+<div class="card shadow-sm">
+  <div class="card-header">
+    <strong>Produits sélectionnés</strong>
+  </div>
+
+  <div class="card-body">
+    @if (cart.length === 0) {
+      <div class="text-center text-muted py-4">Aucun produit sélectionné</div>
+    }
+
+    @for (item of cart; track item.id) {
+      <div class="border rounded p-2 mb-2">
+        <div class="fw-bold">
+          {{ item.nom }}
+        </div>
+
+        <small class="text-muted">
+          Stock :
+          {{ item.stock }}
+          {{ item.unites }}
+        </small>
+
+        <div class="d-flex align-items-center justify-content-between mt-2">
+          <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary" (click)="decrease(item)">
+              <i class="fa-solid fa-minus"></i>
+            </button>
+
+            <button class="btn btn-sm btn-light" disabled>
+              {{ item.quantite }}
+            </button>
+
+            <button class="btn btn-sm btn-outline-secondary" (click)="increase(item)">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+
+          <button class="btn btn-sm btn-outline-danger" (click)="remove(item)">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

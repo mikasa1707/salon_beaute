@@ -1,9 +1,10 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataTableComponent } from '../../../shared/components/data-table/data-table';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar';
 import { TableColumn } from '../../../core/models/table-column';
+import { StockConsumption } from '../../../core/models/stock-consumption';
 import { StockConsumptionApi } from '../../../core/services/stock-consumption-api.ts';
 
 @Component({
@@ -13,48 +14,50 @@ import { StockConsumptionApi } from '../../../core/services/stock-consumption-ap
   templateUrl: './stock-consumption-list.html',
 })
 export class StockConsumptionList implements OnInit, OnChanges {
-  @Input()
-  refresh = 0;
+  @Input() refresh = 0;
+
+  @Output() selected = new EventEmitter<StockConsumption>();
+  @Output() editConsumption = new EventEmitter<StockConsumption>();
 
   data: any[] = [];
-
   page = 1;
   limit = 10;
-
   total = 0;
   totalPages = 0;
-
+  loading = false;
   searchValue = '';
 
   columns: TableColumn[] = [
+    // {
+    //   field: 'numero',
+    //   label: 'N°',
+    //   type: 'text',
+    // },
+    // {
+    //   field: 'motif',
+    //   label: 'Motif',
+    //   type: 'text',
+    // },
+    // {
+    //   field: 'createdAt',
+    //   label: 'Date',
+    //   type: 'datehour',
+    // },
     {
-      field: 'produit.nom',
-      label: 'Produit',
+      field: 'numero',
+      label: 'N°',
       type: 'text',
+      
     },
-
-    {
-      field: 'produitUnite.nom',
-      label: 'Unité',
-      type: 'text',
-    },
-
-    {
-      field: 'quantite',
-      label: 'Quantité',
-      type: 'number',
-    },
-
     {
       field: 'motif',
       label: 'Motif',
       type: 'text',
     },
-
     {
       field: 'createdAt',
       label: 'Date',
-      type: 'date',
+      type: 'datehour',
     },
   ];
 
@@ -63,26 +66,49 @@ export class StockConsumptionList implements OnInit, OnChanges {
     private readonly cdr: ChangeDetectorRef
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.load();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['refresh']) {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['refresh'] && !changes['refresh'].firstChange) {
       this.load();
     }
   }
 
   load() {
-    this.api.findAll(this.page, this.limit, this.searchValue).subscribe(res => {
-      this.data = res.data;
+    this.loading = true;
 
-      this.total = res.total;
+    this.api
+      .findAll(this.page, this.limit, this.searchValue)
 
-      this.totalPages = res.totalPages;
+      .subscribe({
+        next: res => {
+          this.data = res.data;
+          // this.data = res.data.map((item: StockConsumption) => ({
+          //   ...item,
 
-      this.cdr.detectChanges();
-    });
+          //   produitLabel: item.items
+          //     ?.map(x => x.produitUnite?.produit?.nom)
+          //     .filter(Boolean)
+          //     .join(', '),
+
+          //   quantiteTotal: item.items?.reduce((sum, x) => sum + Number(x.quantite), 0),
+          // }));
+
+          this.total = res.total;
+
+          this.totalPages = res.totalPages;
+
+          this.loading = false;
+
+          this.cdr.detectChanges();
+        },
+
+        error: () => {
+          this.loading = false;
+        },
+      });
   }
 
   search(value: string) {
@@ -97,5 +123,26 @@ export class StockConsumptionList implements OnInit, OnChanges {
     this.page = page;
 
     this.load();
+  }
+
+  view(item: any) {
+    this.selected.emit(item as StockConsumption);
+  }
+
+  edit(item: StockConsumption) {
+    this.editConsumption.emit(item);
+  }
+
+  archive(item: StockConsumption) {
+    if (!confirm('Archiver cette consommation ?')) {
+      return;
+    }
+
+    this.api
+      .archive(item.id)
+
+      .subscribe(() => {
+        this.load();
+      });
   }
 }

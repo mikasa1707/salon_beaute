@@ -32,4 +32,9 @@ export class StockConsumption {
     cascade: true,
   })
   items!: StockConsumptionItem[];
+
+  @Column({
+    default: true,
+  })
+  actif!: boolean;
 }

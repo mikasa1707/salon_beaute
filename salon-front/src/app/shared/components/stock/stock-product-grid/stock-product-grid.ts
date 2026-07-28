@@ -9,9 +9,11 @@ import { ProduitUnite } from '../../../../core/models/produit-unite';
   templateUrl: './stock-product-grid.html',
 })
 export class StockProductGrid {
-  @Input()
-  produits: ProduitUnite[] = [];
+  @Input() produits: ProduitUnite[] = [];
 
-  @Output()
-  add = new EventEmitter<ProduitUnite>();
+  @Output() add = new EventEmitter<ProduitUnite>();
+
+  addTocart(produit: ProduitUnite) {
+    this.add.emit(produit)
+  }
 }

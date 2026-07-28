@@ -1,20 +1,28 @@
 <div class="row g-3">
   <!-- PRODUITS -->
+
   <div class="col-lg-8">
-    <app-stock-product-grid [produits]="produitUnites" (add)="addProduct($event)"></app-stock-product-grid>
-    <app-pagination
-      [page]="page"
-      [totalPages]="totalPages"
-      [total]="total"
-      [limit]="limit"
-      [showLimit]="false"
-      (pageChange)="changePage($event)"
-      (limitChange)="changeLimit($event)"></app-pagination>
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <strong>Produits non commercialisables</strong>
+      </div>
+
+      <div class="card-body">
+        <input class="form-control mb-3" placeholder="Rechercher..." (input)="search($any($event.target).value)" />
+
+        <app-stock-product-grid [produits]="produitUnites" (add)="addProduct($event)" />
+      </div>
+
+      <div class="card-footer">
+        <app-pagination [page]="page" [totalPages]="totalPages" [total]="total" [limit]="limit" [showLimit]="false" (pageChange)="changePage($event)" />
+      </div>
+    </div>
   </div>
 
   <!-- PANIER -->
+
   <div class="col-lg-4">
-    <app-pos-cart></app-pos-cart>
+    <app-stock-cart [cart]="cart" (removeItem)="removeProduct($event)" (quantityChanged)="quantityChanged()" />
   </div>
 </div>
 
@@ -22,11 +30,15 @@
   <div class="card mt-3">
     <div class="card-header">
       <i class="fa-solid fa-note-sticky"></i>
-      Motif de sortie
+      Motif
     </div>
 
     <div class="card-body">
-      <textarea class="form-control" rows="3" formControlName="motif" placeholder="Ex: utilisation salon, serviette client..."></textarea>
+      <textarea class="form-control" rows="3" formControlName="motif" placeholder="Ex: produit utilisé en interne..."></textarea>
+
+      @if (form.get('motif')?.touched && form.get('motif')?.invalid) {
+        <div class="text-danger mt-1">Le motif est obligatoire</div>
+      }
     </div>
   </div>
 </form>
