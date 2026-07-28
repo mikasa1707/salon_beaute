@@ -31,19 +31,21 @@
 
         <li class="dropdown-item">
           Role:
-          <span class="badge bg-primary ms-1">
+          <span class="badge bg-primary fs-5 fw-bold">
             {{ user?.role }}
           </span>
         </li>
 
         <li><hr class="dropdown-divider" /></li>
-
+<!-- 
         <li class="dropdown-item">Profil</li>
-        <li class="dropdown-item">Paramètres</li>
+        <li class="dropdown-item">Paramètres</li> -->
 
         <li><hr class="dropdown-divider" /></li>
 
-        <li class="dropdown-item text-danger" (click)="onLogout()">Logout</li>
+        <li class="dropdown-item text-danger" style="cursor: pointer;" (click)="onLogout()">
+          <button class="btn btn-danger"> <i class="fa-solid fa-right-from-bracket"></i> Deconnexion </button>
+        </li>
       </ul>
     </div>
   </div>

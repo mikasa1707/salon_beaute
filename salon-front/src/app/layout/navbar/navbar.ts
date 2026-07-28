@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { AuthService } from '../../core/auth/auth';
 
 @Component({
   selector: 'app-navbar',
@@ -14,6 +15,11 @@ export class NavbarComponent {
   @Output() logout = new EventEmitter<void>();
 
   user: any;
+  constructor(private readonly auth: AuthService) {}
+
+  ngOnInit() {
+    this.user = this.auth.getUser();
+  }
 
   onToggleSidebar() {
     this.toggleSidebar.emit();

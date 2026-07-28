@@ -2,23 +2,23 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { environment } from '../../../environnements/environnement';
+import { tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private http = inject(HttpClient);
-  
+  private key = 'auth_user';
+  private readonly tokenKey = 'access_token';
+
   login(dto: any) {
-    this.api.login(this.form.value).subscribe({
-      next: res => {
-        localStorage.setItem('access_token', res.access_token);
-
-        this.auth.setUser(res.user);
-
-        return this.http.post(`${environment.apiUrl}/auth/login`, dto);
-      },
-    });
+    return this.http.post<any>(`${environment.apiUrl}/auth/login`, dto).pipe(
+      tap(res => {
+        localStorage.setItem(this.tokenKey, res.access_token);
+        this.setUser(res.user);
+      })
+    );
   }
 
   getToken() {
@@ -28,8 +28,6 @@ export class AuthService {
   logout() {
     localStorage.removeItem('token');
   }
-
-  private key = 'auth_user';
 
   getUser() {
     const data = localStorage.getItem(this.key);
