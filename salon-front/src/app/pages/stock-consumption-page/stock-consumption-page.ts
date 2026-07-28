@@ -8,7 +8,7 @@ import { TableColumn } from '../../core/models/table-column';
 import { StockConsumptionApi } from '../../core/services/stock-consumption-api.ts';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
 import { ModalComponent } from '../../shared/components/modal/modal';
-import { StockConsumptionForm } from "./stock-consumption-form/stock-consumption-form";
+import { StockConsumptionForm } from './stock-consumption-form/stock-consumption-form';
 
 @Component({
   selector: 'app-stock-consumption-page',
@@ -85,6 +85,7 @@ export class StockConsumptionPage {
 
   closeForm() {
     this.showForm = false;
+    this.loadDetails();
     this.editConsumption = undefined;
   }
 
@@ -95,6 +96,7 @@ export class StockConsumptionPage {
 
   saved() {
     this.closeForm();
+    this.loadDetails();
     this.refresh++;
   }
 }

@@ -85,23 +85,9 @@ export class StockConsumptionList implements OnInit, OnChanges {
       .subscribe({
         next: res => {
           this.data = res.data;
-          // this.data = res.data.map((item: StockConsumption) => ({
-          //   ...item,
-
-          //   produitLabel: item.items
-          //     ?.map(x => x.produitUnite?.produit?.nom)
-          //     .filter(Boolean)
-          //     .join(', '),
-
-          //   quantiteTotal: item.items?.reduce((sum, x) => sum + Number(x.quantite), 0),
-          // }));
-
           this.total = res.total;
-
           this.totalPages = res.totalPages;
-
           this.loading = false;
-
           this.cdr.detectChanges();
         },
 
@@ -113,15 +99,12 @@ export class StockConsumptionList implements OnInit, OnChanges {
 
   search(value: string) {
     this.searchValue = value;
-
     this.page = 1;
-
     this.load();
   }
 
   changePage(page: number) {
     this.page = page;
-
     this.load();
   }
 

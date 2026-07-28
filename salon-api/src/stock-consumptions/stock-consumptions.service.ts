@@ -189,10 +189,7 @@ export class StockConsumptionService {
   async update(id: number, dto: CreateStockConsumptionDto) {
     return this.dataSource.transaction(async (manager) => {
       const consumption = await manager.findOne(StockConsumption, {
-        where: {
-          id,
-        },
-
+        where: { id },
         relations: {
           items: {
             produitUnite: true,
@@ -204,25 +201,32 @@ export class StockConsumptionService {
         throw new BadRequestException('Consommation introuvable');
       }
 
-      // RESTAURATION STOCK
-
+      //
+      // 1. Restaurer le stock
+      //
       for (const oldItem of consumption.items) {
-        oldItem.produitUnite.stock =
-          Number(oldItem.produitUnite.stock) + Number(oldItem.quantite);
-
+        oldItem.produitUnite.stock += Number(oldItem.quantite);
         await manager.save(oldItem.produitUnite);
       }
 
-      // supprimer anciens détails
+      //
+      // 2. Supprimer les anciens détails
+      //
+      await manager.remove(consumption.items);
 
-      await manager.delete(StockConsumptionItem, {
-        consumption: {
-          id,
-        },
-      });
+      //
+      // 3. Vider le tableau mémoire
+      //
+      consumption.items = [];
 
-      // nouvelle consommation
+      //
+      // 4. Modifier le motif
+      //
+      consumption.motif = dto.motif;
 
+      //
+      // 5. Ajouter les nouveaux détails
+      //
       for (const item of dto.items) {
         const produit = await manager.findOne(ProduitUnite, {
           where: {
@@ -235,35 +239,32 @@ export class StockConsumptionService {
         }
 
         if (produit.stock < item.quantite) {
-          throw new BadRequestException(`Stock insuffisant ${produit.nom}`);
+          throw new BadRequestException(
+            `Stock insuffisant pour ${produit.nom}`,
+          );
         }
 
         produit.stock -= item.quantite;
-
         await manager.save(produit);
 
-        await manager.save(StockConsumptionItem, {
+        const detail = manager.create(StockConsumptionItem, {
           consumption,
-
           produitUnite: produit,
-
           quantite: item.quantite,
         });
+
+        await manager.save(detail);
+
+        consumption.items.push(detail);
 
         await manager.save(StockMovement, {
           produitUnite: produit,
-
           type: StockMovementType.OUT,
-
           quantite: item.quantite,
-
-          reference: `CONSO-MODIF-${consumption.numero}`,
-
+          reference: `CONSO-${consumption.numero}`,
           note: 'MODIFICATION_CONSOMMATION',
         });
       }
-
-      consumption.motif = dto.motif;
 
       return manager.save(consumption);
     });
@@ -281,7 +282,7 @@ export class StockConsumptionService {
       throw new BadRequestException('Consommation introuvable');
     }
 
-    consumption.actif = true;
+    consumption.actif = false;
 
     return this.repo.save(consumption);
   }

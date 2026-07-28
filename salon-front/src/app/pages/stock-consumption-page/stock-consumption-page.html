@@ -8,7 +8,7 @@
   <!-- HISTORIQUE -->
 
   <div class="col-lg-5">
-    <app-stock-consumption-list [refresh]="refresh" (selected)="selectConsumption($event)"></app-stock-consumption-list>
+    <app-stock-consumption-list [refresh]="refresh" (selected)="selectConsumption($event)" (editConsumption)="edit($event)"></app-stock-consumption-list>
   </div>
 
   <!-- DETAIL -->

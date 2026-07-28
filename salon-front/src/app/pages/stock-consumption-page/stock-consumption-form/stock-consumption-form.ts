@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ProduitUnite } from '../../../core/models/produit-unite';
@@ -16,7 +16,7 @@ import { StockConsumption } from '../../../core/models/stock-consumption';
   imports: [CommonModule, ReactiveFormsModule, StockProductGrid, StockCart, PaginationComponent],
   templateUrl: './stock-consumption-form.html',
 })
-export class StockConsumptionForm implements OnInit {
+export class StockConsumptionForm implements OnInit, OnChanges {
   @Output() saved = new EventEmitter<any>();
 
   @Output() cancel = new EventEmitter<void>();
@@ -47,6 +47,12 @@ export class StockConsumptionForm implements OnInit {
     });
 
     this.loadProduits();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['editData'] && changes['editData'].currentValue && this.produitUnites.length) {
+      this.initEdit();
+    }
   }
 
   loadProduits() {

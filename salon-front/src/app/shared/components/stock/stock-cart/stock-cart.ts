@@ -35,7 +35,7 @@ export class StockCart implements OnChanges {
       this.toast.warning(`Stock insuffisant pour ${item.nom} (disponible : ${item.stock})`);
       return;
     }
-    item.quantite = quantiteActuelle + 1;
+    item.quantite = +quantiteActuelle + 1;
     this.quantityChanged.emit();
   }
 

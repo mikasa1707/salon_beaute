@@ -1,13 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnInit,
-  Output,
-  SimpleChanges,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
@@ -50,7 +41,7 @@ export class ProduitForm implements OnChanges, OnInit {
     private readonly typeProduitService: TypeProduitApi,
     private readonly uniteMesureApi: UnitesMesureApi,
     private readonly toast: ToastService,
-    private readonly cdr: ChangeDetectorRef,
+    private readonly cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       nom: ['', Validators.required],
@@ -83,7 +74,7 @@ export class ProduitForm implements OnChanges, OnInit {
 
     this.uniteMesureApi.findAll(1, 1000).subscribe(res => {
       this.unitesMesure = res.data ?? res;
-      console.log(this.unitesMesure)
+      console.log(this.unitesMesure);
 
       this.buildFields();
     });
@@ -187,15 +178,20 @@ export class ProduitForm implements OnChanges, OnInit {
 
     const data = this.form.value;
 
-    const request = this.produit?.id
-      ? this.produitService.update(this.produit.id, data)
-      : this.produitService.create(data);
+    const request = this.produit?.id ? this.produitService.update(this.produit.id, data) : this.produitService.create(data);
 
     request.subscribe({
       next: result => {
         this.loading = false;
 
         this.toast.success(this.produit?.id ? 'Produit modifié' : 'Produit créé');
+        this.form.reset({
+          prix_achat: 0,
+
+          prix_vente: 0,
+
+          actif: true,
+        });
 
         this.saved.emit(result);
       },

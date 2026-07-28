@@ -142,11 +142,13 @@ export class ProduitUnites implements OnInit, OnDestroy, OnChanges {
   }
 
   openCreate() {
+    this.label = this.produit.nom;
     this.selected = undefined;
     this.showModal = true;
   }
 
   openEdit(unites: ProduitUnite) {
+    this.label = this.produit.nom;
     this.selected = unites;
     this.showModal = true;
   }
